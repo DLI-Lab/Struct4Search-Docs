@@ -1,4 +1,3 @@
-
 ---
 sidebar_position: 8
 title: 인덱싱
