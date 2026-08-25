@@ -14,7 +14,7 @@ Struct4Search에서 주요 데이터와 ID가 무엇을 가리키고, 서로 어
 | `d…` | 문서 | 문서 등록 | 모든 산출물의 소속 문서 |
 | `#p…#b…#e…` | 페이지 · 블록 · 요소 | [문서 파싱](../indexing/parsing.md) | 원문 위치 |
 | `fc_` | 원문 청크 | [원문 청킹](../indexing/chunking.md) | 원문 위치와 후속 단계 연결 |
-| `ruf_` | 원문 검색 단위 | 원문 청킹 | 색인 · 검색 · **답변 Citation** |
+| `ruf_` | 원문 검색 단위(unit_id) | 원문 청킹 | 색인 · 검색 · **답변 Citation** |
 | `e_` | Entity | [NER](../indexing/ner.md) | KG 구축 |
 | `kgtr_` | Triple | [KG 구축](../indexing/triple-kg.md) | 검색표현 생성 |
 | `rte_` | 검색표현 | [검색표현 생성](../indexing/retrieval-text.md) | 색인 · 검색, **Citation 불가** |
