@@ -5,57 +5,57 @@ title: 외부 의존
 
 # 외부 의존
 
-파이프라인을 돌리는 데 필요한 것들입니다.
+Struct4Search를 실행하는 데 필요한 외부 서비스, 모델과 주요 패키지를 정리합니다.
 
 ## 서비스
 
-| 서비스 | 쓰는 단계 | 없으면 |
+| 서비스 | 쓰는 단계 | 사용할 수 없으면 |
 |---|---|---|
-| MinerU | 문서 파싱의 스캔·복합 페이지 | 스캔 페이지가 있는 문서가 실패합니다 |
-| Qwen | Metadata 생성 · KG 구축 · 검색표현 생성 · 답변 | 해당 단계가 비어 나옵니다 |
-| 임베딩 서버 | 인덱싱 · 질의 처리 | 색인과 검색이 불가능합니다 |
-| OpenSearch | 인덱싱 · 검색 | 색인과 검색이 불가능합니다 |
-| PostgreSQL | KG 저장 | 그래프를 영속할 수 없습니다 |
-| Temporal | 실행 순서와 재개 | 중단된 실행을 이어받을 수 없습니다 |
+| MinerU | 문서 파싱의 스캔·복합 페이지 | 해당 페이지를 파싱할 수 없습니다 |
+| Qwen | Metadata 생성 · KG 구축 · 검색표현 생성 · 답변 | 해당 단계를 실행할 수 없습니다 |
+| 임베딩 서버 | 인덱싱 · 질의 처리 | 벡터 생성과 Dense 검색을 할 수 없습니다 |
+| OpenSearch | 인덱싱 · Hybrid 검색 · RRF 통합 | 색인과 검색을 할 수 없습니다 |
+| PostgreSQL | KG 저장 | 지식그래프를 저장할 수 없습니다 |
+| Temporal | 파이프라인 실행과 재개 | 워크플로 실행과 재개를 사용할 수 없습니다 |
 
-주소는 실행 프로파일과 `configs/services/cold-services.yaml`에 있습니다.
+서비스 주소와 실행 방법은 실행 프로파일과 `configs/services/cold-services.yaml`에서 관리합니다.
 
 ## 모델
 
-| 모델 | 쓰는 곳 |
+| 모델 | 쓰는 단계 |
 |---|---|
-| `pymupdf4llm` | 디지털 PDF 파싱 |
 | MinerU 2.5 Pro 1.2B | 스캔·복합 페이지 파싱 |
 | `urchade/gliner_multi-v2.1` | NER |
-| `nlpai-lab/KURE-v1` | 청킹 토큰 계산 |
-| Qwen 계열 | Metadata · KG · 검색표현 · 답변 |
-| `Qwen/Qwen3-Embedding-8B` | 임베딩 |
+| `nlpai-lab/KURE-v1` | 원문 청킹의 토큰 계산 |
+| Qwen 계열 | Metadata 생성 · KG 구축 · 검색표현 생성 · 답변 |
+| `Qwen/Qwen3-Embedding-8B` | 원문·검색표현·질의 임베딩 |
 
-NER 모델과 토크나이저는 revision까지 고정합니다. 가중치 위치는 환경변수로 지정합니다([설정과 환경 변수](configuration.md)).
+모델과 토크나이저는 지정된 버전을 사용하며, 모델 파일과 캐시 위치는 실행 환경에서 설정합니다([설정과 환경 변수](configuration.md)).
 
-## 파이썬 패키지
+## 주요 Python 패키지
 
 | 패키지 | 쓰는 곳 |
 |---|---|
-| `pydantic` | 설정 스키마 |
-| `PyYAML` | 프로파일 로드 |
-| `jsonschema` | 출력 Schema 검증 |
-| `networkx` | 지식그래프 중요도 계산 |
+| `pymupdf4llm` | 디지털 PDF 파싱 |
+| `pydantic` | 설정과 데이터 Schema |
+| `PyYAML` | 실행 프로파일 로드 |
+| `jsonschema` | 구조화된 출력 검증 |
+| `networkx` | 지식그래프 처리와 중요도 계산 |
 | `numpy` · `scipy` | 수치 계산 |
-| `psycopg` | PostgreSQL |
+| `psycopg` | PostgreSQL 연결 |
 | `requests` | HTTP 호출 |
-| `transformers` | 토크나이저 |
+| `transformers` | 모델·토크나이저 연동 |
 
-전체 목록과 버전 범위는 `pyproject.toml`에 있습니다. 모델 서버는 별도 환경에서 돌고 이 목록에 들어가지 않습니다.
+전체 패키지와 버전 범위는 `pyproject.toml`에서 확인할 수 있습니다. MinerU, Qwen과 임베딩 서버처럼 별도 프로세스로 실행되는 서비스의 환경은 별도로 관리합니다.
 
 ## 하드웨어
 
-GPU가 필요합니다. 파싱·NER·LLM·임베딩이 모두 GPU를 쓰고, 어느 서비스가 어느 GPU에 올라갈지는 서비스 정의에서 정합니다.
+문서 파싱, NER, LLM 처리와 임베딩 생성에는 GPU를 사용합니다. 각 서비스가 사용할 GPU와 실행 방식은 `configs/services/cold-services.yaml`에서 정의합니다.
 
-GLiNER는 별도 서비스가 아니라 파이프라인 프로세스 안에서 돌아 GPU 메모리를 직접 잡습니다. 다른 서비스와의 배치를 정할 때 함께 계산해야 합니다.
+GLiNER는 별도 서버가 아니라 파이프라인 프로세스 안에서 실행되므로 다른 GPU 서비스와 함께 사용할 때 메모리 사용량을 고려해야 합니다.
 
-## 오프라인 가정
+## 오프라인 실행
 
-모델 가중치와 토크나이저는 미리 받아 둔 스냅샷을 씁니다. 실행 중에 인터넷에서 새로 받지 않습니다.
+기본 구성에서는 필요한 모델과 토크나이저를 미리 준비한 상태에서 실행하며, 파이프라인 실행 중에 인터넷에서 새로 내려받지 않습니다.
 
-외부 API를 쓰는 경로는 선택 사항이며, 쓸 때만 `OPENAI_API_KEY`를 환경변수로 넣습니다. 기본 구성은 자체 GPU에서 도는 서버만 부릅니다.
+외부 API를 사용하는 구성은 선택 사항입니다. 필요한 경우에만 `OPENAI_API_KEY`와 같은 인증 정보를 환경변수로 전달합니다. 기본 구성은 자체 환경에서 실행되는 모델 서버를 사용합니다.
