@@ -1,0 +1,40 @@
+:root {
+  --ifm-color-primary: #1367a9;
+  --ifm-color-primary-dark: #115d98;
+  --ifm-color-primary-darker: #10598f;
+  --ifm-color-primary-darkest: #0d4976;
+  --ifm-color-primary-light: #1571ba;
+  --ifm-color-primary-lighter: #1677c3;
+  --ifm-color-primary-lightest: #238bd2;
+  --ifm-code-font-size: 92%;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #65b7f3;
+  --ifm-color-primary-dark: #42a6ef;
+  --ifm-color-primary-darker: #309dee;
+  --ifm-color-primary-darkest: #1284d5;
+}
+
+.markdown > h1:first-child {
+  letter-spacing: -0.03em;
+}
+
+.theme-doc-markdown table {
+  display: table;
+  width: 100%;
+}
+
+
+/* 넓은 표는 본문을 밀지 않고 자기 안에서 가로 스크롤한다. */
+.theme-doc-markdown .tableWrapper,
+.theme-doc-markdown table {
+  overflow-x: auto;
+}
+
+/* Mermaid — 좁은 도식을 억지로 늘리지 않고, 넓은 도식은 본문을 밀지 않는다.
+   글자가 읽히는 한계는 도식 자체의 자연 폭(≈1300px 이하)으로 지킨다. */
+.docusaurus-mermaid-container {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}

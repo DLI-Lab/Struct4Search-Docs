@@ -1,0 +1,9 @@
+# Docusaurus
+/node_modules
+/build
+/.docusaurus
+/.cache-loader
+
+# 편집 중 생성물
+*.log
+.DS_Store

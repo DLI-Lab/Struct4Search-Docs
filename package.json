@@ -1,0 +1,28 @@
+{
+  "name": "struct4search-documentation",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Struct4Search developer and research documentation",
+  "scripts": {
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve",
+    "clear": "docusaurus clear",
+    "check:mermaid": "node scripts/check-mermaid.mjs",
+    "verify": "npm run build && npm run check:mermaid"
+  },
+  "engines": {
+    "node": ">=20.0"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.1",
+    "@docusaurus/preset-classic": "3.10.1",
+    "@docusaurus/theme-mermaid": "3.10.1",
+    "@mermaid-js/layout-elk": "^0.1.9",
+    "clsx": "^2.1.1",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {}
+}
