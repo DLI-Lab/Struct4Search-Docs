@@ -15,14 +15,7 @@ title: API Reference
 | 형식 | `application/json`. 원본 파일 조회는 바이너리 응답 |
 | 인증 | 현재 없음 |
 | API 버전 | 경로 접두어 `/v1` |
-| Swagger UI | **현재 비활성** |
 | OpenAPI Schema | FastAPI 기본 경로 |
-
-:::warning Swagger UI가 켜져 있지 않습니다
-
-애플리케이션이 `docs_url=None`, `redoc_url=None`으로 만들어져 `/docs`와 `/redoc`이 응답하지 않습니다. 다른 포트에서 열리는 Swagger 화면이 있다면 이 구현의 것이 아니므로 명세로 쓰지 않습니다.
-
-:::
 
 ## API 목록
 
