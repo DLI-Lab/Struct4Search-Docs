@@ -5,7 +5,7 @@ title: 질의 처리
 
 # 질의 처리
 
-BM25 검색에는 질의 원문을 그대로 쓰고, Dense 검색을 위해 질의 임베딩 벡터를 만듭니다.
+사용자 질의 원문을 BM25 검색에 그대로 사용하고, Dense 검색에 사용할 질의 임베딩 벡터를 생성합니다.
 
 ## 입력과 출력
 
@@ -16,47 +16,48 @@ BM25 검색에는 질의 원문을 그대로 쓰고, Dense 검색을 위해 질�
 
 ```json
 {
-  "query_text": "온열 질환 의심자가 생기면 어떻게 하나요?", // BM25 검색에 그대로 사용
-  "query_vector": [0.0142, -0.0317, "... 4096차원 ..."]   // Dense 검색에 사용
+  "query_text": "온열 질환 의심자가 생기면 어떻게 하나요?",
+  "query_vector": [0.0142, -0.0317, "... 4096차원 ..."]
 }
 ```
 
-두 값 모두 저장하지 않습니다. 질의 하나가 처리되는 동안만 존재합니다.
+`query_text`는 BM25 검색에, `query_vector`는 Dense 검색에 사용합니다. 두 값은 질의를 처리하는 동안만 사용하며 별도로 저장하지 않습니다.
 
 ## 동작 방식
 
-1. 질의 원문을 손대지 않고 BM25 검색용으로 그대로 둡니다.
-2. 같은 질의를 임베딩 서버에 보내 벡터를 받습니다.
+1. 사용자 질의를 BM25 검색용 `query text`로 그대로 사용합니다.
+2. 같은 질의를 임베딩 서버에 보내 Dense 검색용 `query embedding`을 생성합니다.
 
-**질의를 다시 쓰지 않습니다.** 검색에 쓴 문장과 답변이 답한 질문이 달라지면 검색 지표와 QA 지표를 같은 질의에 귀속시킬 수 없기 때문입니다. 질의 표현과 문서 표현의 간극은 질의 쪽이 아니라 문서 쪽에서 [검색표현](../indexing/retrieval-text.md)으로 메웁니다.
+질의를 별도로 재작성하거나 확장하지 않습니다. 질의와 문서 사이의 표현 차이는 문서 인덱싱 단계에서 생성한 [검색표현](../indexing/retrieval-text.md)을 통해 보완합니다.
 
-벡터가 비었거나 숫자가 아니면 그 질의는 실패합니다. 부분 결과로 진행하지 않습니다.
+질의 임베딩을 생성하지 못하면 검색을 진행하지 않습니다.
 
 ### 환경변수
 
 | 환경변수명 | 기본 옵션 | 의미 |
 |---|---|---|
-| `index.embedding_url` | 서버 주소 | 질의를 벡터로 바꿀 임베딩 서버 |
-| `index.embedding_model` | `Qwen/Qwen3-Embedding-8B` | 임베딩 모델. 색인 때와 같아야 합니다 |
-| `index.dimension` | 4096 | 벡터 차원. 인덱스 매핑과 다르면 검색 요청이 거부됩니다 |
+| `index.embedding_url` | 서버 주소 | 질의를 벡터로 변환할 임베딩 서버 |
+| `index.embedding_model` | `Qwen/Qwen3-Embedding-8B` | 색인과 질의에 사용하는 임베딩 모델 |
+| `index.dimension` | 4096 | 임베딩 벡터 차원 |
 
-색인할 때와 **같은 모델과 차원**을 씁니다. 다르면 질의 벡터와 색인 벡터를 비교할 수 없습니다. 모델을 바꾸면 코퍼스 전체를 다시 색인해야 합니다([인덱싱](../indexing/opensearch.md)).
+질의와 색인에는 같은 임베딩 모델과 벡터 차원을 사용합니다. 임베딩 모델이나 차원을 변경하면 기존 색인과 호환되지 않으므로 코퍼스를 다시 색인해야 합니다([인덱싱](../indexing/opensearch.md)).
 
 ## 사용 또는 결과 확인
 
-질의 처리는 단독 실행 명령이 없습니다. 검색·답변 경로가 호출합니다.
+질의 처리는 검색·답변 파이프라인에서 자동으로 실행됩니다.
 
 | 확인할 것 | 정상 |
 |---|---|
-| `query_text` | 사용자가 보낸 문장과 같습니다 |
+| `query_text` | 사용자가 입력한 질의와 같습니다 |
+| `query_vector` | 정상적으로 생성되어 있습니다 |
 | 벡터 차원 | `index.dimension`과 같습니다 |
 
-차원이 다르면 다음 단계의 검색 요청이 거부됩니다.
+생성된 질의 원문과 임베딩 벡터는 다음 단계인 [Hybrid 검색](hybrid-search.md)에 전달됩니다.
 
 ## 코드 참조
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| 호출 순서 | `src/struct4search/query/service.py` · `DefaultQueryService.execute` |
-| 임베딩 호출 | `src/struct4search/adapters/search/opensearch/embedding.py` · `UrllibOpenAICompatibleEmbeddingPort` |
+| 질의 처리 | `src/struct4search/query/service.py` · `DefaultQueryService.execute` |
+| 임베딩 생성 | `src/struct4search/adapters/search/opensearch/embedding.py` · `UrllibOpenAICompatibleEmbeddingPort` |
 | 설정 주입 | `src/struct4search/bootstrap/composition.py` |
