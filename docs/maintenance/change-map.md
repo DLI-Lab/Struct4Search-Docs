@@ -5,34 +5,36 @@ title: 변경 지점 찾기
 
 # 변경 지점 찾기
 
-무엇을 바꾸려는지 정하면 어디를 고치고 무엇을 다시 돌려야 하는지 이 표에서 찾습니다.
+바꾸려는 항목에 따라 수정 위치와 다시 실행해야 하는 범위를 확인합니다.
 
 ## 목적별 변경 위치
 
-| 바꾸려는 것 | 위치 | 영향을 받는 단계 | 재처리·재색인 | 확인 |
+| 바꾸려는 것 | 위치 | 영향을 받는 단계 | 재처리·재색인 | 자세히 보기 |
 |---|---|---|---|---|
-| 파서·페이지 판정 | `configs/ingest-production.yaml` · `parser` | 문서 파싱부터 전부 | 전체 재처리 · 재색인 | [모델 교체](models.md) |
-| 청크 크기·오버랩 | `configs/ingest-production.yaml` · `chunking` | 원문 청킹부터 전부 | 전체 재처리 · 재색인 | [설정 수정](configuration.md) |
-| NER 모델·라벨 | `configs/ingest-production.yaml` · `ner` | NER 이후 전부 | 재처리 · 재색인 | [모델 교체](models.md) |
+| 파서·페이지 판정 | `configs/ingest-production.yaml` · `parser` | 문서 파싱 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
+| 청크 크기·오버랩 | `configs/ingest-production.yaml` · `chunking` | 원문 청킹 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
+| NER 모델·라벨 | `configs/ingest-production.yaml` · `ner` | NER 이후 | 재처리 · 재색인 | [모델 교체](models.md) |
 | Metadata 필드 | `src/struct4search/domain/metadata_fields.yaml` | Metadata 생성 이후 | 재처리 · 재색인 | [프롬프트와 규칙 수정](prompts.md) |
 | KG 묶기 기준 | `configs/ingest-production.yaml` · `triple` | KG 구축 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
-| 검색표현 생성 방식 | `configs/ingest-production.yaml` · `g2` | 검색표현 생성 · 인덱싱 | 재처리 · 재색인 | [설정 수정](configuration.md) |
-| 임베딩 모델·차원 | `configs/ingest-production.yaml` · `index` | 인덱싱 | 인덱스를 새로 만듦 | [데이터와 인덱스 구조 변경](data-index.md) |
-| 색인 매핑 | `src/struct4search/index_stage.py` | 인덱싱 | 인덱스를 새로 만듦 | [데이터와 인덱스 구조 변경](data-index.md) |
-| 검색 깊이·후보 수 | `configs/production.yaml` · `query.native_rrf` | 검색 경로 | 없음 | [검색과 Context 수정](search-context.md) |
+| 검색표현 생성 방식 | `configs/ingest-production.yaml` · `g2` | 검색표현 생성 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
+| 임베딩 모델·차원 | `configs/ingest-production.yaml` · `index` | 인덱싱 | 새 인덱스 필요 | [데이터와 인덱스 구조 변경](data-index.md) |
+| OpenSearch 매핑 | `src/struct4search/index_stage.py` | 인덱싱 | 새 인덱스 필요 | [데이터와 인덱스 구조 변경](data-index.md) |
+| 검색 깊이·후보 수 | `configs/production.yaml` · `query.native_rrf` | 검색·답변 | 없음 | [검색과 Context 수정](search-context.md) |
 | 최종 근거 수 | `configs/production.yaml` · `query.native_rrf.final_source_top_k` | Context · 답변 | 없음 | [검색과 Context 수정](search-context.md) |
 | 답변 모델 | `configs/production.yaml` · `query.reader` | 답변 | 없음 | [모델 교체](models.md) |
-| 프롬프트 문구 | `prompts/` | 해당 단계 | 그 단계부터 재처리 | [프롬프트와 규칙 수정](prompts.md) |
-| 단계 추가·교체 | `src/struct4search/ingest/stages/` · `bootstrap/composition.py` | 해당 단계 이후 | 재처리 · 재색인 | [모듈 추가와 교체](modules.md) |
+| Metadata·Triple·검색표현 프롬프트 | `prompts/` | 해당 생성 단계 이후 | 재처리 · 재색인 | [프롬프트와 규칙 수정](prompts.md) |
+| 답변 프롬프트 | `prompts/answer/` | 답변 | 없음 | [프롬프트와 규칙 수정](prompts.md) |
+| 단계 추가·교체 | `src/struct4search/ingest/stages/` · `bootstrap/composition.py` | 해당 단계 이후 | 변경 범위에 따라 결정 | [모듈 추가와 교체](modules.md) |
 
-## 재처리 범위가 정해지는 원리
+## 재처리 범위가 정해지는 기준
 
-원문 청크의 ID는 본문이 아니라 **위치와 설정 해시**로 만듭니다. 그래서 인덱싱 쪽 설정이 바뀌면 같은 문서라도 검색 단위 ID가 전부 달라지고, 기존 색인과 섞을 수 없습니다.
+문서 인덱싱 단계에서 생성되는 데이터가 바뀌면 그 결과를 사용하는 후속 단계도 다시 처리해야 합니다. 원문 청크, Metadata, KG 또는 검색표현이 달라지면 최종 검색 단위도 달라지므로 재색인이 필요합니다.
 
-검색 경로의 값은 색인에 손대지 않으므로 재색인이 필요 없습니다. 대신 결과가 달라지므로 평가를 다시 측정합니다.
+반대로 검색 깊이, 최종 근거 수, 답변 모델처럼 검색·답변 단계에서만 사용하는 값을 바꾸는 경우에는 기존 인덱스를 그대로 사용할 수 있습니다. 다만 검색이나 답변 결과가 달라질 수 있으므로 관련 평가는 다시 확인합니다.
 
-## 바꾸기 전에 확인할 것
+## 변경하기 전에 확인할 것
 
-- 지금 도는 인덱싱 실행이 있는지 확인합니다. 있으면 끝난 뒤에 바꿉니다.
-- 되돌릴 방법을 먼저 정합니다. 설정은 값을 되돌리면 되지만, 재색인한 인덱스는 되돌아가지 않습니다.
-- 바꾼 뒤 무엇을 다시 재는지 [기준 성능과 회귀 판정](../testing/regression-gates.md)에서 확인합니다.
+- 현재 실행 중인 인덱싱 작업이 있는지 확인합니다.
+- 변경 전 설정과 인덱스를 되돌릴 수 있는 상태로 남겨 둡니다.
+- 변경 후 필요한 재처리 범위를 위 표에서 확인합니다.
+- 검색이나 답변 결과에 영향을 주는 변경은 [기준 성능과 회귀 판정](../testing/regression-gates.md)에 따라 다시 평가합니다.
