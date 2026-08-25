@@ -5,16 +5,16 @@ title: 답변 후처리 및 원본 출처 연결
 
 # 답변 후처리 및 원본 출처 연결
 
-각 청크 ID를 실제 저장된 원문 청크와 문서 ID, 원본 페이지에 매핑해 사용자에게 보여줄 형태로 후처리합니다.
+LLM이 반환한 인용을 검증하고, 인용된 원문 청크를 실제 문서와 원본 페이지에 연결해 사용자에게 보여줄 형태로 구성합니다.
 
 ## 입력과 출력
 
 | | |
 |---|---|
-| 입력 | [LLM이 낸 `claims`](structured-answer.md) |
-| 출력 | 후처리된 답변과 출처 링크 |
+| 입력 | [LLM이 생성한 `claims`](structured-answer.md) |
+| 출력 | 후처리된 답변과 원본 출처 |
 
-사용자에게 보이는 형태는 이렇습니다.
+사용자에게는 다음과 같은 형태로 반환됩니다.
 
 ```text
 네. 근로자가 온열질환 발생 우려 등 급박한 위험으로 작업중지를 요청하면
@@ -36,66 +36,65 @@ title: 답변 후처리 및 원본 출처 연결
 [3] ruf_d65296e1e039f4e5c1a75527
     문서: d001756_64758782bc
     JPG p.1
-```
+````
 
-출처 링크 하나는 이런 값을 가집니다.
+출처 하나는 다음과 같은 정보를 가집니다.
 
 ```json
 {
-  "unit_id": "ruf_3612bfa54e64f90ad761c4c9", // 인용된 원문 청크
-  "document_id": "d000786_459d662b8a",       // 문서
-  "page_number": 1,                          // 표시용 페이지
-  "href": "..."                              // 원본을 여는 주소
+  "unit_id": "ruf_3612bfa54e64f90ad761c4c9",
+  "document_id": "d000786_459d662b8a",
+  "page_number": 1,
+  "href": "..."
 }
 ```
 
 ## 동작 방식
 
-1. `claims`의 인용 ID를 결정적으로 정리합니다.
-2. 남은 인용마다 Context에서 해당 원문 청크를 찾습니다.
-3. 청크를 문서 ID와 원본 페이지로 잇고 원본을 열 주소를 받습니다.
-4. 답변 문장에 인용 번호를 붙이고 출처 목록을 조립합니다.
+1. LLM이 반환한 `cited_unit_ids`를 정리하고 검증합니다.
+2. 유효한 원문 청크를 실제 문서와 원본 페이지에 연결합니다.
+3. 답변 문장에 인용 번호를 붙이고 출처 목록을 구성합니다.
 
-정리는 네 단계이며 순서가 고정되어 있습니다.
+인용은 다음 순서로 정리합니다.
 
-| 순서 | 처리 |
-|---|---|
-| 1 | 한 claim 안의 중복 인용 제거 |
-| 2 | 검색표현 ID 제거 |
-| 3 | Context에 없는 ID 제거 |
-| 4 | 인용이 남지 않은 claim 제거 |
+| 순서 | 처리                     |
+| -- | ---------------------- |
+| 1  | 같은 claim 안의 중복 인용 제거   |
+| 2  | 검색표현 ID 제거             |
+| 3  | Context에 없는 ID 제거      |
+| 4  | 유효한 인용이 남지 않은 claim 제거 |
 
-정리가 끝나면 같은 조건을 한 번 더 검사합니다. 제거로 끝내지 않고 재검증하므로 잘못된 인용이 사용자에게 나가지 않습니다. 이 과정에서 모델을 다시 부르지 않습니다.
+검색표현은 검색을 돕기 위한 데이터이므로 최종 Citation으로 사용할 수 없습니다. 또한 LLM Context에 포함되지 않은 원문 청크도 인용할 수 없습니다.
 
-같은 ID를 **다른 claim에서 다시 쓰는 것은 허용**합니다. 두 문장이 같은 원문을 근거로 삼는 것은 정상입니다.
+같은 원문 청크를 여러 claim이 함께 사용하는 것은 허용합니다.
 
-답변 문장과 인용 목록은 정리된 claim에서 다시 만듭니다. 모델이 이 둘을 따로 보고하지 않으므로 어긋날 수 없고, 인용 번호도 이 단계가 붙입니다.
+정리가 끝난 인용 ID는 원문 청크의 문서 정보와 페이지에 연결되고, 사용자가 원본을 확인할 수 있는 출처 링크로 구성됩니다. 이 과정에서는 LLM을 다시 호출하지 않습니다.
 
 ### 환경변수
 
-| 환경변수명 | 기본 옵션 | 의미 |
-|---|---|---|
-| `query.citation_normalization_policy` | `stable_dedup_then_drop_rte_and_noncontext_then_drop_unsupported_claims_v1` | 인용 정리 순서. 이름 자체가 네 단계의 순서입니다 |
-
-원본을 여는 주소를 만드는 것은 이 단계가 아니라 주입된 출처 해석기입니다. 이 단계는 해석기를 호출하고 결과가 같은 청크의 것인지 확인할 뿐입니다.
+| 환경변수명                                 | 기본 옵션                                                                       | 의미               |
+| ------------------------------------- | --------------------------------------------------------------------------- | ---------------- |
+| `query.citation_normalization_policy` | `stable_dedup_then_drop_rte_and_noncontext_then_drop_unsupported_claims_v1` | 인용을 검증하고 정리하는 정책 |
 
 ## 사용 또는 결과 확인
 
-검색·답변 경로가 호출합니다. 응답에서 볼 것은 세 가지입니다.
+이 단계는 검색·답변 파이프라인의 마지막에 실행됩니다.
 
-| 확인할 것 | 정상 |
-|---|---|
-| 인용 ID | 모두 `ruf_`이고 Context 안에 있습니다 |
-| 출처 순서 | 각 claim의 인용 순서와 같습니다 |
-| 정리 집계 | 네 값이 모두 0입니다 |
+응답에서는 다음을 확인합니다.
 
-집계가 0이 아니면 이 단계가 아니라 **앞 단계의 신호**입니다. 모델이 지키지 못하는 규칙을 요구하고 있거나 Context에 없는 것을 인용하도록 유도하고 있다는 뜻이므로 [LLM Context 구성](context.md)과 [답변과 출처 표기](structured-answer.md)를 봅니다.
+| 확인할 것    | 정상                     |
+| -------- | ---------------------- |
+| 인용 ID    | 모두 원문 청크 ID(`ruf_`)입니다 |
+| 출처       | 문서와 원본 페이지가 연결되어 있습니다  |
+| 인용 정리 집계 | 네 값이 모두 `0`입니다         |
+
+인용 정리 집계가 `0`이 아니면 LLM 출력에 인용 계약을 벗어난 항목이 있었다는 뜻입니다. 이 경우 [LLM Context 구성](context.md)과 [답변과 출처 표기](structured-answer.md)를 함께 확인합니다.
 
 ## 코드 참조
 
-| 확인할 내용 | 파일·심볼 |
-|---|---|
-| 인용 정리와 재검증 | `src/struct4search/query/answer/citation_normalizer.py` · `DeterministicCitationNormalizer` |
-| 출처 연결 | `src/struct4search/query/answer/citation_linker.py` · `DefaultCitationLinker` |
-| 출처 해석 계약 | `src/struct4search/query/contracts.py` · `SourceLinkResolver` · `ResolvedSourceLink` |
-| 설정값 | `configs/production.yaml` · `query.citation_normalization_policy` |
+| 확인할 내용   | 파일·심볼                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------- |
+| 인용 정리    | `src/struct4search/query/answer/citation_normalizer.py` · `DeterministicCitationNormalizer` |
+| 원본 출처 연결 | `src/struct4search/query/answer/citation_linker.py` · `DefaultCitationLinker`               |
+| 출처 연결 계약 | `src/struct4search/query/contracts.py` · `SourceLinkResolver`                               |
+| 설정       | `configs/production.yaml` · `query.citation_normalization_policy`                           |
