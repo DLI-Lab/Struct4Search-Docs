@@ -5,101 +5,99 @@ title: 데이터 구조와 ID 체계
 
 # 데이터 구조와 ID 체계
 
-문서에서 반복해서 나오는 ID와 데이터가 각각 무엇을 가리키는지 정리합니다.
+Struct4Search에서 주요 데이터와 ID가 무엇을 가리키고, 서로 어떻게 연결되는지 정리합니다.
 
 ## ID 체계
 
-| 접두사 | 가리키는 것 | 만들어지는 단계 | 주로 쓰이는 곳 |
+| 접두사 | 의미 | 만들어지는 단계 | 주로 쓰이는 곳 |
 |---|---|---|---|
-| `d…` | 문서 | 문서 등록 | 모든 산출물의 소속 |
-| `#p0` `#p0#b3` `#p0#b3#e0` | 페이지 · 블록 · 요소 | [문서 파싱](../indexing/parsing.md) | 원문 위치 |
-| `fc_` | 원문 청크 | [원문 청킹](../indexing/chunking.md) | 관계의 근거, 검색표현 링크 |
-| `ruf_` | 검색 단위(원문) | 원문 청킹 | 색인, **답변 인용** |
-| `e_` | 엔티티 | [NER](../indexing/ner.md) | KG 구축 |
-| `kgtr_` | Triple | [KG 구축](../indexing/triple-kg.md) | 검색표현의 근거 |
-| `rte_` | 검색표현 | [검색표현 생성](../indexing/retrieval-text.md) | 색인. **인용 불가** |
+| `d…` | 문서 | 문서 등록 | 모든 산출물의 소속 문서 |
+| `#p…#b…#e…` | 페이지 · 블록 · 요소 | [문서 파싱](../indexing/parsing.md) | 원문 위치 |
+| `fc_` | 원문 청크 | [원문 청킹](../indexing/chunking.md) | 원문 위치와 후속 단계 연결 |
+| `ruf_` | 원문 검색 단위 | 원문 청킹 | 색인 · 검색 · **답변 Citation** |
+| `e_` | Entity | [NER](../indexing/ner.md) | KG 구축 |
+| `kgtr_` | Triple | [KG 구축](../indexing/triple-kg.md) | 검색표현 생성 |
+| `rte_` | 검색표현 | [검색표현 생성](../indexing/retrieval-text.md) | 색인 · 검색, **Citation 불가** |
 
 ```text
 문서       d002343_6b6d39ebe6
-요소       d002343_6b6d39ebe6#p2#b7#e0
-원문 청크  fc_11175e926dbb1e25f165a932
-검색 단위  ruf_11175e926dbb1e25f165a932   ← 접두사 뒤 24자가 같음
-엔티티     e_fc7faadc51995f862469
-Triple     kgtr_4404df7b9e441dae2f5f92ef
-검색표현   rte_2a300459506675e3d86b0dc8
+  └─ 요소     d002343_6b6d39ebe6#p2#b7#e0
+      └─ 원문 청크  fc_11175e926dbb1e25f165a932
+          └─ 검색 단위  ruf_11175e926dbb1e25f165a932
+              ├─ Triple     kgtr_4404df7b9e441dae2f5f92ef
+              └─ 검색표현   rte_2a300459506675e3d86b0dc8
 ```
 
-요소 ID는 `#`로 계층을 담고 있어 ID만 보고 상위를 알 수 있습니다. `fc_`와 `ruf_`는 같은 청크의 두 이름이고 1:1입니다.
+`fc_`와 `ruf_`는 같은 원문 청크를 서로 다른 단계에서 가리키는 ID이며 1:1로 연결됩니다. 검색과 답변에서는 `ruf_`를 사용하며, 최종 Citation에도 `ruf_`만 기록됩니다.
 
 ## 검색 단위
 
-색인에 들어가는 문서입니다. 두 종류가 같은 형태를 쓰고 `unit_kind`로 구분합니다.
+OpenSearch에 저장되는 검색 단위는 두 종류입니다.
+
+| `unit_kind` | ID | 내용 | Citation |
+|---|---|---|---|
+| `source` | `ruf_*` | 원문 청크 | 가능 |
+| `retrieval_expression` | `rte_*` | 검색표현 | 불가 |
+
+두 종류 모두 검색에 사용할 `text`와 임베딩 `vector`를 가지며, 같은 OpenSearch 인덱스에 저장됩니다.
+
+주요 필드는 다음과 같습니다.
 
 | 필드 | 의미 |
 |---|---|
-| `unit_id` | `ruf_` 또는 `rte_` |
+| `unit_id` | 검색 단위 ID |
 | `document_id` | 소속 문서 |
-| `unit_kind` | `source` 또는 `retrieval_expression` |
-| `presentation` | 만들어진 방식 |
-| `text` | BM25 검색 대상 본문 |
-| `vector` | Dense 검색 대상 벡터 |
-| `source_f400_unit_ids` | 원문 청크는 자기 자신, 검색표현은 연결된 청크 |
-| `source_f400_chunk_ids` | 위에 대응하는 `fc_` |
-| `page_indices` | 원본 페이지 목록. 0부터 |
-| `triple_ids` | 검색표현의 근거 관계. 원문 청크는 빈 배열 |
-
-## 원문 청크
-
-색인 이전의 산출물입니다. 검색 단위보다 필드가 많습니다.
-
-| 필드 | 의미 |
-|---|---|
-| `chunk_id` · `unit_id` | `fc_` · `ruf_` |
-| `text` · `index_text` | 본문 |
-| `token_count` | 토큰 수 |
-| `source_block_ids` · `source_element_ids` | 원문 블록·요소 |
-| `source_spans` | 원문 문자 범위와 청크 문자 범위의 짝 |
+| `unit_kind` | 원문 청크 또는 검색표현 |
+| `text` | BM25 검색에 사용하는 텍스트 |
+| `vector` | Dense 검색에 사용하는 임베딩 |
+| `source_f400_unit_ids` | 연결된 원문 검색 단위 |
 | `page_indices` | 원본 페이지 |
-| `heading_contexts` | 상위 제목 경로 |
 
-`source_spans`가 청크 안의 위치를 원문 위치로 되돌리는 재료입니다.
+원문 청크의 `source_f400_unit_ids`는 자기 자신을 가리키고, 검색표현은 자신과 연결된 원문 청크를 가리킵니다. 이 연결은 [검색 결과 점수 통합](../query/score-integration.md)에서 검색표현을 원문 청크로 변환할 때 사용됩니다.
 
-## Metadata
+## 주요 데이터
 
-문서 하나당 한 행이고 저장 키는 `domain_` 접두사를 붙인 18종입니다. 모든 값이 배열이며 없으면 빈 배열입니다. 필드 목록은 [Metadata 생성](../indexing/metadata.md)에 있습니다.
+### 원문 청크
 
-## Triple과 문서 지식그래프
+[원문 청킹](../indexing/chunking.md)에서 생성되는 검색의 기본 원문 단위입니다. 원문 텍스트와 원본 문서·페이지 위치를 함께 가지고 있으며, OpenSearch에 들어갈 때 `ruf_` 검색 단위로 구성됩니다.
 
-| 필드 | 의미 |
-|---|---|
-| `triple_id` | `kgtr_` |
-| `document_id` | 소속 문서 |
-| `head_id` · `relation` · `tail_id` | 주체 · 관계 · 대상 |
-| `evidence_spans` | 근거가 되는 청크의 구간 |
+### Metadata
 
-문서 지식그래프는 `document_id`·`nodes`·`edges`를 가진 문서 단위 한 건입니다.
+[Metadata 생성](../indexing/metadata.md)에서 문서별로 생성하는 도메인 정보입니다. `domain_*` 18종 필드로 구성되며, 이후 검색표현에 문맥을 보강하는 데 사용됩니다.
 
-## 검색표현
+### Triple과 지식그래프
 
-| 필드 | 의미 |
-|---|---|
-| `document_id` | 소속 문서 |
-| `text` | 생성된 검색용 문장 |
-| `triple_ids` | 근거가 된 관계 |
-| `source_chunk_ids` | 원문으로 돌아가는 링크 |
-| `metadata` | 문맥 보강에 쓴 값 |
-| `document_expression_rank` | 문서 안에서의 순번 |
+[KG 구축](../indexing/triple-kg.md)에서 Entity 사이의 관계를 `(주체, 관계, 대상)` 형태의 Triple로 추출합니다. 각 Triple은 `kgtr_` ID와 원문 근거를 가지며, 같은 문서의 Triple을 모아 문서 단위 지식그래프를 구성합니다.
 
-`source_chunk_ids`가 비면 색인되지 않습니다.
+### 검색표현
 
-## 답변
+[검색표현 생성](../indexing/retrieval-text.md)에서 Metadata와 지식그래프를 바탕으로 생성하는 검색용 문장입니다.
 
-| 필드 | 의미 |
-|---|---|
-| `claims[].text` | 주장 문장 |
-| `claims[].cited_unit_ids` | 그 문장을 뒷받침하는 `ruf_` |
-| `answer_text` | claim 문장을 이은 답변 |
-| `cited_unit_ids` | claim 인용을 중복 없이 모은 목록 |
-| `citation_normalization` | 정리 집계 네 값 |
+검색표현은 하나 이상의 원문 청크와 연결되며, 검색 결과에는 사용되지만 답변의 사실 근거나 Citation으로는 사용할 수 없습니다.
 
-출처 링크는 `unit_id`·`href`·`document_id`·`page_number` 네 값입니다. `page_number`는 1부터 셉니다.
+### 답변과 Citation
+
+답변 모델은 claim과 그 claim을 뒷받침하는 원문 검색 단위 ID를 함께 반환합니다.
+
+```json
+{
+  "claims": [
+    {
+      "text": "온열질환 발생 시 필요한 응급조치를 실시해야 합니다.",
+      "cited_unit_ids": [
+        "ruf_3612bfa54e64f90ad761c4c9"
+      ]
+    }
+  ]
+}
+```
+
+`cited_unit_ids`에는 `ruf_` 원문 청크만 들어갈 수 있습니다. 이후 [답변 후처리 및 원본 출처 연결](../query/citations.md)에서 이 ID를 실제 문서와 원본 페이지에 연결합니다.
+
+```text
+claim
+  → ruf_ 원문 청크
+  → document_id
+  → 원본 페이지
+  → 사용자에게 표시되는 Citation
+```
