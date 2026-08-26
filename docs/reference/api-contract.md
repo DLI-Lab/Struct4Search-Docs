@@ -19,7 +19,7 @@ Struct4Search의 실행 진입점과 외부 서비스 호출, 실행 중 오류�
 
 `struct4search-ingest`는 `--config`를 생략하면 `configs/ingest-production.yaml`, `--services`를 생략하면 `configs/services/cold-services.yaml`을 사용합니다.
 
-각 명령의 사용 방법은 [실행 명령](commands.md)에서 확인할 수 있습니다.
+각 명령의 사용 방법은 [실행 명령](cli.md)에서 확인할 수 있습니다.
 
 ## 실행과 재개
 
