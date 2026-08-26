@@ -61,7 +61,11 @@ IDR에는 각 요소의 본문과 문서 구조, 원본 페이지 위치가 함�
 문서 파싱은 인덱싱 과정에서 실행됩니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output /absolute/path/to/new-isolated-output \
+  --document-id <문서 ID>
 ```
 
 실행 후 문서별 IDR이 생성되었는지와 각 페이지가 어떤 파서로 처리되었는지 확인합니다.

@@ -15,9 +15,10 @@ configs/                 실행 프로파일과 서비스 설정
 prompts/                 프롬프트와 registry
 opensearch/              OpenSearch 검색 파이프라인
 tests/                   테스트
-documentation/           웹 문서
 pyproject.toml           패키지와 실행 명령
 ```
+
+웹 문서는 별도 `DLI-Lab/Struct4Search-Docs` 저장소에서 관리합니다.
 
 ## 단계와 코드 위치
 
@@ -73,6 +74,7 @@ src/struct4search/
 | ----------------------------------------------- | ------------------------------ |
 | `struct4search-ingest`                          | `entrypoints/cli/ingest.py`    |
 | `struct4search-evaluate`                        | `evaluation/service.py`        |
+| `struct4search-api`                             | `entrypoints/cli/api.py`       |
 | `struct4search-smoke-e2e`                       | `entrypoints/cli/smoke_e2e.py` |
 | `struct4search-preflight` · `struct4search-env` | `entrypoints/cli/`             |
 
@@ -89,6 +91,6 @@ src/struct4search/
 | OpenSearch 설정 확인 | `opensearch/`                                |
 | 실제 구현 조립 확인      | `src/struct4search/bootstrap/composition.py` |
 | 테스트 확인           | `tests/`                                     |
-| 웹 문서 수정          | `documentation/`                             |
+| 웹 문서 수정          | 별도 `DLI-Lab/Struct4Search-Docs` 저장소       |
 
 실제 실행에 어떤 구현이 연결되는지 확인하려면 `bootstrap/composition.py`를 봅니다. 입력과 출력 형식이나 모듈 간 계약을 확인하려면 관련 contract와 데이터 모델을 함께 확인합니다.

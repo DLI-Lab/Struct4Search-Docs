@@ -29,7 +29,7 @@ title: 인덱싱
   "page_indices": [2, 3],
   "triple_ids": []
 }
-````
+```
 
 ### 검색표현
 
@@ -95,7 +95,11 @@ OpenSearch의 전체 매핑과 검색 설정은 [OpenSearch 인덱스 구조](..
 인덱싱은 문서 인덱싱 파이프라인에서 실행됩니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output /absolute/path/to/new-isolated-output \
+  --document-id <문서 ID>
 ```
 
 인덱싱이 끝나면 원문 청크와 검색표현이 각각 검색 단위로 저장되었는지 확인합니다.
@@ -113,5 +117,3 @@ struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
 | 인덱싱 구현        | `src/struct4search/index_stage.py` · `OpenSearchIndexStage`         |
 | OpenSearch 매핑 | `src/struct4search/index_stage.py` · `OpenSearchIndexStage.mapping` |
 | 설정            | `configs/ingest-production.yaml` · `index`                          |
-
-```

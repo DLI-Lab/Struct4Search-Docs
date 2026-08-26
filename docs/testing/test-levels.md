@@ -17,7 +17,7 @@ Struct4Search의 검증은 **모듈 테스트**와 **E2E 테스트**로 나뉩�
 외부 모델이나 서비스 없이 코드와 데이터 계약을 확인합니다.
 
 ```bash
-pytest
+python -m pytest -q
 ```
 
 ### 무엇을 확인하는가
@@ -32,13 +32,13 @@ pytest
 ### 영역별 실행
 
 ```bash
-pytest tests/unit/query                 # 검색·답변 경로
-pytest tests/unit/ingest                # 인덱싱 단계
-pytest tests/unit/config                # 프로파일과 프롬프트
-pytest tests/test_config_contracts.py   # 설정값 계약
+python -m pytest -q tests/unit/query
+python -m pytest -q tests/unit/ingest
+python -m pytest -q tests/unit/config
+python -m pytest -q tests/test_config_contracts.py
 ```
 
-전체 모듈 테스트도 비교적 빠르게 실행할 수 있으므로 범위를 따로 고를 필요가 없다면 `pytest`를 실행합니다.
+범위를 따로 고를 필요가 없다면 `python -m pytest -q`를 실행합니다.
 
 ### 모듈 테스트가 확인하지 않는 것
 
@@ -61,8 +61,14 @@ struct4search-smoke-e2e
 ### 평가셋 E2E
 
 ```bash
-struct4search-evaluate --run-root <출력 디렉터리> --output-root <결과 디렉터리>
+struct4search-evaluate \
+  --profile configs/production.yaml \
+  --evaluation-config <평가 릴리스 JSON> \
+  --gate-config configs/evaluation-gate.yaml \
+  --output-root <결과 디렉터리>
 ```
+
+`--run-root`와 `--output-root`는 상호배타이며, `--profile` 대신 `--fixture-results`를 선택할 수 있습니다. 전체 필수 인자는 [검색과 QA 평가 실행](retrieval-qa.md)을 확인합니다.
 
 평가셋의 질의를 실제 검색·답변 파이프라인으로 실행해 검색과 QA 지표를 측정합니다. 평가셋은 목적에 따라 두 가지를 사용합니다([평가셋 구성](eval200.md)).
 

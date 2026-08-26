@@ -5,40 +5,28 @@ title: 실행 명령
 
 # 실행 명령
 
-Struct4Search 패키지를 설치하면 문서 인덱싱, 평가와 실행 환경 확인에 필요한 CLI 명령을 사용할 수 있습니다.
+Struct4Search 패키지의 공개 CLI 계약입니다. 설치 및 CPU 검증 환경은 `python -m pip install -r requirements.txt`로 준비합니다.
 
-```bash
-pip install -e .
-```
-
-전체 명령은 `pyproject.toml`의 `[project.scripts]`에서 확인할 수 있습니다.
+전체 entrypoint는 Struct4Search 저장소의 `pyproject.toml` `[project.scripts]`가 정본입니다.
 
 ## 문서 인덱싱
 
 ```bash
 struct4search-ingest \
-  --output <출력 디렉터리> \
-  [--config <프로파일>] \
-  [--services <서비스 정의>] \
-  [--document-id <문서 ID>]
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output /absolute/path/to/new-isolated-output \
+  [--document-id <문서 ID> ...]
 ```
 
-| 인자              | 필수  | 기본값                                   |
-| --------------- | --- | ------------------------------------- |
-| `--output`      | 예   | —                                     |
-| `--config`      | 아니오 | `configs/ingest-production.yaml`      |
-| `--services`    | 아니오 | `configs/services/cold-services.yaml` |
-| `--document-id` | 아니오 | 생략하면 대상 코퍼스를 처리하며, 여러 번 지정할 수 있습니다    |
+| 인자 | 필수 | 기본값·설명 |
+|---|---|---|
+| `--config` | 예 | 기본값 없음. 실행 profile 경로 |
+| `--services` | 예 | 기본값 없음. 서비스 정의 경로 |
+| `--output` | 예 | 기본값 없음. 산출물을 저장할 새 경로 |
+| `--document-id` | 아니오 | 여러 번 지정 가능. 생략하면 대상 코퍼스 처리 |
 
-문서 한 건만 처리하려면 `--document-id`를 지정합니다.
-
-```bash
-struct4search-ingest \
-  --output <출력 디렉터리> \
-  --document-id <문서 ID>
-```
-
-인덱싱에 필요한 서비스를 실행하고 문서 파싱부터 OpenSearch 인덱싱까지 전체 파이프라인을 처리합니다. 같은 실행 조건으로 다시 호출하면 기존 진행 상태를 이어받습니다([파이프라인 실행 및 재처리 방법](../indexing/rerun.md)).
+세 필수 인자 중 하나라도 생략하면 argparse가 실행 전에 거부합니다. `configs/ingest-production.yaml`은 `configs/production.yaml`이 상속하는 pipeline 설정이며, CLI에서 사용할 통합 profile은 `configs/production.yaml`입니다.
 
 ## 문서 한 건 E2E
 
@@ -46,67 +34,63 @@ struct4search-ingest \
 struct4search-smoke-e2e [--repository-root <체크아웃>]
 ```
 
-고정된 문서 한 건으로 인덱싱부터 검색·답변까지 전체 경로가 정상적으로 연결되는지 확인합니다.
-
-성능을 측정하기 위한 명령이 아니라, 모델과 외부 서비스를 포함한 전체 파이프라인이 실행되는지 빠르게 확인할 때 사용합니다.
+고정 문서 한 건으로 production 인덱싱부터 검색·답변까지 확인합니다. GPU, 로컬 모델 snapshot과 외부 서비스가 필요하므로 CPU-only 검증 명령이 아닙니다. 새 격리 산출물·index를 사용하며 alias를 publish하지 않습니다.
 
 ## 검색과 QA 평가
 
+출력 위치와 QueryService provider를 각각 정확히 하나 선택합니다.
+
 ```bash
 struct4search-evaluate \
-  [--run-root <출력 디렉터리>] \
-  [--output-root <결과 디렉터리>]
+  (--run-root <실행 루트> | --output-root <결과 디렉터리>) \
+  (--profile <검색 profile> | --fixture-results <fixture JSONL>) \
+  --evaluation-config <평가 릴리스 JSON> \
+  --gate-config <회귀 gate YAML> \
+  [--baseline-report <기준 report JSON>] \
+  [--qa-scores <QA 점수 JSONL>]
 ```
 
-평가셋을 실제 검색·답변 파이프라인으로 실행해 검색과 QA 지표를 측정합니다. 평가셋과 결과 확인 방법은 [검색과 QA 평가 실행](../testing/retrieval-qa.md)에서 설명합니다.
+`--run-root`와 `--output-root`를 동시에 쓸 수 없고, `--profile`과 `--fixture-results`도 동시에 쓸 수 없습니다. 평가 절차와 실행 가능한 fixture 예시는 [검색과 QA 평가 실행](../testing/retrieval-qa.md)을 확인합니다.
+
+## API 서버
+
+```bash
+struct4search-api \
+  (--profile <검색 profile> | --fixture-results <fixture JSONL>) \
+  [--host 127.0.0.1] \
+  [--port 3100] \
+  [--log-level info]
+```
+
+provider는 정확히 하나가 필수입니다. `--port`는 1~65535이며, `--log-level`은 `critical`, `error`, `warning`, `info`, `debug`, `trace` 중 하나입니다.
 
 ## 실행 환경 확인
 
-### 환경 값 확인
-
 ```bash
 struct4search-env [--shell]
-```
-
-현재 실행에 사용되는 경로와 환경 값을 출력합니다.
-
-`--shell`을 사용하면 현재 셸에 적용할 수 있는 `export` 형식으로 출력합니다.
-
-### 사전 점검
-
-```bash
 struct4search-preflight
 ```
 
-파이프라인 실행 전에 호스트와 필요한 실행 조건을 확인합니다. 조건을 만족하지 못하면 실제 파이프라인을 시작하기 전에 중단됩니다.
+`struct4search-env --shell`은 export 문장을 출력할 뿐 현재 process 환경을 변경하지 않습니다. `struct4search-preflight`는 production 조건이 없으면 non-zero로 종료할 수 있습니다.
 
-## 내부 작업자
+## 내부·전용 명령
 
-| 명령                            | 역할           |
-| ----------------------------- | ------------ |
+| 명령 | 역할 |
+|---|---|
 | `struct4search-ingest-worker` | 문서 인덱싱 작업 처리 |
-| `struct4search-ingest-front`  | 인덱싱 실행 앞단 처리 |
-| `struct4search-temporal`      | 워크플로 실행      |
-| `struct4search-watchdog`      | 실행 상태 감시     |
+| `struct4search-ingest-front` | 인덱싱 실행 앞단 처리 |
+| `struct4search-temporal` | 워크플로 실행 |
+| `struct4search-watchdog` | 실행 상태 감시 |
+| `struct4search-five-document-e2e` | 승인된 5문서 E2E |
+| `struct4search-final-100-100-e2e` | 100문서·100질의 gate |
+| `struct4search-final-full-2567-200-e2e` | 2,567문서·200질의 gate |
 
-일반적인 문서 인덱싱에서는 `struct4search-ingest`가 필요한 작업자를 함께 실행하므로 직접 호출할 필요는 없습니다.
+내부 worker와 승인된 대규모 E2E 명령은 준비된 production artifact와 환경을 전제로 합니다. 일반 인덱싱에서는 직접 호출하지 않습니다.
 
 ## 테스트
 
 ```bash
-pytest
+python -m pytest -q
 ```
 
-외부 모델이나 서비스 없이 코드와 데이터 계약을 확인합니다. 테스트 종류와 범위는 [테스트 구성과 실행](../testing/overview.md)에서 확인할 수 있습니다.
-
-## 재실행
-
-| 상황             | 동작                           |
-| -------------- | ---------------------------- |
-| 같은 조건으로 다시 실행  | 기존 실행을 이어받습니다                |
-| 다른 실행이 이미 진행 중 | 새 실행을 거부합니다                  |
-| 특정 문서만 다시 처리   | `--document-id`로 문서를 지정합니다   |
-| 인덱싱 설정 변경      | 영향을 받는 단계부터 다시 처리합니다         |
-| 검색·답변 설정 변경    | 기존 색인은 유지하고 필요한 평가를 다시 실행합니다 |
-
-설정 변경에 따른 정확한 재처리 범위는 [변경 지점 찾기](../maintenance/change-map.md)와 [파이프라인 실행 및 재처리 방법](../indexing/rerun.md)에서 확인할 수 있습니다.
+GPU와 유료 API를 호출하지 않는 전체 테스트를 실행합니다. 서비스 integration은 각각 격리된 임시 PostgreSQL/OpenSearch를 준비한 경우에만 실행됩니다.

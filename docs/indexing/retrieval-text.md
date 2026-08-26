@@ -74,7 +74,11 @@ Metadata는 검색표현에 문맥을 보강하는 데 사용되며, 검색표�
 검색표현 생성은 문서 인덱싱 과정에서 실행됩니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output /absolute/path/to/new-isolated-output \
+  --document-id <문서 ID>
 ```
 
 문서별 산출물에서 검색표현이 생성되었는지와 원문 청크가 정상적으로 연결되었는지 확인합니다.

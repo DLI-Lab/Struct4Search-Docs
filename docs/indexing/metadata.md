@@ -25,7 +25,7 @@ title: Metadata 생성
   "domain_equipment": ["안전난간"],
   "domain_location": ["건설현장"]
 }
-````
+```
 
 각 필드는 배열 형태이며, 문서에서 해당 정보를 찾지 못하면 빈 배열로 남습니다.
 
@@ -75,7 +75,11 @@ Metadata 생성 방식이나 프롬프트가 달라지면 검색표현도 달라
 Metadata 생성은 문서 인덱싱 과정에서 실행됩니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output /absolute/path/to/new-isolated-output \
+  --document-id <문서 ID>
 ```
 
 산출물에서 문서별 Metadata가 생성되었는지와 18종 필드가 정상적으로 구성되었는지 확인합니다.
@@ -88,4 +92,3 @@ struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
 | 18종 정의      | `src/struct4search/domain/metadata_fields.yaml`              |
 | 프롬프트        | `prompts/metadata/f400-18-fields/v1.txt`                     |
 | 설정          | `configs/ingest-production.yaml`                             |
-
