@@ -34,6 +34,6 @@ Debian/Ubuntu에서 `python3.12 -m venv`가 실패하면 `python3.12-venv` OS �
 
 모델·서비스·검색 설정은 `configs/production.yaml`, 서비스 실행 정의는 `configs/services/cold-services.yaml`에 있습니다. 기계별 경로는 `configs/machine-paths.yaml` 또는 허용된 `S4S_*` 환경변수로 지정합니다.
 
-접속 문자열과 API key는 Git에 넣지 않고 환경변수로 전달합니다. 외부 GPT provider를 선택한 profile에서만 `OPENAI_API_KEY`가 필요합니다.
+접속 문자열과 API key는 Git에 넣지 않습니다. `.env.example`을 `.env`로 복사해 값을 채운 뒤 `source scripts/ops/env.sh`로 현재 셸에 적용합니다. 외부 GPT provider를 선택한 profile에서만 `OPENAI_API_KEY`가 필요합니다.
 
 실제 설치 순서는 [설치와 첫 실행](../quickstart.md), 각 extra와 고정 버전은 Struct4Search 저장소의 `pyproject.toml`, `constraints/py312-cpu.txt`, `REQUIREMENTS.md`를 기준으로 합니다.

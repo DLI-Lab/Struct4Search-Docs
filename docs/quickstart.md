@@ -5,7 +5,7 @@ title: 설치와 첫 실행
 
 # 설치와 첫 실행
 
-처음 clone한 개발자가 CPU 환경에서 설치와 기본 동작을 확인하는 순서입니다. 실제 문서 인덱싱은 GPU와 외부 서비스를 준비한 뒤 실행합니다.
+CPU 환경에서 설치와 기본 동작을 확인하는 순서입니다. 실제 문서 인덱싱은 GPU와 외부 서비스를 준비한 뒤 실행합니다.
 
 ## 1. 설치
 
@@ -77,6 +77,8 @@ curl --fail \
 ## 4. 실제 문서 인덱싱
 
 실제 인덱싱은 PostgreSQL, OpenSearch, Temporal, 모델·임베딩·파싱 서비스가 준비된 환경에서 실행합니다. 기존 산출물과 분리된 새 output 경로를 사용합니다.
+
+호스트별 DSN, API key, 모델 경로는 `.env.example`을 `.env`로 복사해 입력하고 `source scripts/ops/env.sh`로 현재 셸에 적용합니다.
 
 ```bash
 struct4search-ingest \
