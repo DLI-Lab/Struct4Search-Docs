@@ -5,16 +5,17 @@ title: 설정 수정
 
 # 설정 수정
 
-문서 인덱싱과 검색·답변 파이프라인의 실행 설정을 변경하는 방법입니다.
+실행 profile을 바꿀 때 확인할 순서입니다. 실행 명령에는 항상 최상위 profile을 전달합니다.
 
 ## 실행 프로파일
 
-| 프로파일 | 담당 |
+| 파일 | 역할 |
 |---|---|
-| `configs/ingest-production.yaml` | 문서 인덱싱 파이프라인 |
-| `configs/production.yaml` | 검색·답변 파이프라인 |
+| `configs/production.yaml` | production 실행 명령에 전달하는 최상위 profile |
+| `configs/base.yaml` | 공통 typed profile |
+| `configs/ingest-production.yaml` | 인덱싱 정책의 원본 값 |
 
-프로파일은 `extends`를 통해 공통 설정을 이어받을 수 있으며, 서비스 주소와 경로처럼 실행 환경에 따라 달라지는 값도 함께 구성합니다.
+`production.yaml`은 `base.yaml`을, `base.yaml`은 `ingest-production.yaml`을 상속합니다. 따라서 `ingest-production.yaml`은 직접 실행하지 않습니다. 서비스 정의는 `configs/services/cold-services.yaml`, 기계별 경로는 `configs/machine-paths.yaml`에서 확인합니다.
 
 ## 설정 검증
 
@@ -35,7 +36,7 @@ title: 설정 수정
 
 설정 파일에 직접 적지 않고 다른 설정으로부터 계산되는 값도 있습니다.
 
-예를 들어 답변 모델의 출력 토큰 수는 고정값이 아니라 전체 Context Window에서 시스템 프롬프트, 질의와 근거가 사용한 토큰을 제외한 범위에서 결정됩니다.
+예를 들어 답변 출력 예산은 Context Window에서 시스템 프롬프트, 질의와 근거가 사용한 토큰을 제외한 범위에서 결정됩니다.
 
 이처럼 코드에서 계산되는 값은 별도의 설정 항목으로 추가하지 않습니다.
 

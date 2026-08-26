@@ -32,14 +32,14 @@ title: 모듈 추가와 교체
 구현을 교체할 때는 다음 순서로 진행합니다.
 
 1. 기존 계약과 같은 입력·출력을 제공하는 구현을 만듭니다.
-2. `src/struct4search/bootstrap/composition.py`에서 기존 구현 대신 새 구현을 연결합니다.
+2. `backend/struct4search/bootstrap/composition.py`에서 기존 구현 대신 새 구현을 연결합니다.
 3. 관련 테스트와 E2E를 실행해 기존 파이프라인과 정상적으로 연결되는지 확인합니다.
 
 계약 자체를 변경하는 경우에는 단순한 구현 교체가 아니므로 해당 데이터를 사용하는 후속 단계도 함께 수정해야 합니다.
 
 ## 단계 추가
 
-문서 인덱싱 단계는 `src/struct4search/ingest/stages/`에 구현되어 있으며 오케스트레이션에서 실행 순서를 구성합니다.
+문서 인덱싱 단계는 `backend/struct4search/ingest/stages/`에 구현되어 있으며 오케스트레이션에서 실행 순서를 구성합니다.
 
 새 단계를 추가할 때는 다음 항목을 함께 정합니다.
 
@@ -76,7 +76,7 @@ title: 모듈 추가와 교체
 
 | 확인할 내용    | 파일·심볼                                        |
 | --------- | -------------------------------------------- |
-| 검색·답변 계약  | `src/struct4search/query/contracts.py`       |
-| 구현 조립     | `src/struct4search/bootstrap/composition.py` |
-| 문서 인덱싱 단계 | `src/struct4search/ingest/stages/`           |
-| 실행 순서     | `src/struct4search/adapters/orchestration/`  |
+| 검색·답변 계약  | `backend/struct4search/query/contracts.py`       |
+| 구현 조립     | `backend/struct4search/bootstrap/composition.py` |
+| 문서 인덱싱 단계 | `backend/struct4search/ingest/stages/`           |
+| 실행 순서     | `backend/struct4search/adapters/orchestration/`  |

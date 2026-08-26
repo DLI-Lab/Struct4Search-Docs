@@ -40,9 +40,9 @@ IDR에는 각 요소의 본문과 문서 구조, 원본 페이지 위치가 함�
 
 파서 선택은 페이지 단위로 이루어집니다. 따라서 한 문서 안에서도 텍스트층이 있는 페이지는 pdf4LLM으로, 스캔된 페이지는 MinerU로 처리할 수 있습니다.
 
-### 환경변수
+### 설정값
 
-| 환경변수명                                 | 기본 옵션                | 의미                       |
+| profile key                               | 기본값                | 의미                       |
 | ------------------------------------- | -------------------- | ------------------------ |
 | `parser.digital`                      | `pymupdf4llm`        | 디지털 페이지에 사용하는 파서         |
 | `parser.scan`                         | `mineru`             | 스캔 페이지에 사용하는 파서          |
@@ -61,7 +61,11 @@ IDR에는 각 요소의 본문과 문서 구조, 원본 페이지 위치가 함�
 문서 파싱은 인덱싱 과정에서 실행됩니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output <출력_디렉터리> \
+  --document-id <문서_ID>
 ```
 
 실행 후 문서별 IDR이 생성되었는지와 각 페이지가 어떤 파서로 처리되었는지 확인합니다.
@@ -72,14 +76,14 @@ struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
 | 페이지 판정 | 각 페이지의 처리 방식이 기록되어 있습니다   |
 | 스캔 페이지 | MinerU를 거친 결과가 IDR에 포함됩니다 |
 
-스캔 페이지가 포함된 문서를 처리하려면 MinerU 서비스가 실행 중이어야 합니다. 서비스 정보는 [API Reference](../reference/api-reference.md)에서 확인할 수 있습니다.
+스캔 페이지가 포함된 문서를 처리하려면 MinerU 서비스가 실행 중이어야 합니다. 서비스 요구사항은 [설치 요구사항](../reference/dependencies.md)에서 확인할 수 있습니다.
 
 ## 코드 참조
 
 | 확인할 내용    | 파일·심볼                                                         |
 | --------- | ------------------------------------------------------------- |
-| 문서 파싱     | `src/struct4search/parser_stage.py`                           |
-| 페이지 판정    | `src/struct4search/page_routing.py`                           |
-| IDR 통합    | `src/struct4search/adapters/parsing/canonical_builder.py`     |
-| MinerU 연동 | `src/struct4search/mineru_vllm_async_service.py`              |
-| 환경변수      | `configs/ingest-production.yaml` · `parser` · `canonical_idr` |
+| 문서 파싱     | `backend/struct4search/parser_stage.py`                           |
+| 페이지 판정    | `backend/struct4search/page_routing.py`                           |
+| IDR 통합    | `backend/struct4search/adapters/parsing/canonical_builder.py`     |
+| MinerU 연동 | `backend/struct4search/mineru_vllm_async_service.py`              |
+| profile      | `configs/production.yaml` · `parser` · `canonical_idr` |

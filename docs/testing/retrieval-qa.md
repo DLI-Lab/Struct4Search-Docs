@@ -5,14 +5,27 @@ title: 검색과 QA 평가 실행
 
 # 검색과 QA 평가 실행
 
-인덱싱한 코퍼스에 평가셋을 실행해 검색 성능과 답변 정확도를 측정합니다.
+Evaluator는 검증용 fixture 결과 또는 운영 QueryService를 사용해 검색과 답변을 함께 평가합니다.
 
-## 실행 전 확인
+## CPU 환경에서 먼저 확인
+
+```bash
+struct4search-evaluate \
+  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
+  --evaluation-config tests/fixtures/evaluation_mini/release.json \
+  --gate-config tests/fixtures/evaluation_mini/gate.yaml \
+  --baseline-report tests/fixtures/evaluation_mini/baseline_report.json \
+  --qa-scores tests/fixtures/evaluation_mini/qa_scores.jsonl \
+  --output-root /tmp/struct4search-evaluation
+```
+
+검증용 fixture 명령은 GPU·OpenSearch·embedding·reader·유료 API를 호출하지 않습니다.
+
+## 운영 평가 전 확인
 
 * 평가 대상 코퍼스가 색인되어 있어야 합니다.
-* 검색·답변에 필요한 서비스가 실행 중이어야 합니다.
-* 평가할 인덱스를 확인합니다.
-* 사용할 평가셋을 선택합니다.
+* OpenSearch, embedding, reader 서비스가 실행 중이어야 합니다.
+* 평가 릴리스, 기준 report, QA score 파일을 준비해야 합니다.
 
 | 평가셋     |    문서 |  질의 | 쓰는 때             |
 | ------- | ----: | --: | ---------------- |
@@ -21,13 +34,19 @@ title: 검색과 QA 평가 실행
 
 소규모 평가셋은 검색 공간이 100문서로 제한되어 있어 대규모 검색 환경의 난이도를 그대로 반영하지는 않습니다. **기준 성능과 회귀 판정에는 대규모 평가셋을 사용합니다**([평가셋 구성](eval200.md)).
 
-## 실행
+## 운영 평가 실행
 
 ```bash
-struct4search-evaluate --run-root <출력 디렉터리> --output-root <결과 디렉터리>
+struct4search-evaluate \
+  --profile configs/production.yaml \
+  --evaluation-config configs/evaluation-release.json \
+  --gate-config configs/evaluation-gate.yaml \
+  --baseline-report <기준_report.json> \
+  --qa-scores <QA_점수.jsonl> \
+  --output-root /absolute/path/to/evaluation-output
 ```
 
-평가는 실제 [검색·답변 파이프라인](../query/overview.md)을 그대로 사용합니다. 별도의 평가용 검색 경로를 두지 않으므로 실제 검색·답변 경로의 결과를 평가합니다.
+기존 run 아래에 결과를 남기려면 `--output-root` 대신 `--run-root <run_root>`를 사용합니다. `--run-root`와 `--output-root`, `--profile`과 `--fixture-results`는 각각 하나만 선택할 수 있습니다.
 
 ## 결과 파일
 
@@ -36,6 +55,8 @@ struct4search-evaluate --run-root <출력 디렉터리> --output-root <결과 �
 | `retrieval_predictions.query_service.jsonl` | 질의별 검색 결과   |
 | `retrieval_scores_per_query.jsonl`          | 질의별 검색 점수   |
 | `qa_answers.jsonl`                          | 질의별 답변과 인용  |
+| `EVALUATION_REPORT.json`                    | 검색·답변 평가 요약 |
+| `RELEASE_GATE.json`                         | release gate 판정 |
 | `EVALUATION_RESULTS.json`                   | 전체 평가 결과 요약 |
 
 ## 검색 지표

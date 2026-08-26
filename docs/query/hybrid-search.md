@@ -68,17 +68,16 @@ BM25와 Dense 모두 원문 청크와 검색표현을 함께 검색합니다. �
 
 여기서 `50`은 **각 검색 채널의 후보 깊이**입니다. BM25 Top-50과 Dense Top-50이 애플리케이션에 각각 반환된다는 뜻은 아닙니다. 실제 검색·답변 경로에서는 RRF로 통합된 하나의 후보 목록만 전달됩니다.
 
-## 환경변수
+## 설정값
 
-| 환경변수명                               | 기본 옵션         | 의미                          |
+| profile key                             | 기본값         | 의미                          |
 | ----------------------------------- | ------------- | --------------------------- |
 | `query.index_name`                  | `s4s-current` | 검색할 OpenSearch 인덱스 또는 별칭    |
 | `query.native_rrf.bm25_depth`       | 50            | BM25 채널의 후보 깊이              |
 | `query.native_rrf.dense_depth`      | 50            | Dense 채널의 후보 깊이             |
-| `query.native_rrf.pagination_depth` | 50            | Hybrid 검색에서 채널별로 탐색하는 후보 깊이 |
 | `query.native_rrf.combined_depth`   | 30            | RRF 통합 후 반환하는 후보 수          |
 
-현재 검색 경로에서는 위 값을 고정된 검색 계약으로 사용합니다. OpenSearch의 전체 매핑과 분석기 설정은 [OpenSearch 인덱스 구조](../reference/opensearch-schema.md)에서 확인할 수 있습니다.
+`pagination_depth`는 요청을 만들 때 `bm25_depth`에서 계산됩니다. OpenSearch의 전체 매핑과 분석기 설정은 [OpenSearch 인덱스 구조](../reference/opensearch-schema.md)에서 확인할 수 있습니다.
 
 ## 사용 또는 결과 확인
 
@@ -98,6 +97,6 @@ OpenSearch 인덱스가 없거나 질의 벡터의 차원이 색인 벡터와 �
 
 | 확인할 내용              | 파일·심볼                                                                                               |
 | ------------------- | --------------------------------------------------------------------------------------------------- |
-| Hybrid 검색 요청과 결과 처리 | `src/struct4search/adapters/search/opensearch/native_hybrid.py` · `OpenSearchNativeHybridRetriever` |
-| 검색 파라미터             | `src/struct4search/adapters/search/opensearch/native_hybrid.py` · `NativeHybridSearchConfig`        |
-| 환경변수                | `configs/production.yaml` · `query.native_rrf`                                                      |
+| Hybrid 검색 요청과 결과 처리 | `backend/struct4search/adapters/search/opensearch/native_hybrid.py` · `OpenSearchNativeHybridRetriever` |
+| 검색 파라미터             | `backend/struct4search/adapters/search/opensearch/native_hybrid.py` · `NativeHybridSearchConfig`        |
+| profile                | `configs/production.yaml` · `query.native_rrf`                                                      |

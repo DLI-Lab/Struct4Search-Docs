@@ -5,19 +5,20 @@ title: 테스트 범위
 
 # 테스트 범위
 
-Struct4Search의 검증은 **모듈 테스트**와 **E2E 테스트**로 나뉩니다. 확인하려는 범위에 따라 필요한 테스트를 선택합니다.
+검증은 CPU 테스트, fixture 실행, production E2E로 나뉩니다. 먼저 외부 서비스가 필요 없는 경로를 실행합니다.
 
-| 구분      | 확인하는 것                              | 모델·서비스 | 소요      |
-| ------- | ----------------------------------- | ------ | ------- |
-| 모듈 테스트  | 코드와 데이터 계약이 유지되는지                   | 필요 없음  | 짧음      |
-| E2E 테스트 | 전체 파이프라인이 실제로 연결되어 동작하는지와 성능이 유지되는지 | 필요     | 상대적으로 김 |
+| 구분 | 확인하는 것 | 모델·서비스 |
+|---|---|---|
+| CPU 테스트 | 코드와 데이터 계약 | 불필요 |
+| fixture evaluator·API | 실제 CLI와 transport 계약 | 불필요 |
+| production E2E | 모델을 포함한 전체 연결 | 필요 |
 
 ## 모듈 테스트
 
 외부 모델이나 서비스 없이 코드와 데이터 계약을 확인합니다.
 
 ```bash
-pytest
+python -m pytest -q
 ```
 
 ### 무엇을 확인하는가
@@ -32,13 +33,13 @@ pytest
 ### 영역별 실행
 
 ```bash
-pytest tests/unit/query                 # 검색·답변 경로
-pytest tests/unit/ingest                # 인덱싱 단계
-pytest tests/unit/config                # 프로파일과 프롬프트
-pytest tests/test_config_contracts.py   # 설정값 계약
+python -m pytest -q tests/unit/query                 # 검색·답변 경로
+python -m pytest -q tests/unit/ingest                # 인덱싱 단계
+python -m pytest -q tests/unit/config                # 프로파일과 프롬프트
+python -m pytest -q tests/test_config_contracts.py   # 설정값 계약
 ```
 
-전체 모듈 테스트도 비교적 빠르게 실행할 수 있으므로 범위를 따로 고를 필요가 없다면 `pytest`를 실행합니다.
+범위를 따로 고를 필요가 없다면 `python -m pytest -q`를 실행합니다.
 
 ### 모듈 테스트가 확인하지 않는 것
 
@@ -46,7 +47,7 @@ pytest tests/test_config_contracts.py   # 설정값 계약
 
 ## E2E 테스트
 
-실제 모델과 외부 서비스를 연결해 전체 파이프라인을 확인합니다. 목적에 따라 두 가지 방식으로 실행합니다.
+fixture evaluator·API는 외부 서비스 없이 실행할 수 있습니다. 실제 모델과 외부 서비스를 연결하는 검증은 production E2E입니다.
 
 ### 문서 한 건 E2E
 
@@ -54,17 +55,13 @@ pytest tests/test_config_contracts.py   # 설정값 계약
 struct4search-smoke-e2e
 ```
 
-고정된 문서 한 건으로 인덱싱부터 답변까지 전체 파이프라인을 한 번 실행합니다. 별칭을 바꾸거나 서비스를 재시작하지 않으므로 기존 인덱스에는 영향을 주지 않습니다.
+고정된 문서 한 건으로 인덱싱부터 답변까지 전체 경로를 확인합니다. GPU, model snapshot, PostgreSQL, OpenSearch, Temporal과 모델 서비스가 필요합니다.
 
 목적은 **각 단계와 서비스가 정상적으로 연결되어 동작하는지 확인하는 것**입니다. 성능은 측정하지 않습니다. 서비스 설정이나 모델을 변경했을 때 우선 확인하는 데 사용합니다.
 
 ### 평가셋 E2E
 
-```bash
-struct4search-evaluate --run-root <출력 디렉터리> --output-root <결과 디렉터리>
-```
-
-평가셋의 질의를 실제 검색·답변 파이프라인으로 실행해 검색과 QA 지표를 측정합니다. 평가셋은 목적에 따라 두 가지를 사용합니다([평가셋 구성](eval200.md)).
+평가셋의 질의를 실제 검색·답변 파이프라인으로 실행해 검색과 QA 지표를 측정합니다. 실행 인자는 [검색과 QA 평가 실행](retrieval-qa.md)의 fixture·production 예시를 사용합니다.
 
 | 평가셋     |    문서 |  질의 | 쓰는 때             |
 | ------- | ----: | --: | ---------------- |

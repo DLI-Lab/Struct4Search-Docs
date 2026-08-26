@@ -70,9 +70,9 @@ LLM이 반환한 인용을 검증하고, 인용된 원문 청크를 실제 문�
 
 정리가 끝난 인용 ID는 원문 청크의 문서 정보와 페이지에 연결되고, 사용자가 원본을 확인할 수 있는 출처 링크로 구성됩니다. 이 과정에서는 LLM을 다시 호출하지 않습니다.
 
-### 환경변수
+### 설정값
 
-| 환경변수명                                 | 기본 옵션                                                                       | 의미               |
+| profile key                               | 기본값                                                                       | 의미               |
 | ------------------------------------- | --------------------------------------------------------------------------- | ---------------- |
 | `query.citation_normalization_policy` | `stable_dedup_then_drop_rte_and_noncontext_then_drop_unsupported_claims_v1` | 인용을 검증하고 정리하는 정책 |
 
@@ -94,7 +94,7 @@ LLM이 반환한 인용을 검증하고, 인용된 원문 청크를 실제 문�
 
 | 확인할 내용   | 파일·심볼                                                                                       |
 | -------- | ------------------------------------------------------------------------------------------- |
-| 인용 정리    | `src/struct4search/query/answer/citation_normalizer.py` · `DeterministicCitationNormalizer` |
-| 원본 출처 연결 | `src/struct4search/query/answer/citation_linker.py` · `DefaultCitationLinker`               |
-| 출처 연결 계약 | `src/struct4search/query/contracts.py` · `SourceLinkResolver`                               |
-| 설정       | `configs/production.yaml` · `query.citation_normalization_policy`                           |
+| 인용 정리    | `backend/struct4search/query/answer/citation_normalizer.py` · `DeterministicCitationNormalizer` |
+| 원본 출처 연결 | `backend/struct4search/query/answer/citation_linker.py` · `DefaultCitationLinker`               |
+| 출처 연결 계약 | `backend/struct4search/query/contracts.py` · `SourceLinkResolver`                               |
+| profile    | `configs/production.yaml` · `query.citation_normalization_policy`                           |

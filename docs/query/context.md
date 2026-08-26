@@ -63,9 +63,9 @@ user     질문: {질의}
 
 검색 결과에 사용할 원문 근거가 없으면 답변 모델을 호출하지 않습니다.
 
-### 환경변수
+### 설정값
 
-| 환경변수명                                                | 기본 옵션                                           | 의미                           |
+| profile key                                               | 기본값                                           | 의미                           |
 | ---------------------------------------------------- | ----------------------------------------------- | ---------------------------- |
 | `query.reader.generation.context_window_tokens`      | 16384                                           | 답변 모델이 한 번에 처리할 수 있는 전체 토큰 수 |
 | `query.reader.generation.generation_boundary_tokens` | 4                                               | 입력과 출력 사이에 확보하는 토큰 범위        |
@@ -92,10 +92,10 @@ LLM Context 구성은 검색·답변 파이프라인에서 자동으로 실행�
 
 | 확인할 내용   | 파일·심볼                                                                         |
 | -------- | ----------------------------------------------------------------------------- |
-| 근거 구성    | `src/struct4search/query/answer/context_renderer.py` · `render_f400_evidence` |
-| 토큰 범위 계산 | `src/struct4search/query/answer/token_budget.py` · `ReaderTokenBudget`        |
+| 근거 구성    | `backend/struct4search/query/answer/context_renderer.py` · `render_f400_evidence` |
+| 토큰 범위 계산 | `backend/struct4search/query/answer/token_budget.py` · `ReaderTokenBudget`        |
 | 시스템 프롬프트 | `prompts/answer/industrial-safety-grounded-claims/v1.txt`                     |
-| 환경변수     | `configs/production.yaml` · `query.reader`                                    |
+| profile     | `configs/production.yaml` · `query.reader`                                    |
 
 ```
 ```

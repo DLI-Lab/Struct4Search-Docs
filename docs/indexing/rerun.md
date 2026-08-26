@@ -10,23 +10,30 @@ title: 파이프라인 실행 및 재처리 방법
 ## 실행
 
 ```bash
-struct4search-ingest --output <출력 디렉터리>
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output <출력_디렉터리>
 ```
 
 | 인자              | 설명                                                 |
 | --------------- | -------------------------------------------------- |
-| `--output`      | 산출물이 쌓일 디렉터리. 필수                                   |
-| `--config`      | 실행 프로파일. 생략하면 `configs/ingest-production.yaml`     |
-| `--services`    | 서비스 정의. 생략하면 `configs/services/cold-services.yaml` |
-| `--document-id` | 처리할 문서. 여러 번 줄 수 있고, 생략하면 코퍼스 전체                   |
+| `--output`      | 산출물이 쌓일 디렉터리. 필수 |
+| `--config` · `--services` | production profile과 서비스 정의. `--stack`을 쓰지 않으면 둘 다 필수 |
+| `--stack` | local stack 설정. `--config`, `--services`와 함께 쓸 수 없음 |
+| `--document-id` | 처리할 문서. 여러 번 줄 수 있고, 생략하면 profile의 전체 대상 문서를 처리 |
 
 문서 한 건만 돌리려면 이렇게 씁니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id d002343_6b6d39ebe6
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output <출력_디렉터리> \
+  --document-id d002343_6b6d39ebe6
 ```
 
-실행기는 필요한 모델·검색 서비스를 함께 띄우고 파이프라인 일곱 단계를 순서대로 돌립니다. 서비스 목록과 주소는 [API Reference](../reference/api-reference.md)에 있습니다.
+실행기는 profile에 지정된 서비스를 준비하고 파이프라인을 실행합니다. 서비스 요구사항은 [외부 의존](../reference/dependencies.md)에서 확인합니다.
 
 ## 산출물 구조
 
@@ -96,8 +103,8 @@ struct4search-ingest --output <출력 디렉터리> --document-id d002343_6b6d39
 
 | 확인할 내용          | 파일·심볼                                                                                        |
 | --------------- | -------------------------------------------------------------------------------------------- |
-| 실행 진입점          | `src/struct4search/entrypoints/cli/ingest.py` · `main`                                       |
-| 재개와 중복 실행 거부    | `src/struct4search/entrypoints/cli/ingest.py` · `refuse_if_another_run_is_live`              |
-| 완료 기록과 부분 완료 판정 | `src/struct4search/ingest/service.py` · `persist_document_complete` · `partial_stage_detail` |
-| 기본 프로파일         | `configs/ingest-production.yaml`                                                             |
+| 실행 진입점          | `backend/struct4search/entrypoints/cli/ingest.py` · `main`                                       |
+| 재개와 중복 실행 거부    | `backend/struct4search/entrypoints/cli/ingest.py` · `refuse_if_another_run_is_live`              |
+| 완료 기록과 부분 완료 판정 | `backend/struct4search/ingest/service.py` · `persist_document_complete` · `partial_stage_detail` |
+| 실행 profile         | `configs/production.yaml`                                                                    |
 | 서비스 정의          | `configs/services/cold-services.yaml`                                                        |

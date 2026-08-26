@@ -40,9 +40,9 @@ Triple 하나는 다음과 같은 형태입니다.
 
 KG는 **문서 단위로 구축**하며, 다른 문서의 Entity와 관계를 합치지 않습니다.
 
-### 환경변수
+### 설정값
 
-| 환경변수명                                | 기본 옵션                   | 의미                         |
+| profile key                              | 기본값                   | 의미                         |
 | ------------------------------------ | ----------------------- | -------------------------- |
 | `triple.strategy`                    | `v3_near_entity_chunks` | Entity 주변 청크를 묶는 방식        |
 | `triple.near_max_gap`                | 3                       | reading order상 함께 볼 청크의 범위 |
@@ -56,7 +56,11 @@ KG는 **문서 단위로 구축**하며, 다른 문서의 Entity와 관계를 �
 KG 구축은 문서 인덱싱 과정에서 실행됩니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output <출력_디렉터리> \
+  --document-id <문서_ID>
 ```
 
 실행 후 문서별 Triple과 지식그래프가 생성되었는지 확인합니다.
@@ -73,8 +77,7 @@ struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
 
 | 확인할 내용            | 파일·심볼                                                  |
 | ----------------- | ------------------------------------------------------ |
-| Entity 주변 청크 묶기   | `src/struct4search/ingest/stages/entity_local_core.py` |
-| Triple 추출과 그래프 구성 | `src/struct4search/ingest/stages/graph_core.py`        |
+| Entity 주변 청크 묶기   | `backend/struct4search/ingest/stages/entity_local_core.py` |
+| Triple 추출과 그래프 구성 | `backend/struct4search/ingest/stages/graph_core.py`        |
 | 프롬프트              | `prompts/triple/f400-v3-entity-local/v1.txt`           |
-| 설정                | `configs/ingest-production.yaml` · `triple` · `kg`     |
-
+| 설정                | `configs/production.yaml` · `triple` · `kg`     |

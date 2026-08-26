@@ -32,9 +32,9 @@ title: 질의 처리
 
 질의 임베딩을 생성하지 못하면 검색을 진행하지 않습니다.
 
-### 환경변수
+### 설정값
 
-| 환경변수명 | 기본 옵션 | 의미 |
+| profile key | 기본값 | 의미 |
 |---|---|---|
 | `index.embedding_url` | 서버 주소 | 질의를 벡터로 변환할 임베딩 서버 |
 | `index.embedding_model` | `Qwen/Qwen3-Embedding-8B` | 색인과 질의에 사용하는 임베딩 모델 |
@@ -58,6 +58,6 @@ title: 질의 처리
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| 질의 처리 | `src/struct4search/query/service.py` · `DefaultQueryService.execute` |
-| 임베딩 생성 | `src/struct4search/adapters/search/opensearch/embedding.py` · `UrllibOpenAICompatibleEmbeddingPort` |
-| 설정 주입 | `src/struct4search/bootstrap/composition.py` |
+| 질의 처리 | `backend/struct4search/query/service.py` · `DefaultQueryService.execute` |
+| 임베딩 생성 | `backend/struct4search/adapters/search/opensearch/embedding.py` · `UrllibOpenAICompatibleEmbeddingPort` |
+| 설정 주입 | `backend/struct4search/bootstrap/composition.py` |

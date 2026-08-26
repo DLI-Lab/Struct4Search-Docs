@@ -57,9 +57,9 @@ Metadata는 검색표현에 문맥을 보강하는 데 사용되며, 검색표�
 
 검색표현이 검색되면 연결된 원문 청크에 검색 점수가 전달되고, 최종 답변의 Citation에는 원문 청크만 사용됩니다([검색 결과 점수 통합](../query/score-integration.md)).
 
-### 환경변수
+### 설정값
 
-| 환경변수명                                        | 기본 옵션                                              | 의미                          |
+| profile key                                      | 기본값                                              | 의미                          |
 | -------------------------------------------- | -------------------------------------------------- | --------------------------- |
 | `g2.selector`                                | `weighted_undirected_pagerank`                     | 지식그래프에서 핵심 주제를 고르는 방식       |
 | `g2.grouping_policy`                         | `networkx_salience_topic_proximity_other_fallback` | 같은 주제의 Triple을 묶는 방식        |
@@ -74,7 +74,11 @@ Metadata는 검색표현에 문맥을 보강하는 데 사용되며, 검색표�
 검색표현 생성은 문서 인덱싱 과정에서 실행됩니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output <출력_디렉터리> \
+  --document-id <문서_ID>
 ```
 
 문서별 산출물에서 검색표현이 생성되었는지와 원문 청크가 정상적으로 연결되었는지 확인합니다.
@@ -91,7 +95,7 @@ struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
 
 | 확인할 내용         | 파일·심볼                                                                                               |
 | -------------- | --------------------------------------------------------------------------------------------------- |
-| 검색표현 생성        | `src/struct4search/ingest/stages/retrieval_expression_core.py`                                      |
-| 중요도와 Triple 묶기 | `src/struct4search/ingest/stages/retrieval_expression_topology.py` · `weighted_undirected_pagerank` |
+| 검색표현 생성        | `backend/struct4search/ingest/stages/retrieval_expression_core.py`                                      |
+| 중요도와 Triple 묶기 | `backend/struct4search/ingest/stages/retrieval_expression_topology.py` · `weighted_undirected_pagerank` |
 | 프롬프트           | `prompts/retrieval_expression/g2-system/v1.txt` · `g2-user/v1.txt`                                  |
-| 설정             | `configs/ingest-production.yaml` · `g2`                                                             |
+| 설정             | `configs/production.yaml` · `g2`                                                             |

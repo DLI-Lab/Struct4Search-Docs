@@ -1,63 +1,45 @@
 ---
 sidebar_position: 2
-title: 실행 계약
+title: 실행 규칙
 ---
 
-# 실행 계약
+# 실행 규칙
 
-Struct4Search의 실행 진입점과 외부 서비스 호출, 실행 중 오류를 처리하는 기본 규칙을 정리합니다.
+실행 명령은 필요한 입력을 모두 확인한 뒤 서비스를 구성합니다. 잘못된 인자나 없는 파일은 외부 서비스 호출 전에 거부됩니다.
 
-## 실행 진입점
+## 명령별 입력
 
-| 진입점                       | 필수 인자      | 선택 인자                                       |
-| ------------------------- | ---------- | ------------------------------------------- |
-| `struct4search-ingest`    | `--output` | `--config` · `--services` · `--document-id` |
-| `struct4search-evaluate`  | —          | `--run-root` · `--output-root`              |
-| `struct4search-smoke-e2e` | —          | `--repository-root`                         |
-| `struct4search-preflight` | —          | —                                           |
-| `struct4search-env`       | —          | `--shell`                                   |
+| 명령 | 반드시 지정할 것 | 선택 항목 |
+|---|---|---|
+| `struct4search-ingest` | `--output`과 `--config`·`--services` 조합 또는 `--stack` | `--document-id` |
+| `struct4search-evaluate` | `--run-root` 또는 `--output-root`, `--profile` 또는 `--fixture-results`, `--evaluation-config`, `--gate-config` | `--baseline-report`, `--qa-scores` |
+| `struct4search-api` | `--profile` 또는 `--fixture-results` | `--host`, `--port`, `--log-level` |
+| `struct4search-bootstrap` | `--profile` 또는 `--stack` | `--check` |
+| `struct4search-env` | — | `--shell` |
+| `struct4search-preflight` | — | — |
 
-`struct4search-ingest`는 `--config`를 생략하면 `configs/ingest-production.yaml`, `--services`를 생략하면 `configs/services/cold-services.yaml`을 사용합니다.
+`struct4search-ingest`에서 `--stack`은 `--config`, `--services`와 함께 사용할 수 없습니다. `struct4search-evaluate`와 `struct4search-api`의 provider 선택도 정확히 하나여야 합니다.
 
-각 명령의 사용 방법은 [실행 명령](cli.md)에서 확인할 수 있습니다.
+## 외부 서비스
 
-## 실행과 재개
+| 서비스 | 필요한 작업 |
+|---|---|
+| MinerU | 스캔·복합 문서 파싱 |
+| LLM provider | Metadata, KG, 검색표현, 답변 생성 |
+| 임베딩 서비스 | 인덱싱과 질의 벡터 생성 |
+| OpenSearch | 검색 단위 색인과 Native RRF 검색 |
+| PostgreSQL | KG 저장 |
+| Temporal | production ingest workflow |
 
-같은 실행 조건으로 다시 호출하면 기존 실행을 이어받습니다.
-
-| 상황             | 동작                       |
-| -------------- | ------------------------ |
-| 같은 조건으로 재실행    | 기존 실행을 이어받습니다            |
-| 다른 실행이 이미 진행 중 | 새 실행을 거부합니다              |
-| 실행 프로세스가 중단됨   | 기존 진행 상태에서 다시 시작할 수 있습니다 |
-
-문서 인덱싱의 재개와 단계별 재처리 방법은 [파이프라인 실행 및 재처리 방법](../indexing/rerun.md)에서 설명합니다.
-
-## 외부 서비스 호출
-
-| 대상         | 사용하는 단계                            | 호출 방식          |
-| ---------- | ---------------------------------- | -------------- |
-| MinerU     | 문서 파싱                              | HTTP           |
-| Qwen       | Metadata 생성 · KG 구축 · 검색표현 생성 · 답변 | OpenAI 호환 HTTP |
-| 임베딩 서버     | 인덱싱 · 질의 처리                        | OpenAI 호환 HTTP |
-| OpenSearch | 인덱싱 · Hybrid 검색 · RRF 통합           | HTTP           |
-| PostgreSQL | KG 저장                              | 커넥션 풀          |
-
-각 서비스의 주소와 API는 [API Reference](api-reference.md)에서 확인할 수 있습니다.
-
-LLM이 정해진 구조로 결과를 반환해야 하는 단계에서는 JSON Schema를 사용해 출력 형식을 제한합니다. 프롬프트와 출력 규칙은 [프롬프트와 출력 검증](prompts.md)에서 설명합니다.
+fixture 평가와 fixture API는 이 서비스를 호출하지 않습니다. production profile을 선택한 경우에만 profile에 지정된 서비스를 사용합니다.
 
 ## 오류 처리
 
-| 상황                                           | 동작                |
-| -------------------------------------------- | ----------------- |
-| 설정이 Schema를 따르지 않음                           | 실행 전에 중단          |
-| 프롬프트 또는 OpenSearch search pipeline 정의가 맞지 않음 | 실행 전에 중단          |
-| 호스트 사전 점검 실패                                 | 실행 전에 중단          |
-| 외부 서비스 호출 실패                                 | 해당 문서 또는 질의 처리 실패 |
-| LLM 출력이 JSON Schema를 따르지 않음                  | 정해진 횟수만큼 재시도      |
-| 파이프라인 계약을 만족하지 못함                            | 해당 단계에서 실패 처리     |
+| 상황 | 동작 |
+|---|---|
+| CLI 인자 조합 또는 파일 경로가 잘못됨 | argparse 오류로 실행 전 종료 |
+| profile 또는 설정 검증 실패 | 서비스 구성 전 종료 |
+| API 요청의 `query`가 없거나 비어 있음 | `422` 응답 |
+| 외부 서비스 또는 source transport를 사용할 수 없음 | `503` 응답 |
 
-문서 인덱싱은 일부 단계만 끝난 문서를 완료된 것으로 처리하지 않습니다. 중단된 문서는 완료되지 않은 단계부터 다시 처리할 수 있습니다.
-
-답변의 Citation은 별도의 재생성 없이 후처리 단계에서 검증하고 정리합니다. 자세한 내용은 [답변 후처리 및 원본 출처 연결](../query/citations.md)에서 확인할 수 있습니다.
+실제 명령 예시는 [실행 명령](cli.md), HTTP 경로는 [API 실행과 경로](api-reference.md)에서 확인합니다.

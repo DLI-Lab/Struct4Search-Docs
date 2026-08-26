@@ -1,61 +1,39 @@
 ---
 sidebar_position: 10
-title: 외부 의존
+title: 설치 요구사항
 ---
 
-# 외부 의존
+# 설치 요구사항
 
-Struct4Search를 실행하는 데 필요한 외부 서비스, 모델과 주요 패키지를 정리합니다.
+개발 환경과 production 실행 환경의 요구사항은 다릅니다. 먼저 CPU 개발 환경을 준비하고, 실제 인덱싱이 필요한 경우에만 외부 서비스를 추가합니다.
 
-## 서비스
+## CPU 개발 환경
 
-| 서비스 | 쓰는 단계 | 사용할 수 없으면 |
-|---|---|---|
-| MinerU | 문서 파싱의 스캔·복합 페이지 | 해당 페이지를 파싱할 수 없습니다 |
-| Qwen | Metadata 생성 · KG 구축 · 검색표현 생성 · 답변 | 해당 단계를 실행할 수 없습니다 |
-| 임베딩 서버 | 인덱싱 · 질의 처리 | 벡터 생성과 Dense 검색을 할 수 없습니다 |
-| OpenSearch | 인덱싱 · Hybrid 검색 · RRF 통합 | 색인과 검색을 할 수 없습니다 |
-| PostgreSQL | KG 저장 | 지식그래프를 저장할 수 없습니다 |
-| Temporal | 파이프라인 실행과 재개 | 워크플로 실행과 재개를 사용할 수 없습니다 |
-
-서비스 주소와 실행 방법은 실행 프로파일과 `configs/services/cold-services.yaml`에서 관리합니다.
-
-## 모델
-
-| 모델 | 쓰는 단계 |
+| 항목 | 요구사항 |
 |---|---|
-| MinerU 2.5 Pro 1.2B | 스캔·복합 페이지 파싱 |
-| `urchade/gliner_multi-v2.1` | NER |
-| `nlpai-lab/KURE-v1` | 원문 청킹의 토큰 계산 |
-| Qwen 계열 | Metadata 생성 · KG 구축 · 검색표현 생성 · 답변 |
-| `Qwen/Qwen3-Embedding-8B` | 원문·검색표현·질의 임베딩 |
+| Python | 3.12 이상 |
+| 기본 도구 | Git, `venv` 또는 `virtualenv` |
+| CPU 테스트·fixture API | `python -m pip install -e '.[test,api]'` |
+| 전체 확인 | `python -m pytest -q` |
 
-모델과 토크나이저는 지정된 버전을 사용하며, 모델 파일과 캐시 위치는 실행 환경에서 설정합니다([설정과 환경 변수](configuration.md)).
+Debian/Ubuntu에서 `python3.12 -m venv`가 실패하면 `python3.12-venv` OS 패키지를 설치합니다.
 
-## 주요 Python 패키지
+## 실제 인덱싱에 추가로 필요한 것
 
-| 패키지 | 쓰는 곳 |
+| 항목 | 필요한 작업 |
 |---|---|
-| `pymupdf4llm` | 디지털 PDF 파싱 |
-| `pydantic` | 설정과 데이터 Schema |
-| `PyYAML` | 실행 프로파일 로드 |
-| `jsonschema` | 구조화된 출력 검증 |
-| `networkx` | 지식그래프 처리와 중요도 계산 |
-| `numpy` · `scipy` | 수치 계산 |
-| `psycopg` | PostgreSQL 연결 |
-| `requests` | HTTP 호출 |
-| `transformers` | 모델·토크나이저 연동 |
+| PostgreSQL 16 | KG 저장과 PostgreSQL integration |
+| OpenSearch 2.19.x + Nori | 색인, Korean analyzer, Native RRF 검색 |
+| Temporal | production ingest workflow |
+| MinerU·LLM·임베딩 서비스 | 문서 파싱, 지식화, 검색·답변 |
+| NVIDIA GPU와 model snapshot | 해당 모델 서비스를 이 서버에서 직접 실행할 때만 필요 |
 
-전체 패키지와 버전 범위는 `pyproject.toml`에서 확인할 수 있습니다. MinerU, Qwen과 임베딩 서버처럼 별도 프로세스로 실행되는 서비스의 환경은 별도로 관리합니다.
+문서 인덱싱 코드를 설치하려면 `python -m pip install -e '.[ingest]'`를 추가합니다. MinerU·Qwen을 직접 vLLM으로 실행하는 GPU 서버에서만 `requirements-gpu.txt`를 설치합니다.
 
-## 하드웨어
+## 설정 파일과 비밀값
 
-문서 파싱, NER, LLM 처리와 임베딩 생성에는 GPU를 사용합니다. 각 서비스가 사용할 GPU와 실행 방식은 `configs/services/cold-services.yaml`에서 정의합니다.
+모델·서비스·검색 설정은 `configs/production.yaml`, 서비스 실행 정의는 `configs/services/cold-services.yaml`에 있습니다. 기계별 경로는 `configs/machine-paths.yaml` 또는 허용된 `S4S_*` 환경변수로 지정합니다.
 
-GLiNER는 별도 서버가 아니라 파이프라인 프로세스 안에서 실행되므로 다른 GPU 서비스와 함께 사용할 때 메모리 사용량을 고려해야 합니다.
+접속 문자열과 API key는 Git에 넣지 않고 환경변수로 전달합니다. 외부 GPT provider를 선택한 profile에서만 `OPENAI_API_KEY`가 필요합니다.
 
-## 오프라인 실행
-
-기본 구성에서는 필요한 모델과 토크나이저를 미리 준비한 상태에서 실행하며, 파이프라인 실행 중에 인터넷에서 새로 내려받지 않습니다.
-
-외부 API를 사용하는 구성은 선택 사항입니다. 필요한 경우에만 `OPENAI_API_KEY`와 같은 인증 정보를 환경변수로 전달합니다. 기본 구성은 자체 환경에서 실행되는 모델 서버를 사용합니다.
+실제 설치 순서는 [설치와 첫 실행](../quickstart.md), 각 extra와 고정 버전은 Struct4Search 저장소의 `pyproject.toml`, `constraints/py312-cpu.txt`, `REQUIREMENTS.md`를 기준으로 합니다.

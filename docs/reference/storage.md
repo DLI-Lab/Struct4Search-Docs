@@ -52,9 +52,9 @@ title: 저장소와 보존
 | ------------------ | --------------------- |
 | `kg.store.backend` | `postgresql`          |
 | `kg.store.schema`  | `s4s_kg`              |
-| `kg.store.dsn_env` | `S4S_KG_POSTGRES_DSN` |
+| `kg.store.dsn_env` | `S4S_KG_DSN` |
 
-PostgreSQL 접속 문자열은 실행 프로파일에 직접 기록하지 않고 `S4S_KG_POSTGRES_DSN` 환경변수로 전달합니다.
+PostgreSQL 접속 문자열은 실행 profile에 직접 기록하지 않고 `S4S_KG_DSN` 환경변수로 전달합니다.
 
 ## OpenSearch
 
@@ -91,8 +91,7 @@ OpenSearch에는 검색에 사용하는 두 종류의 검색 단위가 저장됩
 
 | 확인할 내용           | 파일·심볼                                             |
 | ---------------- | ------------------------------------------------- |
-| 문서 처리 상태와 완료 기록  | `src/struct4search/ingest/service.py`             |
-| PostgreSQL KG 저장 | `src/struct4search/kg_store.py`                   |
-| OpenSearch 색인 갱신 | `src/struct4search/index_stage.py`                |
-| 저장소 설정           | `configs/ingest-production.yaml` · `kg` · `index` |
-
+| 문서 처리 상태와 완료 기록  | `backend/struct4search/ingest/service.py`             |
+| PostgreSQL KG 저장 | `backend/struct4search/kg_store.py`                   |
+| OpenSearch 색인 갱신 | `backend/struct4search/index_stage.py`                |
+| 저장소 설정           | `configs/production.yaml` · `kg` · `index` |

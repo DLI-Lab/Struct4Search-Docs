@@ -5,108 +5,88 @@ title: 실행 명령
 
 # 실행 명령
 
-Struct4Search 패키지를 설치하면 문서 인덱싱, 평가와 실행 환경 확인에 필요한 CLI 명령을 사용할 수 있습니다.
+처음 설치한 개발자가 자주 사용하는 명령만 정리합니다. 모든 명령은 패키지를 설치한 뒤 사용할 수 있습니다.
 
 ```bash
-pip install -e .
+python -m pip install -e '.[test,api]'
 ```
 
-전체 명령은 `pyproject.toml`의 `[project.scripts]`에서 확인할 수 있습니다.
-
-## 문서 인덱싱
+## 환경 확인
 
 ```bash
-struct4search-ingest \
-  --output <출력 디렉터리> \
-  [--config <프로파일>] \
-  [--services <서비스 정의>] \
-  [--document-id <문서 ID>]
-```
-
-| 인자              | 필수  | 기본값                                   |
-| --------------- | --- | ------------------------------------- |
-| `--output`      | 예   | —                                     |
-| `--config`      | 아니오 | `configs/ingest-production.yaml`      |
-| `--services`    | 아니오 | `configs/services/cold-services.yaml` |
-| `--document-id` | 아니오 | 생략하면 대상 코퍼스를 처리하며, 여러 번 지정할 수 있습니다    |
-
-문서 한 건만 처리하려면 `--document-id`를 지정합니다.
-
-```bash
-struct4search-ingest \
-  --output <출력 디렉터리> \
-  --document-id <문서 ID>
-```
-
-인덱싱에 필요한 서비스를 실행하고 문서 파싱부터 OpenSearch 인덱싱까지 전체 파이프라인을 처리합니다. 같은 실행 조건으로 다시 호출하면 기존 진행 상태를 이어받습니다([파이프라인 실행 및 재처리 방법](../indexing/rerun.md)).
-
-## 문서 한 건 E2E
-
-```bash
-struct4search-smoke-e2e [--repository-root <체크아웃>]
-```
-
-고정된 문서 한 건으로 인덱싱부터 검색·답변까지 전체 경로가 정상적으로 연결되는지 확인합니다.
-
-성능을 측정하기 위한 명령이 아니라, 모델과 외부 서비스를 포함한 전체 파이프라인이 실행되는지 빠르게 확인할 때 사용합니다.
-
-## 검색과 QA 평가
-
-```bash
-struct4search-evaluate \
-  [--run-root <출력 디렉터리>] \
-  [--output-root <결과 디렉터리>]
-```
-
-평가셋을 실제 검색·답변 파이프라인으로 실행해 검색과 QA 지표를 측정합니다. 평가셋과 결과 확인 방법은 [검색과 QA 평가 실행](../testing/retrieval-qa.md)에서 설명합니다.
-
-## 실행 환경 확인
-
-### 환경 값 확인
-
-```bash
-struct4search-env [--shell]
-```
-
-현재 실행에 사용되는 경로와 환경 값을 출력합니다.
-
-`--shell`을 사용하면 현재 셸에 적용할 수 있는 `export` 형식으로 출력합니다.
-
-### 사전 점검
-
-```bash
+struct4search-env
+struct4search-env --shell
 struct4search-preflight
 ```
 
-파이프라인 실행 전에 호스트와 필요한 실행 조건을 확인합니다. 조건을 만족하지 못하면 실제 파이프라인을 시작하기 전에 중단됩니다.
+`struct4search-env --shell`은 현재 셸을 바꾸지 않고 `export` 문을 출력합니다. `struct4search-preflight`는 GPU·서비스 등 production 조건이 준비되지 않은 환경에서는 non-zero로 끝날 수 있습니다.
 
-## 내부 작업자
+## 문서 인덱싱
 
-| 명령                            | 역할           |
-| ----------------------------- | ------------ |
-| `struct4search-ingest-worker` | 문서 인덱싱 작업 처리 |
-| `struct4search-ingest-front`  | 인덱싱 실행 앞단 처리 |
-| `struct4search-temporal`      | 워크플로 실행      |
-| `struct4search-watchdog`      | 실행 상태 감시     |
+운영 프로파일을 직접 지정할 때는 `--config`와 `--services`를 함께 전달합니다.
 
-일반적인 문서 인덱싱에서는 `struct4search-ingest`가 필요한 작업자를 함께 실행하므로 직접 호출할 필요는 없습니다.
+```bash
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output /absolute/path/to/new-output
+```
+
+| 인자 | 설명 |
+|---|---|
+| `--output` | 필수. 새 실행의 산출물 경로 |
+| `--config` · `--services` | `--stack`을 사용하지 않을 때 함께 필수인 운영 프로파일과 서비스 정의 |
+| `--stack` | local stack 설정 파일. `--config`, `--services`와 함께 사용할 수 없음 |
+| `--document-id` | 선택. 여러 번 지정할 수 있으며, 생략하면 profile의 전체 대상 문서를 처리 |
+
+이 명령은 운영 인덱싱이므로 PostgreSQL, OpenSearch, Temporal과 모델·임베딩·파싱 서비스가 필요합니다.
+
+## 평가
+
+CPU 환경에서는 검증용 fixture 평가를 사용합니다.
+
+```bash
+struct4search-evaluate \
+  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
+  --evaluation-config tests/fixtures/evaluation_mini/release.json \
+  --gate-config tests/fixtures/evaluation_mini/gate.yaml \
+  --baseline-report tests/fixtures/evaluation_mini/baseline_report.json \
+  --qa-scores tests/fixtures/evaluation_mini/qa_scores.jsonl \
+  --output-root /tmp/struct4search-evaluation
+```
+
+`--run-root` 또는 `--output-root` 중 하나와, `--profile` 또는 `--fixture-results` 중 하나를 각각 선택해야 합니다. 운영 평가에서는 `--fixture-results` 대신 `--profile configs/production.yaml`을 사용합니다.
+
+## API 서버
+
+검증용 fixture API는 외부 서비스 없이 실행할 수 있습니다.
+
+```bash
+struct4search-api \
+  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
+  --host 127.0.0.1 \
+  --port 3100
+```
+
+`--profile configs/production.yaml`은 실제 OpenSearch·embedding·reader를 사용하는 운영 API를 구성합니다. `--profile`과 `--fixture-results`는 함께 사용할 수 없습니다. `--port`는 1부터 65535까지 지정할 수 있습니다.
+
+## 운영 전용 명령
+
+| 명령 | 용도 |
+|---|---|
+| `struct4search-bootstrap (--profile <profile> \| --stack <stack>) [--check]` | profile의 Native RRF 준비 상태 확인 또는 생성 |
+| `struct4search-stack --stack <stack> {api\|document\|chatkit\|ui\|up}` | local stack 실행 |
+| `struct4search-smoke-e2e [--repository-root <checkout>]` | 승인된 문서 한 건 production E2E |
+| `struct4search-five-document-e2e [--repository-root <checkout>]` | 승인된 5문서 E2E |
+| `struct4search-final-100-100-e2e [--repository-root <checkout>]` | 승인된 100문서·100질의 E2E |
+| `struct4search-final-full-2567-200-e2e [--repository-root <checkout>]` | 승인된 2,567문서·200질의 E2E |
+
+이 명령들은 준비된 서비스와 artifact를 전제로 합니다. 일반 개발 환경에서는 먼저 `python -m pytest -q`, fixture 평가, fixture API를 실행합니다.
 
 ## 테스트
 
 ```bash
-pytest
+python -m pytest -q
 ```
 
-외부 모델이나 서비스 없이 코드와 데이터 계약을 확인합니다. 테스트 종류와 범위는 [테스트 구성과 실행](../testing/overview.md)에서 확인할 수 있습니다.
-
-## 재실행
-
-| 상황             | 동작                           |
-| -------------- | ---------------------------- |
-| 같은 조건으로 다시 실행  | 기존 실행을 이어받습니다                |
-| 다른 실행이 이미 진행 중 | 새 실행을 거부합니다                  |
-| 특정 문서만 다시 처리   | `--document-id`로 문서를 지정합니다   |
-| 인덱싱 설정 변경      | 영향을 받는 단계부터 다시 처리합니다         |
-| 검색·답변 설정 변경    | 기존 색인은 유지하고 필요한 평가를 다시 실행합니다 |
-
-설정 변경에 따른 정확한 재처리 범위는 [변경 지점 찾기](../maintenance/change-map.md)와 [파이프라인 실행 및 재처리 방법](../indexing/rerun.md)에서 확인할 수 있습니다.
+테스트 범위와 production E2E의 조건은 [테스트와 평가](../testing/overview.md)에서 확인합니다.

@@ -10,7 +10,7 @@ Struct4Search 코드를 처음 열었을 때 주요 구현과 설정이 어디�
 ## 저장소 구조
 
 ```text
-src/struct4search/       Struct4Search 구현
+backend/struct4search/       Struct4Search 구현
 configs/                 실행 프로파일과 서비스 설정
 prompts/                 프롬프트와 registry
 opensearch/              OpenSearch 검색 파이프라인
@@ -22,7 +22,7 @@ pyproject.toml           패키지와 실행 명령
 ## 단계와 코드 위치
 
 ```text
-src/struct4search/
+backend/struct4search/
 ├─ ingest/               문서 인덱싱
 │  └─ stages/            인덱싱 단계 구현
 ├─ query/                검색·답변
@@ -59,13 +59,13 @@ src/struct4search/
 
 | 파일                                              | 내용                  |
 | ----------------------------------------------- | ------------------- |
-| `configs/ingest-production.yaml`                | 문서 인덱싱 프로파일         |
+| `configs/production.yaml`                | 문서 인덱싱 프로파일         |
 | `configs/production.yaml`                       | 검색·답변 프로파일          |
 | `configs/services/cold-services.yaml`           | 실행 서비스 설정           |
 | `configs/evaluation-release.json`               | 평가셋 릴리스             |
 | `prompts/registry.yaml`                         | 프롬프트 등록 정보          |
 | `opensearch/search_pipelines/`                  | OpenSearch 검색 파이프라인 |
-| `src/struct4search/domain/metadata_fields.yaml` | Metadata 18종 정의     |
+| `backend/struct4search/domain/metadata_fields.yaml` | Metadata 18종 정의     |
 
 ## 실행 진입점
 
@@ -82,12 +82,12 @@ src/struct4search/
 
 | 하려는 작업           | 볼 위치                                         |
 | ---------------- | -------------------------------------------- |
-| 문서 인덱싱 수정        | `src/struct4search/ingest/`                  |
-| 검색·답변 수정         | `src/struct4search/query/`                   |
+| 문서 인덱싱 수정        | `backend/struct4search/ingest/`                  |
+| 검색·답변 수정         | `backend/struct4search/query/`                   |
 | 설정 변경            | `configs/`                                   |
 | 프롬프트 변경          | `prompts/`                                   |
 | OpenSearch 설정 확인 | `opensearch/`                                |
-| 실제 구현 조립 확인      | `src/struct4search/bootstrap/composition.py` |
+| 실제 구현 조립 확인      | `backend/struct4search/bootstrap/composition.py` |
 | 테스트 확인           | `tests/`                                     |
 | 웹 문서 수정          | `documentation/`                             |
 

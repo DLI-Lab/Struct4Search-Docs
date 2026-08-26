@@ -98,5 +98,5 @@ title: 평가셋 구성
 | 확인할 내용 | 파일·심볼                                       |
 | ------ | ------------------------------------------- |
 | 릴리스 선언 | `configs/evaluation-release.json`           |
-| 자산 해석  | `src/struct4search/evaluation/datasets.py`  |
-| 검색 채점  | `src/struct4search/evaluation/retrieval.py` |
+| 자산 해석  | `backend/struct4search/evaluation/datasets.py`  |
+| 검색 채점  | `backend/struct4search/evaluation/retrieval.py` |

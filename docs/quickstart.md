@@ -5,115 +5,87 @@ title: 설치와 첫 실행
 
 # 설치와 첫 실행
 
-문서 한 건을 처리하고 질의 하나를 실행해 답변과 출처를 확인하기까지의 최소 실행 경로입니다.
+처음 clone한 개발자가 CPU 환경에서 설치와 기본 동작을 확인하는 순서입니다. 실제 문서 인덱싱은 GPU와 외부 서비스를 준비한 뒤 실행합니다.
 
-## 실행 전 준비
+## 1. 설치
 
-저장소에서 패키지를 설치하면 Struct4Search 실행 명령을 사용할 수 있습니다.
-
-```bash
-pip install -e .
-````
-
-| 명령                        | 하는 일                    |
-| ------------------------- | ----------------------- |
-| `struct4search-env`       | 실행에 사용하는 경로와 환경 값 확인    |
-| `struct4search-preflight` | 실행 전 호스트 환경 점검          |
-| `struct4search-smoke-e2e` | 고정 문서 한 건으로 전체 파이프라인 확인 |
-| `struct4search-ingest`    | 문서 인덱싱                  |
-| `struct4search-evaluate`  | 검색·QA 평가                |
-
-## 설정 확인
+Struct4Search는 Python 3.12 이상을 사용합니다. 아래 설치는 CPU 테스트와 검증용 fixture API 실행에 필요한 패키지를 함께 설치합니다.
 
 ```bash
-struct4search-env
+git clone https://github.com/DLI-Lab/Struct4Search.git
+cd Struct4Search
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -e '.[test,api]'
+python -m pip check
 ```
 
-현재 실행에 사용되는 경로와 환경 값이 출력됩니다. 셸에서 바로 사용할 형태로 출력하려면 `--shell`을 붙입니다.
-
-인덱싱은 `configs/ingest-production.yaml`, 검색·답변은 `configs/production.yaml`을 기본 프로파일로 사용합니다. 다른 프로파일을 사용하려면 실행할 때 `--config`로 지정합니다.
-
-## 필요한 서비스 확인
+문서 인덱싱까지 실행할 서버에는 다음 옵션 패키지를 추가합니다.
 
 ```bash
-struct4search-preflight
+python -m pip install -e '.[ingest]'
 ```
 
-실행 환경이 필요한 조건을 만족하지 않으면 이 단계에서 중단됩니다. 실제 파이프라인을 실행하기 전에 필요한 서비스와 호스트 상태를 먼저 확인할 수 있습니다.
+MinerU·Qwen을 이 서버에서 직접 실행하는 경우에는 NVIDIA/Linux 환경에서만 `requirements-gpu.txt`도 설치합니다. 전체 요구사항은 [설치 요구사항](reference/dependencies.md)에서 확인합니다.
 
-인덱싱 실행에서 사용하는 주요 서비스는 다음과 같습니다.
+## 2. CPU 환경 확인
 
-| 서비스        | 쓰는 곳                               |
-| ---------- | ---------------------------------- |
-| MinerU     | 스캔·복합 페이지 파싱                       |
-| Qwen       | Metadata 생성 · KG 구축 · 검색표현 생성 · 답변 |
-| 임베딩 서버     | 색인 벡터와 질의 벡터 생성                    |
-| OpenSearch | 검색 단위 색인과 검색                       |
-
-서비스 주소는 실행 프로파일과 `configs/services/cold-services.yaml`에서 확인할 수 있습니다.
-
-## 샘플 문서 처리
-
-먼저 고정된 문서 한 건으로 전체 파이프라인이 정상적으로 연결되는지 확인합니다.
+외부 모델·GPU·유료 API 없이 전체 테스트를 실행합니다.
 
 ```bash
-struct4search-smoke-e2e
+python -m pytest -q
 ```
 
-인덱싱부터 답변 생성까지 한 번 실행하며, **기존 alias를 변경하거나 서비스를 재시작하지 않습니다.** 기존 인덱스에도 영향을 주지 않습니다.
-
-```json
-{"status": "...", "run_id": "...", "receipt_path": "..."}
-```
-
-이 단계가 통과하면 문서 처리부터 검색·답변까지 필요한 서비스와 파이프라인 연결이 정상이라는 뜻입니다.
-
-이제 처리할 문서를 인덱싱합니다.
+평가 명령도 검증용 fixture를 사용하면 같은 조건에서 실행할 수 있습니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
+struct4search-evaluate \
+  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
+  --evaluation-config tests/fixtures/evaluation_mini/release.json \
+  --gate-config tests/fixtures/evaluation_mini/gate.yaml \
+  --baseline-report tests/fixtures/evaluation_mini/baseline_report.json \
+  --qa-scores tests/fixtures/evaluation_mini/qa_scores.jsonl \
+  --output-root /tmp/struct4search-evaluation
 ```
 
-성공하면 문서별 완료 기록과 색인된 검색 단위 수가 남습니다.
+성공하면 출력 경로의 `RELEASE_GATE.json`에 `"status": "PASS"`가 기록됩니다.
 
-## 질의 실행
+## 3. API 확인
+
+다음 명령은 검증용 fixture 결과를 사용해 API를 로컬 포트에 띄웁니다.
 
 ```bash
-struct4search-evaluate --run-root <출력 디렉터리> --output-root <결과 디렉터리>
+struct4search-api \
+  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
+  --host 127.0.0.1 \
+  --port 3100
 ```
 
-평가 실행기는 실제 [검색·답변 파이프라인](query/overview.md)을 그대로 사용합니다. API 서버를 실행한 경우에는 `POST /v1/response`로도 같은 검색·답변 경로를 호출할 수 있습니다([API Reference](reference/api-reference.md)).
-
-## 답변과 출처 확인
-
-결과 디렉터리의 `qa_answers.jsonl`에서 답변과 출처를 확인합니다.
-
-| 확인할 것    | 정상 결과                      |
-| -------- | -------------------------- |
-| 답변       | 제공된 원문 근거로 확인되는 내용으로 구성됩니다 |
-| 인용 ID    | 모두 `ruf_`로 시작합니다           |
-| 출처       | 문서 ID와 원본 페이지가 연결됩니다       |
-| 인용 정리 집계 | 네 값이 모두 `0`입니다             |
-
-인용 정리 집계가 `0`이 아니면 답변은 생성됐지만 모델 출력에 인용 계약을 벗어난 항목이 있었고, 후처리 과정에서 이를 정리했다는 뜻입니다. 자세한 동작은 [답변 후처리 및 원본 출처 연결](query/citations.md)에서 확인할 수 있습니다.
-
-## 자주 막히는 지점
-
-| 증상                        | 확인할 곳                   |
-| ------------------------- | ----------------------- |
-| 사전 점검에서 중단됨               | 출력에 표시된 미충족 조건          |
-| 워크플로가 이미 실행 중이라며 거부됨      | 거부 메시지의 워크플로 ID         |
-| 스캔 문서 파싱 실패               | MinerU 서비스 상태           |
-| Metadata·KG·검색표현이 생성되지 않음 | Qwen 서버 상태              |
-| 색인 실패                     | OpenSearch 주소와 인덱스      |
-| 검색 결과가 0건                 | 인덱싱 완료 여부와 사용 중인 인덱스 이름 |
-
-## 여러 문서로 확장하기
-
-`--document-id`를 지정하지 않으면 대상 코퍼스를 순차적으로 처리합니다.
+다른 터미널에서 상태와 응답을 확인합니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리>
+curl --fail http://127.0.0.1:3100/v1/health
+curl --fail \
+  --header 'Content-Type: application/json' \
+  --data '{"query":"안전모를 착용한다.","query_id":"q001"}' \
+  http://127.0.0.1:3100/v1/response
 ```
 
-처리할 문서가 많으면 실행 시간이 길어지거나 중간에 중단될 수 있습니다. 같은 인자로 다시 실행하면 기존 진행 상태를 이어받습니다. 재개 방법과 단계별 재처리 범위는 [실행과 재처리](indexing/rerun.md)에서 확인할 수 있습니다.
+서버는 실행한 터미널에서 `Ctrl-C`로 종료합니다.
+
+## 4. 실제 문서 인덱싱
+
+실제 인덱싱은 PostgreSQL, OpenSearch, Temporal, 모델·임베딩·파싱 서비스가 준비된 환경에서 실행합니다. 기존 산출물과 분리된 새 output 경로를 사용합니다.
+
+```bash
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output /absolute/path/to/new-output \
+  --document-id <문서_ID>
+```
+
+`--document-id`는 여러 번 지정할 수 있으며, 생략하면 profile에 정의된 전체 대상 문서를 처리합니다. 실행 환경과 서비스 조건은 먼저 `struct4search-env`, `struct4search-preflight`로 확인합니다.
+
+명령별 전체 인자와 평가 실행은 [실행 명령](reference/cli.md), [검색과 QA 평가 실행](testing/retrieval-qa.md)에서 확인합니다.

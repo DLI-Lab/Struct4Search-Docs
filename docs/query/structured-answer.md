@@ -64,9 +64,9 @@ LLM이 질의에 대한 답변을 생성하고, 각 claim을 뒷받침하는 원
 
 시스템 프롬프트 전문은 [프롬프트와 출력 검증](../reference/prompts.md)에서 확인할 수 있습니다.
 
-## 환경변수
+## 설정값
 
-| 환경변수명                                           | 기본 옵션            | 의미                            |
+| profile key                                         | 기본값            | 의미                            |
 | ----------------------------------------------- | ---------------- | ----------------------------- |
 | `query.reader.model`                            | `Qwen/Qwen3-14B` | 답변 생성 모델                      |
 | `query.reader.endpoint`                         | 서버 주소            | 답변 모델 서버                      |
@@ -93,7 +93,7 @@ LLM이 질의에 대한 답변을 생성하고, 각 claim을 뒷받침하는 원
 
 | 확인할 내용       | 파일·심볼                                                            |
 | ------------ | ---------------------------------------------------------------- |
-| 출력 Schema    | `src/struct4search/query/answer/reader_schema.py` · `schema_for` |
-| 모델 호출과 응답 처리 | `src/struct4search/query/answer/reader.py`                       |
+| 출력 Schema    | `backend/struct4search/query/answer/reader_schema.py` · `schema_for` |
+| 모델 호출과 응답 처리 | `backend/struct4search/query/answer/reader.py`                       |
 | 시스템 프롬프트     | `prompts/answer/industrial-safety-grounded-claims/v1.txt`        |
-| 환경변수         | `configs/production.yaml` · `query.reader`                       |
+| profile         | `configs/production.yaml` · `query.reader`                       |

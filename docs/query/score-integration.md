@@ -73,9 +73,9 @@ RRF Top-30에 포함된 검색표현을 연결된 원문 청크로 변환하고,
 10  ruf_a76f73294b0550361c4cefd1   0.0206307308
 ```
 
-## 환경변수
+## 설정값
 
-| 환경변수명                                 | 기본 옵션 | 의미                    |
+| profile key                               | 기본값 | 의미                    |
 | ------------------------------------- | ----- | --------------------- |
 | `query.native_rrf.final_source_top_k` | 10    | 최종 답변 근거로 사용할 원문 청크 수 |
 
@@ -100,8 +100,7 @@ RRF Top-30에 포함된 검색표현을 연결된 원문 청크로 변환하고,
 
 | 확인할 내용        | 파일·심볼                                                                             |
 | ------------- | --------------------------------------------------------------------------------- |
-| 점수 전달         | `src/struct4search/query/retrieval/projection.py` · `DefaultF400ProjectionPolicy` |
-| Max Score와 정렬 | `src/struct4search/query/retrieval/max_score.py` · `DefaultMaxScorePolicy`        |
-| Top-10 선정     | `src/struct4search/query/retrieval/top_k.py` · `MAX_FINAL_F400_TOP_K`             |
-| 설정값           | `configs/production.yaml` · `query.native_rrf.final_source_top_k`                 |
-
+| 점수 전달         | `backend/struct4search/query/retrieval/projection.py` · `DefaultF400ProjectionPolicy` |
+| Max Score와 정렬 | `backend/struct4search/query/retrieval/max_score.py` · `DefaultMaxScorePolicy`        |
+| Top-10 선정     | `backend/struct4search/query/retrieval/top_k.py` · `MAX_FINAL_F400_TOP_K`             |
+| profile          | `configs/production.yaml` · `query.native_rrf.final_source_top_k`                 |

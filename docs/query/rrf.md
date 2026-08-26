@@ -70,9 +70,9 @@ Top-30까지 유지하는 이유는 다음과 같습니다.
 
 RRF 통합은 OpenSearch에서만 수행하며, 애플리케이션은 통합된 Top-30 결과를 받아 다음 단계인 [검색 결과 점수 통합](score-integration.md)을 수행합니다.
 
-## 환경변수
+## 설정값
 
-| 환경변수명 | 기본 옵션 | 의미 |
+| profile key | 기본값 | 의미 |
 |---|---|---|
 | `query.native_rrf.id` | `s4s-native-rrf-v1` | 사용할 OpenSearch search pipeline |
 | `query.native_rrf.rrf_rank_constant` | 60 | RRF 계산에 사용하는 상수 |
@@ -97,6 +97,6 @@ RRF 통합은 [Hybrid 검색](hybrid-search.md)의 일부로 OpenSearch에서 �
 | 확인할 내용 | 파일·심볼 |
 |---|---|
 | RRF search pipeline | `opensearch/search_pipelines/s4s-native-rrf-v1.json` |
-| search pipeline 확인 | `src/struct4search/adapters/search/opensearch/search_pipeline.py` · `SearchPipelineVerifier` |
-| 검색 결과 처리 | `src/struct4search/adapters/search/opensearch/native_hybrid.py` · `map_response` |
-| 환경변수 | `configs/production.yaml` · `query.native_rrf` |
+| search pipeline 확인 | `backend/struct4search/adapters/search/opensearch/search_pipeline.py` · `SearchPipelineVerifier` |
+| 검색 결과 처리 | `backend/struct4search/adapters/search/opensearch/native_hybrid.py` · `map_response` |
+| profile | `configs/production.yaml` · `query.native_rrf` |

@@ -1,63 +1,61 @@
 ---
 sidebar_position: 1
-title: 테스트 구성과 실행
+title: 테스트와 평가 시작하기
 ---
-# 테스트 구성과 실행
 
-Struct4Search의 검증은 **모듈 테스트**와 **E2E 검증**으로 나뉩니다. 모듈 테스트는 코드와 데이터 계약이 유지되는지 확인하고, E2E 검증은 실제 서비스가 연결되어 동작하는지와 검색·답변 성능이 유지되는지 확인합니다.
+# 테스트와 평가 시작하기
 
-| 구분 | 확인하는 것 | 모델·서비스 | 명령 |
-|---|---|---|---|
-| 모듈 테스트 | 코드와 데이터 계약 | 필요 없음 | `pytest` |
-| E2E — 문서 한 건 | 전체 파이프라인 연결 | 필요 | `struct4search-smoke-e2e` |
-| E2E — 평가셋 | 검색·답변 성능 | 필요 | `struct4search-evaluate` |
+먼저 CPU에서 재현 가능한 테스트를 실행하고, 외부 서비스를 준비한 경우에만 integration과 운영 E2E를 실행합니다.
 
-**모듈 테스트가 통과해도 검색·답변 품질까지 보장되지는 않습니다.** 예를 들어 프롬프트를 변경하면 코드 계약은 그대로 유지되면서 실제 답변 품질은 달라질 수 있습니다.
+## 먼저 실행할 것
 
-## 모듈 테스트
+| 목적 | 명령 | GPU·유료 API |
+|---|---|---|
+| 코드·설정 확인 | `python -m pytest -q` | 불필요 |
+| evaluator 확인 | 검증용 fixture 평가 명령 | 불필요 |
+| API 확인 | 검증용 fixture API 명령 | 불필요 |
+| PostgreSQL·OpenSearch 연동 | 격리한 임시 서비스로 integration test | 불필요 |
+| 전체 운영 경로 | `struct4search-smoke-e2e` | 필요 |
+
+## CPU 테스트
 
 ```bash
-pytest
-````
+python -m pytest -q
+```
 
-외부 모델이나 서비스 없이 코드와 데이터 계약을 확인합니다. 영역별 테스트와 각 테스트가 확인하는 범위는 [테스트 범위](test-levels.md)에 있습니다.
+이 명령은 코드, profile, prompt, API와 evaluator의 offline 계약을 확인합니다. 외부 서비스를 사용하는 integration test는 준비된 임시 서비스나 artifact가 있을 때만 실행합니다.
 
-## E2E — 문서 한 건
+## 검증용 fixture 평가
+
+```bash
+struct4search-evaluate \
+  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
+  --evaluation-config tests/fixtures/evaluation_mini/release.json \
+  --gate-config tests/fixtures/evaluation_mini/gate.yaml \
+  --baseline-report tests/fixtures/evaluation_mini/baseline_report.json \
+  --qa-scores tests/fixtures/evaluation_mini/qa_scores.jsonl \
+  --output-root /tmp/struct4search-evaluation
+```
+
+이 명령은 evaluator의 실제 output과 release gate를 확인하며, OpenSearch·embedding·reader를 호출하지 않습니다.
+
+## 검증용 fixture API
+
+```bash
+struct4search-api \
+  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
+  --host 127.0.0.1 \
+  --port 3100
+```
+
+다른 터미널에서 `/v1/health`, `/v1/response`를 확인합니다. API 경로와 예시는 [API 실행과 경로](../reference/api-reference.md)에 있습니다.
+
+## 운영 E2E
 
 ```bash
 struct4search-smoke-e2e
 ```
 
-고정된 문서 한 건으로 인덱싱부터 답변까지 전체 파이프라인을 통과시킵니다. 별칭을 바꾸거나 서비스를 재시작하지 않으므로 기존 인덱스에는 영향을 주지 않습니다.
+이 명령은 고정 문서로 실제 ingest·검색·답변 경로를 확인합니다. GPU, model snapshot, PostgreSQL, OpenSearch, Temporal과 필요한 모델 서비스가 준비된 환경에서만 실행합니다.
 
-이 검증에서는 성능을 측정하지 않고, **각 단계와 외부 서비스가 정상적으로 연결되어 동작하는지** 확인합니다.
-
-## E2E — 평가셋
-
-```bash
-struct4search-evaluate --run-root <출력 디렉터리> --output-root <결과 디렉터리>
-```
-
-현재 사용하는 평가셋은 두 가지입니다.
-
-| 평가셋    |    문서 |  질의 | 쓰는 때             |
-| ------ | ----: | --: | ---------------- |
-| 소규모 평가 |   100 | 100 | 변경 중 빠른 성능 확인    |
-| 대규모 평가 | 2,567 | 200 | 기준선 비교와 최종 회귀 확인 |
-
-평가셋의 구성은 [평가셋 구성](eval200.md), 지표의 의미는 [평가 지표와 검증 방법](metrics.md), 실행 방법과 결과 확인은 [검색과 QA 평가 실행](retrieval-qa.md)에서 설명합니다.
-
-## 무엇을 언제 돌리는가
-
-| 바꾼 것               | 모듈 테스트 | 문서 한 건 E2E | 평가셋 E2E |
-| ------------------ | ------ | ---------- | ------- |
-| 설정 스키마·계약          | 필수     | —          | —       |
-| 서비스 주소·모델 교체       | 필수     | 필수         | 필수      |
-| 파싱·청킹·NER·KG 구축    | 필수     | 필수         | 필수      |
-| Metadata·검색표현 프롬프트 | 필수     | 필수         | 필수      |
-| 검색 파라미터·점수 통합      | 필수     | —          | 필수      |
-| Context 구성         | 필수     | —          | 필수 (QA) |
-| 답변 프롬프트·모델         | 필수     | —          | 필수 (QA) |
-| 동시성                | 필수     | 필수         | —       |
-
-검색이나 답변에 영향을 주는 변경은 한쪽 지표만 확인하고 끝내지 않습니다. **검색 결과가 좋아져도 최종 Context가 달라지면 답변 품질은 낮아질 수 있으므로**, 검색과 QA를 함께 확인합니다.
+평가셋 실행과 결과 해석은 [검색과 QA 평가 실행](retrieval-qa.md), 변경별 최소 테스트는 [테스트 범위](test-levels.md)에서 확인합니다.

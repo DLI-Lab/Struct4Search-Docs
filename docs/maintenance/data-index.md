@@ -61,7 +61,7 @@ title: 데이터와 인덱스 구조 변경
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| 색인 문서와 매핑 | `src/struct4search/index_stage.py` · `OpenSearchIndexStage` |
-| 인덱스 이름과 alias | `configs/ingest-production.yaml` · `index` |
-| 검색에서 사용하는 필드 | `src/struct4search/adapters/search/opensearch/native_hybrid.py` |
-| Citation 계약 | `src/struct4search/query/contracts.py` |
+| 색인 문서와 매핑 | `backend/struct4search/index_stage.py` · `OpenSearchIndexStage` |
+| 인덱스 이름과 alias | `configs/production.yaml` · `index` |
+| 검색에서 사용하는 필드 | `backend/struct4search/adapters/search/opensearch/native_hybrid.py` |
+| Citation 계약 | `backend/struct4search/query/contracts.py` |

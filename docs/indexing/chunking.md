@@ -51,7 +51,11 @@ ID 종류와 의미는 [데이터 구조와 ID 체계](../reference/data-schema.
 원문 청킹은 문서 인덱싱 과정에서 실행됩니다.
 
 ```bash
-struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
+struct4search-ingest \
+  --config configs/production.yaml \
+  --services configs/services/cold-services.yaml \
+  --output <출력_디렉터리> \
+  --document-id <문서_ID>
 ```
 
 산출물에서 청크가 생성되었는지와 각 청크의 `token_count`가 설정한 최대값을 넘지 않는지 확인합니다.
@@ -60,7 +64,6 @@ struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
 
 | 확인할 내용 | 파일·심볼                                                 |
 | ------ | ----------------------------------------------------- |
-| 청킹 구현  | `src/struct4search/ingest/stages/fixed_chunk.py`      |
-| 분할 로직  | `src/struct4search/ingest/stages/fixed_chunk_core.py` |
-| 설정     | `configs/ingest-production.yaml` · `chunking`         |
-
+| 청킹 구현  | `backend/struct4search/ingest/stages/fixed_chunk.py`      |
+| 분할 로직  | `backend/struct4search/ingest/stages/fixed_chunk_core.py` |
+| 설정     | `configs/production.yaml` · `chunking`         |

@@ -5,21 +5,21 @@ title: 모델 교체
 
 # 모델 교체
 
-문서 인덱싱과 검색·답변 파이프라인에서 사용하는 모델을 변경하고, 영향을 받는 단계만 다시 처리하는 방법입니다.
+모델을 바꿀 때는 실행 profile, 서비스 정의, 재처리 범위를 함께 확인합니다.
 
 ## 교체 대상
 
 | 모델 | 쓰는 단계 | 설정 위치 |
 |---|---|---|
-| MinerU | 문서 파싱의 스캔·복합 페이지 | `configs/ingest-production.yaml` · `parser` |
-| GLiNER | NER | `configs/ingest-production.yaml` · `ner` |
-| Qwen | Metadata 생성 · KG 구축 · 검색표현 생성 | `configs/ingest-production.yaml` · `llm` |
-| 임베딩 모델 | 인덱싱과 질의 임베딩 | `configs/ingest-production.yaml` · `index` |
+| MinerU | 문서 파싱의 스캔·복합 페이지 | `configs/production.yaml` · `parser` |
+| GLiNER | NER | `configs/production.yaml` · `ner` |
+| Qwen | Metadata 생성 · KG 구축 · 검색표현 생성 | `configs/production.yaml` · `llm` |
+| 임베딩 모델 | 인덱싱과 질의 임베딩 | `configs/production.yaml` · `index` |
 | 답변 모델 | 답변과 출처 표기 | `configs/production.yaml` · `query.reader` |
 
 ## 변경 절차
 
-1. 해당 프로파일에서 모델 이름과 endpoint를 변경합니다.
+1. `configs/production.yaml`에서 현재 값과 상속된 값을 확인한 뒤 모델 이름과 endpoint를 변경합니다.
 2. 직접 실행하는 서비스라면 `configs/services/cold-services.yaml`의 서비스 정의도 함께 변경합니다.
 3. 아래 표에서 영향을 받는 단계와 재색인 여부를 확인합니다.
 4. 변경 후 문서 한 건 E2E와 필요한 평가를 실행합니다.
