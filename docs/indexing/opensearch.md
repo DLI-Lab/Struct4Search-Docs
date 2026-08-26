@@ -114,6 +114,6 @@ struct4search-ingest \
 
 | 확인할 내용        | 파일·심볼                                                               |
 | ------------- | ------------------------------------------------------------------- |
-| 인덱싱 구현        | `src/struct4search/index_stage.py` · `OpenSearchIndexStage`         |
-| OpenSearch 매핑 | `src/struct4search/index_stage.py` · `OpenSearchIndexStage.mapping` |
+| 인덱싱 구현        | `backend/struct4search/index_stage.py` · `OpenSearchIndexStage`         |
+| OpenSearch 매핑 | `backend/struct4search/index_stage.py` · `OpenSearchIndexStage.mapping` |
 | 설정            | `configs/ingest-production.yaml` · `index`                          |

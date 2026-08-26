@@ -39,7 +39,7 @@ title: 프롬프트와 규칙 수정
 
 ## Metadata 필드 수정
 
-Metadata 프롬프트에서 사용하는 18종 필드의 정의는 `src/struct4search/domain/metadata_fields.yaml`에서 관리합니다.
+Metadata 프롬프트에서 사용하는 18종 필드의 정의는 `backend/struct4search/domain/metadata_fields.yaml`에서 관리합니다.
 
 필드 이름이나 의미를 변경하려면 프롬프트 본문을 직접 수정하기보다 이 정의 파일을 변경합니다. 프롬프트는 해당 정의를 바탕으로 구성됩니다.
 

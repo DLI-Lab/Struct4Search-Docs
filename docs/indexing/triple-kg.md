@@ -77,7 +77,7 @@ struct4search-ingest \
 
 | 확인할 내용            | 파일·심볼                                                  |
 | ----------------- | ------------------------------------------------------ |
-| Entity 주변 청크 묶기   | `src/struct4search/ingest/stages/entity_local_core.py` |
-| Triple 추출과 그래프 구성 | `src/struct4search/ingest/stages/graph_core.py`        |
+| Entity 주변 청크 묶기   | `backend/struct4search/ingest/stages/entity_local_core.py` |
+| Triple 추출과 그래프 구성 | `backend/struct4search/ingest/stages/graph_core.py`        |
 | 프롬프트              | `prompts/triple/f400-v3-entity-local/v1.txt`           |
 | 설정                | `configs/ingest-production.yaml` · `triple` · `kg`     |

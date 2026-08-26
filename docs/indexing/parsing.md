@@ -82,8 +82,8 @@ struct4search-ingest \
 
 | 확인할 내용    | 파일·심볼                                                         |
 | --------- | ------------------------------------------------------------- |
-| 문서 파싱     | `src/struct4search/parser_stage.py`                           |
-| 페이지 판정    | `src/struct4search/page_routing.py`                           |
-| IDR 통합    | `src/struct4search/adapters/parsing/canonical_builder.py`     |
-| MinerU 연동 | `src/struct4search/mineru_vllm_async_service.py`              |
+| 문서 파싱     | `backend/struct4search/parser_stage.py`                           |
+| 페이지 판정    | `backend/struct4search/page_routing.py`                           |
+| IDR 통합    | `backend/struct4search/adapters/parsing/canonical_builder.py`     |
+| MinerU 연동 | `backend/struct4search/mineru_vllm_async_service.py`              |
 | 환경변수      | `configs/ingest-production.yaml` · `parser` · `canonical_idr` |

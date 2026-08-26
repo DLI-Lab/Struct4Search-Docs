@@ -73,6 +73,6 @@ struct4search-ingest \
 
 | 확인할 내용 | 파일·심볼                                             |
 | ------ | ------------------------------------------------- |
-| NER 실행 | `src/struct4search/ner_stage.py`                  |
+| NER 실행 | `backend/struct4search/ner_stage.py`                  |
 | 설정     | `configs/ingest-production.yaml` · `ner`          |
-| 다음 단계  | `src/struct4search/ingest/stages/entity_local.py` |
+| 다음 단계  | `backend/struct4search/ingest/stages/entity_local.py` |

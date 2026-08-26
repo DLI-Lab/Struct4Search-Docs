@@ -62,7 +62,7 @@ title: Metadata 생성
 
 생성된 Metadata는 [검색표현 생성](retrieval-text.md)에서 문서의 맥락을 보강하는 데 사용됩니다.
 
-18종 필드의 정의는 `src/struct4search/domain/metadata_fields.yaml`에서 관리합니다.
+18종 필드의 정의는 `backend/struct4search/domain/metadata_fields.yaml`에서 관리합니다.
 
 ## 설정
 
@@ -88,7 +88,7 @@ struct4search-ingest \
 
 | 확인할 내용      | 파일·심볼                                                        |
 | ----------- | ------------------------------------------------------------ |
-| Metadata 생성 | `src/struct4search/metadata_llm.py` · `MetadataLLMExtractor` |
-| 18종 정의      | `src/struct4search/domain/metadata_fields.yaml`              |
+| Metadata 생성 | `backend/struct4search/metadata_llm.py` · `MetadataLLMExtractor` |
+| 18종 정의      | `backend/struct4search/domain/metadata_fields.yaml`              |
 | 프롬프트        | `prompts/metadata/f400-18-fields/v1.txt`                     |
 | 설정          | `configs/ingest-production.yaml`                             |

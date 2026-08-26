@@ -95,7 +95,7 @@ struct4search-ingest \
 
 | 확인할 내용         | 파일·심볼                                                                                               |
 | -------------- | --------------------------------------------------------------------------------------------------- |
-| 검색표현 생성        | `src/struct4search/ingest/stages/retrieval_expression_core.py`                                      |
-| 중요도와 Triple 묶기 | `src/struct4search/ingest/stages/retrieval_expression_topology.py` · `weighted_undirected_pagerank` |
+| 검색표현 생성        | `backend/struct4search/ingest/stages/retrieval_expression_core.py`                                      |
+| 중요도와 Triple 묶기 | `backend/struct4search/ingest/stages/retrieval_expression_topology.py` · `weighted_undirected_pagerank` |
 | 프롬프트           | `prompts/retrieval_expression/g2-system/v1.txt` · `g2-user/v1.txt`                                  |
 | 설정             | `configs/ingest-production.yaml` · `g2`                                                             |

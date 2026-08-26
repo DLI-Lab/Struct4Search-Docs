@@ -92,7 +92,7 @@ LLM Context 구성은 검색·답변 파이프라인에서 자동으로 실행�
 
 | 확인할 내용   | 파일·심볼                                                                         |
 | -------- | ----------------------------------------------------------------------------- |
-| 근거 구성    | `src/struct4search/query/answer/context_renderer.py` · `render_f400_evidence` |
-| 토큰 범위 계산 | `src/struct4search/query/answer/token_budget.py` · `ReaderTokenBudget`        |
+| 근거 구성    | `backend/struct4search/query/answer/context_renderer.py` · `render_f400_evidence` |
+| 토큰 범위 계산 | `backend/struct4search/query/answer/token_budget.py` · `ReaderTokenBudget`        |
 | 시스템 프롬프트 | `prompts/answer/industrial-safety-grounded-claims/v1.txt`                     |
 | 설정        | `configs/production.yaml` · `query.reader`                                    |

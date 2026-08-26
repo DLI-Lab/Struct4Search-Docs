@@ -64,6 +64,6 @@ title: 평가 지표와 검증 방법
 
 | 확인할 내용      | 파일·심볼                                                                 |
 | ----------- | --------------------------------------------------------------------- |
-| 검색 지표 계산    | `src/struct4search/evaluation/retrieval.py` · `score_prediction_rows` |
-| 정답 근거 일치 판정 | `src/struct4search/evaluation/retrieval.py` · `strict_match`          |
-| QA 채점       | `src/struct4search/evaluation/qa.py`                                  |
+| 검색 지표 계산    | `backend/struct4search/evaluation/retrieval.py` · `score_prediction_rows` |
+| 정답 근거 일치 판정 | `backend/struct4search/evaluation/retrieval.py` · `strict_match`          |
+| QA 채점       | `backend/struct4search/evaluation/qa.py`                                  |
