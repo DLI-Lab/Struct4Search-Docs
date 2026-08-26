@@ -13,7 +13,7 @@ title: 설치 요구사항
 |---|---|
 | Python | 3.12 이상 |
 | 기본 도구 | Git, `venv` 또는 `virtualenv` |
-| CPU 테스트·fixture API | `python -m pip install -e '.[test,api]'` |
+| CPU 테스트·예제 결과 파일 API | `python -m pip install -e '.[test,api]'` |
 | 전체 확인 | `python -m pytest -q` |
 
 Debian/Ubuntu에서 `python3.12 -m venv`가 실패하면 `python3.12-venv` OS 패키지를 설치합니다.

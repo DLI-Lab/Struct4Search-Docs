@@ -31,7 +31,7 @@ title: 실행 규칙
 | PostgreSQL | KG 저장 |
 | Temporal | production ingest workflow |
 
-fixture 평가와 fixture API는 이 서비스를 호출하지 않습니다. production profile을 선택한 경우에만 profile에 지정된 서비스를 사용합니다.
+예제 검색 결과 파일을 사용하는 평가와 API는 이 서비스를 호출하지 않습니다. production profile을 선택한 경우에만 profile에 지정된 서비스를 사용합니다.
 
 ## 오류 처리
 

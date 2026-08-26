@@ -43,7 +43,7 @@ struct4search-ingest \
 
 ## 평가
 
-CPU 환경에서는 검증용 fixture 평가를 사용합니다.
+CPU 환경에서는 저장소에 포함된 예제 검색 결과 파일을 사용해 평가 명령을 확인합니다. `--fixture-results`는 이 파일을 지정하는 옵션입니다.
 
 ```bash
 struct4search-evaluate \
@@ -59,7 +59,7 @@ struct4search-evaluate \
 
 ## API 서버
 
-검증용 fixture API는 외부 서비스 없이 실행할 수 있습니다.
+예제 검색 결과 파일 기반 API는 외부 서비스 없이 실행할 수 있습니다.
 
 ```bash
 struct4search-api \
@@ -81,7 +81,7 @@ struct4search-api \
 | `struct4search-final-100-100-e2e [--repository-root <checkout>]` | 승인된 100문서·100질의 E2E |
 | `struct4search-final-full-2567-200-e2e [--repository-root <checkout>]` | 승인된 2,567문서·200질의 E2E |
 
-이 명령들은 준비된 서비스와 artifact를 전제로 합니다. 일반 개발 환경에서는 먼저 `python -m pytest -q`, fixture 평가, fixture API를 실행합니다.
+이 명령들은 준비된 서비스와 artifact를 전제로 합니다. 일반 개발 환경에서는 먼저 `python -m pytest -q`, 예제 결과 파일 평가, 예제 결과 파일 API를 실행합니다.
 
 ## 테스트
 

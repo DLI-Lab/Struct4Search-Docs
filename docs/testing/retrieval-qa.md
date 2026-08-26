@@ -5,7 +5,7 @@ title: 검색과 QA 평가 실행
 
 # 검색과 QA 평가 실행
 
-Evaluator는 검증용 fixture 결과 또는 운영 QueryService를 사용해 검색과 답변을 함께 평가합니다.
+Evaluator는 저장소에 포함된 예제 검색 결과 파일 또는 운영 QueryService를 사용해 검색과 답변을 함께 평가합니다.
 
 ## CPU 환경에서 먼저 확인
 
@@ -19,7 +19,7 @@ struct4search-evaluate \
   --output-root /tmp/struct4search-evaluation
 ```
 
-검증용 fixture 명령은 GPU·OpenSearch·embedding·reader·유료 API를 호출하지 않습니다.
+`--fixture-results`는 예제 검색 결과 파일을 지정하는 옵션입니다. 이 명령은 GPU·OpenSearch·embedding·reader·유료 API를 호출하지 않습니다.
 
 ## 운영 평가 전 확인
 

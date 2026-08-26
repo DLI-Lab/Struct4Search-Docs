@@ -9,7 +9,7 @@ title: 설치와 첫 실행
 
 ## 1. 설치
 
-Struct4Search는 Python 3.12 이상을 사용합니다. 아래 설치는 CPU 테스트와 검증용 fixture API 실행에 필요한 패키지를 함께 설치합니다.
+Struct4Search는 Python 3.12 이상을 사용합니다. 아래 설치는 CPU 테스트와 외부 서비스 없이 API를 확인하는 데 필요한 패키지를 함께 설치합니다.
 
 ```bash
 git clone https://github.com/DLI-Lab/Struct4Search.git
@@ -37,7 +37,7 @@ MinerU·Qwen을 이 서버에서 직접 실행하는 경우에는 NVIDIA/Linux �
 python -m pytest -q
 ```
 
-평가 명령도 검증용 fixture를 사용하면 같은 조건에서 실행할 수 있습니다.
+평가 명령도 저장소에 포함된 예제 검색 결과 파일을 사용하면 같은 조건에서 실행할 수 있습니다. `--fixture-results`는 이 파일을 지정하는 옵션입니다.
 
 ```bash
 struct4search-evaluate \
@@ -53,7 +53,7 @@ struct4search-evaluate \
 
 ## 3. API 확인
 
-다음 명령은 검증용 fixture 결과를 사용해 API를 로컬 포트에 띄웁니다.
+다음 명령은 저장소에 포함된 예제 검색 결과 파일을 사용해 API를 로컬 포트에 띄웁니다.
 
 ```bash
 struct4search-api \

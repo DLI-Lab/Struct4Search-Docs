@@ -5,7 +5,7 @@ title: API 실행과 경로
 
 # API 실행과 경로
 
-`struct4search-api`는 검색·답변 API를 제공합니다. 먼저 외부 서비스가 필요 없는 검증용 fixture 서버로 계약을 확인할 수 있습니다.
+`struct4search-api`는 검색·답변 API를 제공합니다. 먼저 저장소에 포함된 예제 검색 결과 파일(`--fixture-results`)로 외부 서비스 없이 API 동작을 확인할 수 있습니다.
 
 ```bash
 struct4search-api \
@@ -33,7 +33,7 @@ struct4search-api \
 }
 ```
 
-`query`가 없거나 비어 있으면 `422`를 반환합니다. fixture 서버에서는 fixture에 있는 `query_id`를 사용해야 합니다.
+`query`가 없거나 비어 있으면 `422`를 반환합니다. 예제 결과 파일을 사용할 때는 그 파일에 있는 `query_id`를 사용해야 합니다.
 
 ## 현재 제공 범위
 

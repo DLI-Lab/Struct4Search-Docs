@@ -12,8 +12,8 @@ title: 테스트와 평가 시작하기
 | 목적 | 명령 | GPU·유료 API |
 |---|---|---|
 | 코드·설정 확인 | `python -m pytest -q` | 불필요 |
-| evaluator 확인 | 검증용 fixture 평가 명령 | 불필요 |
-| API 확인 | 검증용 fixture API 명령 | 불필요 |
+| evaluator 확인 | 예제 검색 결과 파일 평가 명령 | 불필요 |
+| API 확인 | 예제 검색 결과 파일 API 명령 | 불필요 |
 | PostgreSQL·OpenSearch 연동 | 격리한 임시 서비스로 integration test | 불필요 |
 | 전체 운영 경로 | `struct4search-smoke-e2e` | 필요 |
 
@@ -25,7 +25,7 @@ python -m pytest -q
 
 이 명령은 코드, profile, prompt, API와 evaluator의 offline 계약을 확인합니다. 외부 서비스를 사용하는 integration test는 준비된 임시 서비스나 artifact가 있을 때만 실행합니다.
 
-## 검증용 fixture 평가
+## 예제 검색 결과 파일로 평가 확인
 
 ```bash
 struct4search-evaluate \
@@ -37,9 +37,9 @@ struct4search-evaluate \
   --output-root /tmp/struct4search-evaluation
 ```
 
-이 명령은 evaluator의 실제 output과 release gate를 확인하며, OpenSearch·embedding·reader를 호출하지 않습니다.
+`--fixture-results`는 저장소에 포함된 예제 검색 결과 파일을 지정합니다. 이 명령은 evaluator의 실제 output과 release gate를 확인하며, OpenSearch·embedding·reader를 호출하지 않습니다.
 
-## 검증용 fixture API
+## 예제 검색 결과 파일로 API 확인
 
 ```bash
 struct4search-api \

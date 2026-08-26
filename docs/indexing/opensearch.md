@@ -83,7 +83,7 @@ OpenSearch 인덱스
 | `index.embedding_model`      | `Qwen/Qwen3-Embedding-8B` | 색인과 질의에 사용하는 임베딩 모델   |
 | `index.dimension`            | 4096                      | 임베딩 벡터 차원             |
 | `index.name`                 | 프로파일에서 지정                 | 생성할 인덱스               |
-| `index.alias`                | `s4s-current`             | 검색에서 사용하는 인덱스 별칭      |
+| `index.alias`                | `s4s-current`             | 검색이 실제 인덱스를 가리킬 때 쓰는 연결 이름 |
 | `index.embedding_batch_size` | 32                        | 한 번에 임베딩할 검색 단위 수     |
 
 임베딩 모델이나 벡터 차원을 변경하면 기존 벡터와 호환되지 않으므로 새로운 인덱스를 만들고 다시 색인해야 합니다([실행과 재처리](rerun.md)).
