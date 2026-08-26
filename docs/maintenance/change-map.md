@@ -14,17 +14,17 @@ title: 변경 지점 찾기
 | 파서·페이지 판정 | `configs/ingest-production.yaml` · `parser` | 문서 파싱 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
 | 청크 크기·오버랩 | `configs/ingest-production.yaml` · `chunking` | 원문 청킹 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
 | NER 모델·라벨 | `configs/ingest-production.yaml` · `ner` | NER 이후 | 재처리 · 재색인 | [모델 교체](models.md) |
-| Metadata 필드 | `backend/struct4search/domain/metadata_fields.yaml` | Metadata 생성 이후 | 재처리 · 재색인 | [프롬프트와 규칙 수정](prompts.md) |
+| Metadata 필드 | `src/struct4search/domain/metadata_fields.yaml` | Metadata 생성 이후 | 재처리 · 재색인 | [프롬프트와 규칙 수정](prompts.md) |
 | KG 묶기 기준 | `configs/ingest-production.yaml` · `triple` | KG 구축 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
 | 검색표현 생성 방식 | `configs/ingest-production.yaml` · `g2` | 검색표현 생성 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
 | 임베딩 모델·차원 | `configs/ingest-production.yaml` · `index` | 인덱싱 | 새 인덱스 필요 | [데이터와 인덱스 구조 변경](data-index.md) |
-| OpenSearch 매핑 | `backend/struct4search/index_stage.py` | 인덱싱 | 새 인덱스 필요 | [데이터와 인덱스 구조 변경](data-index.md) |
+| OpenSearch 매핑 | `src/struct4search/index_stage.py` | 인덱싱 | 새 인덱스 필요 | [데이터와 인덱스 구조 변경](data-index.md) |
 | 검색 깊이·후보 수 | `configs/production.yaml` · `query.native_rrf` | 검색·답변 | 없음 | [검색과 Context 수정](search-context.md) |
 | 최종 근거 수 | `configs/production.yaml` · `query.native_rrf.final_source_top_k` | Context · 답변 | 없음 | [검색과 Context 수정](search-context.md) |
 | 답변 모델 | `configs/production.yaml` · `query.reader` | 답변 | 없음 | [모델 교체](models.md) |
 | Metadata·Triple·검색표현 프롬프트 | `prompts/` | 해당 생성 단계 이후 | 재처리 · 재색인 | [프롬프트와 규칙 수정](prompts.md) |
 | 답변 프롬프트 | `prompts/answer/` | 답변 | 없음 | [프롬프트와 규칙 수정](prompts.md) |
-| 단계 추가·교체 | `backend/struct4search/ingest/stages/` · `bootstrap/composition.py` | 해당 단계 이후 | 변경 범위에 따라 결정 | [모듈 추가와 교체](modules.md) |
+| 단계 추가·교체 | `src/struct4search/ingest/stages/` · `bootstrap/composition.py` | 해당 단계 이후 | 변경 범위에 따라 결정 | [모듈 추가와 교체](modules.md) |
 
 ## 재처리 범위가 정해지는 기준
 

@@ -93,7 +93,7 @@ LLM이 질의에 대한 답변을 생성하고, 각 claim을 뒷받침하는 원
 
 | 확인할 내용       | 파일·심볼                                                            |
 | ------------ | ---------------------------------------------------------------- |
-| 출력 Schema    | `backend/struct4search/query/answer/reader_schema.py` · `schema_for` |
-| 모델 호출과 응답 처리 | `backend/struct4search/query/answer/reader.py`                       |
+| 출력 Schema    | `src/struct4search/query/answer/reader_schema.py` · `schema_for` |
+| 모델 호출과 응답 처리 | `src/struct4search/query/answer/reader.py`                       |
 | 시스템 프롬프트     | `prompts/answer/industrial-safety-grounded-claims/v1.txt`        |
 | 환경변수         | `configs/production.yaml` · `query.reader`                       |

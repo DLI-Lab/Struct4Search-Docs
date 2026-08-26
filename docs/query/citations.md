@@ -94,7 +94,7 @@ LLM이 반환한 인용을 검증하고, 인용된 원문 청크를 실제 문�
 
 | 확인할 내용   | 파일·심볼                                                                                       |
 | -------- | ------------------------------------------------------------------------------------------- |
-| 인용 정리    | `backend/struct4search/query/answer/citation_normalizer.py` · `DeterministicCitationNormalizer` |
-| 원본 출처 연결 | `backend/struct4search/query/answer/citation_linker.py` · `DefaultCitationLinker`               |
-| 출처 연결 계약 | `backend/struct4search/query/contracts.py` · `SourceLinkResolver`                               |
+| 인용 정리    | `src/struct4search/query/answer/citation_normalizer.py` · `DeterministicCitationNormalizer` |
+| 원본 출처 연결 | `src/struct4search/query/answer/citation_linker.py` · `DefaultCitationLinker`               |
+| 출처 연결 계약 | `src/struct4search/query/contracts.py` · `SourceLinkResolver`                               |
 | 설정       | `configs/production.yaml` · `query.citation_normalization_policy`                           |

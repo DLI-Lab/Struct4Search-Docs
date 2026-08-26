@@ -58,6 +58,6 @@ title: 질의 처리
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| 질의 처리 | `backend/struct4search/query/service.py` · `DefaultQueryService.execute` |
-| 임베딩 생성 | `backend/struct4search/adapters/search/opensearch/embedding.py` · `UrllibOpenAICompatibleEmbeddingPort` |
-| 설정 주입 | `backend/struct4search/bootstrap/composition.py` |
+| 질의 처리 | `src/struct4search/query/service.py` · `DefaultQueryService.execute` |
+| 임베딩 생성 | `src/struct4search/adapters/search/opensearch/embedding.py` · `UrllibOpenAICompatibleEmbeddingPort` |
+| 설정 주입 | `src/struct4search/bootstrap/composition.py` |

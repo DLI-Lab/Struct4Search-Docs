@@ -65,8 +65,8 @@ transport는 입력 오류·근거 부족·source 조회 실패를 canonical JSO
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| CLI와 listening | `backend/struct4search/entrypoints/cli/api.py` · `main` |
-| provider composition | `backend/struct4search/entrypoints/api/server.py` · `compose_api_app` |
-| `/v1` transport | `backend/struct4search/entrypoints/api/legacy_response.py` · `create_app` |
-| 문서 route schema | `backend/struct4search/entrypoints/api/document_viewer.py` · `create_document_router` |
-| QueryService 조립 | `backend/struct4search/bootstrap/composition.py` |
+| CLI와 listening | `src/struct4search/entrypoints/cli/api.py` · `main` |
+| provider composition | `src/struct4search/entrypoints/api/server.py` · `compose_api_app` |
+| `/v1` transport | `src/struct4search/entrypoints/api/legacy_response.py` · `create_app` |
+| 문서 route schema | `src/struct4search/entrypoints/api/document_viewer.py` · `create_document_router` |
+| QueryService 조립 | `src/struct4search/bootstrap/composition.py` |

@@ -98,6 +98,6 @@ OpenSearch 인덱스가 없거나 질의 벡터의 차원이 색인 벡터와 �
 
 | 확인할 내용              | 파일·심볼                                                                                               |
 | ------------------- | --------------------------------------------------------------------------------------------------- |
-| Hybrid 검색 요청과 결과 처리 | `backend/struct4search/adapters/search/opensearch/native_hybrid.py` · `OpenSearchNativeHybridRetriever` |
-| 검색 파라미터             | `backend/struct4search/adapters/search/opensearch/native_hybrid.py` · `NativeHybridSearchConfig`        |
+| Hybrid 검색 요청과 결과 처리 | `src/struct4search/adapters/search/opensearch/native_hybrid.py` · `OpenSearchNativeHybridRetriever` |
+| 검색 파라미터             | `src/struct4search/adapters/search/opensearch/native_hybrid.py` · `NativeHybridSearchConfig`        |
 | 환경변수                | `configs/production.yaml` · `query.native_rrf`                                                      |

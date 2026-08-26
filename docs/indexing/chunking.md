@@ -64,6 +64,6 @@ struct4search-ingest \
 
 | 확인할 내용 | 파일·심볼                                                 |
 | ------ | ----------------------------------------------------- |
-| 청킹 구현  | `backend/struct4search/ingest/stages/fixed_chunk.py`      |
-| 분할 로직  | `backend/struct4search/ingest/stages/fixed_chunk_core.py` |
+| 청킹 구현  | `src/struct4search/ingest/stages/fixed_chunk.py`      |
+| 분할 로직  | `src/struct4search/ingest/stages/fixed_chunk_core.py` |
 | 설정     | `configs/ingest-production.yaml` · `chunking`         |

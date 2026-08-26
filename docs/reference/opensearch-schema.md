@@ -124,5 +124,5 @@ Dense 검색에 사용하는 `vector`는 4,096차원 임베딩입니다.
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| 인덱스 매핑 | `backend/struct4search/index_stage.py` · `index_mapping_template` |
+| 인덱스 매핑 | `src/struct4search/index_stage.py` · `index_mapping_template` |
 | 인덱스 이름과 벡터 차원 | `configs/ingest-production.yaml` · `index` |

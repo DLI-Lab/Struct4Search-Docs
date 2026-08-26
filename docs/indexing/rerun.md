@@ -103,8 +103,8 @@ struct4search-ingest \
 
 | 확인할 내용          | 파일·심볼                                                                                        |
 | --------------- | -------------------------------------------------------------------------------------------- |
-| 실행 진입점          | `backend/struct4search/entrypoints/cli/ingest.py` · `main`                                       |
-| 재개와 중복 실행 거부    | `backend/struct4search/entrypoints/cli/ingest.py` · `refuse_if_another_run_is_live`              |
-| 완료 기록과 부분 완료 판정 | `backend/struct4search/ingest/service.py` · `persist_document_complete` · `partial_stage_detail` |
+| 실행 진입점          | `src/struct4search/entrypoints/cli/ingest.py` · `main`                                       |
+| 재개와 중복 실행 거부    | `src/struct4search/entrypoints/cli/ingest.py` · `refuse_if_another_run_is_live`              |
+| 완료 기록과 부분 완료 판정 | `src/struct4search/ingest/service.py` · `persist_document_complete` · `partial_stage_detail` |
 | 실행 프로파일         | `configs/production.yaml` · `configs/ingest-production.yaml`                                 |
 | 서비스 정의          | `configs/services/cold-services.yaml`                                                        |

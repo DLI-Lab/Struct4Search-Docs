@@ -91,7 +91,7 @@ OpenSearch에는 검색에 사용하는 두 종류의 검색 단위가 저장됩
 
 | 확인할 내용           | 파일·심볼                                             |
 | ---------------- | ------------------------------------------------- |
-| 문서 처리 상태와 완료 기록  | `backend/struct4search/ingest/service.py`             |
-| PostgreSQL KG 저장 | `backend/struct4search/kg_store.py`                   |
-| OpenSearch 색인 갱신 | `backend/struct4search/index_stage.py`                |
+| 문서 처리 상태와 완료 기록  | `src/struct4search/ingest/service.py`             |
+| PostgreSQL KG 저장 | `src/struct4search/kg_store.py`                   |
+| OpenSearch 색인 갱신 | `src/struct4search/index_stage.py`                |
 | 저장소 설정           | `configs/ingest-production.yaml` · `kg` · `index` |
