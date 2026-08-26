@@ -96,7 +96,7 @@ RRF 통합은 [Hybrid 검색](hybrid-search.md)의 일부로 OpenSearch에서 �
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| RRF search pipeline | `opensearch/search_pipelines/s4s-native-rrf-v1.json` |
+| RRF search pipeline | `backend/struct4search/resources/opensearch/search_pipelines/s4s-native-rrf-v1.json` |
 | search pipeline 확인 | `backend/struct4search/adapters/search/opensearch/search_pipeline.py` · `SearchPipelineVerifier` |
 | 검색 결과 처리 | `backend/struct4search/adapters/search/opensearch/native_hybrid.py` · `map_response` |
 | profile | `configs/production.yaml` · `query.native_rrf` |

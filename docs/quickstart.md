@@ -78,7 +78,7 @@ curl --fail \
 
 실제 인덱싱은 PostgreSQL, OpenSearch, Temporal, 모델·임베딩·파싱 서비스가 준비된 환경에서 실행합니다. 기존 산출물과 분리된 새 output 경로를 사용합니다.
 
-호스트별 DSN, API key, 모델 경로는 `.env.example`을 `.env`로 복사해 입력하고 `source scripts/ops/env.sh`로 현재 셸에 적용합니다.
+호스트별 DSN, API key, 모델 경로는 `.env.example`을 `.env`로 복사해 입력합니다. `struct4search-*` 명령은 실행할 때 이 파일을 자동으로 읽으며, 이미 export한 값은 유지합니다.
 
 ```bash
 struct4search-ingest \
