@@ -20,7 +20,7 @@ struct4search-api \
 
 production provider는 같은 위치에 `--profile configs/production.yaml`을 사용합니다. 두 provider를 동시에 지정하거나 모두 생략할 수 없습니다.
 
-현재 canonical app은 FastAPI의 Swagger UI와 ReDoc UI를 비활성화하지만, 기계 판독용 OpenAPI JSON은 `GET /openapi.json`으로 제공합니다. 이 schema에는 아래 검색·답변·문서 조회 경로 19개 operation이 포함됩니다.
+현재 canonical app은 FastAPI의 Swagger UI와 OpenAPI HTTP endpoint를 비활성화합니다. 실제 route 계약은 이 페이지와 코드·테스트를 기준으로 확인합니다.
 
 ## 검색과 답변
 
