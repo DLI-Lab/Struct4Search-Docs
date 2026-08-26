@@ -29,7 +29,7 @@ title: 저장소와 보존
 ├─ v3/documents/<문서 ID>/         KG 구축을 위한 청크 묶음
 ├─ metadata/documents/<문서 ID>/   Metadata
 └─ g2/documents/<문서 ID>/         검색표현
-```
+````
 
 문서 처리가 끝나면 완료 기록이 남습니다. 이 산출물을 기준으로 어느 단계까지 처리되었는지 확인하고, 중단된 실행을 이어받습니다.
 
@@ -95,3 +95,4 @@ OpenSearch에는 검색에 사용하는 두 종류의 검색 단위가 저장됩
 | PostgreSQL KG 저장 | `src/struct4search/kg_store.py`                   |
 | OpenSearch 색인 갱신 | `src/struct4search/index_stage.py`                |
 | 저장소 설정           | `configs/ingest-production.yaml` · `kg` · `index` |
+

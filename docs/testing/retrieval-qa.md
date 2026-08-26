@@ -5,72 +5,85 @@ title: 검색과 QA 평가 실행
 
 # 검색과 QA 평가 실행
 
-Evaluator는 fixture provider와 production profile provider를 같은 canonical QueryService 계약으로 실행합니다.
+인덱싱한 코퍼스에 평가셋을 실행해 검색 성능과 답변 정확도를 측정합니다.
 
-## 실행 계약
+## 실행 전 확인
 
-다음 두 쌍에서 각각 하나만 선택합니다.
+* 평가 대상 코퍼스가 색인되어 있어야 합니다.
+* 검색·답변에 필요한 서비스가 실행 중이어야 합니다.
+* 평가할 인덱스를 확인합니다.
+* 사용할 평가셋을 선택합니다.
 
-- 출력: `--run-root` 또는 `--output-root`
-- provider: `--profile` 또는 `--fixture-results`
+| 평가셋     |    문서 |  질의 | 쓰는 때             |
+| ------- | ----: | --: | ---------------- |
+| 소규모 평가셋 |   100 | 100 | 변경 중 빠른 성능 확인    |
+| 대규모 평가셋 | 2,567 | 200 | 기준선 비교와 최종 회귀 확인 |
 
-`--evaluation-config`와 `--gate-config`는 항상 필수입니다. 회귀 판정에 기준 report나 QA score가 필요한 gate라면 `--baseline-report`, `--qa-scores`도 전달합니다.
+소규모 평가셋은 검색 공간이 100문서로 제한되어 있어 대규모 검색 환경의 난이도를 그대로 반영하지는 않습니다. **기준 성능과 회귀 판정에는 대규모 평가셋을 사용합니다**([평가셋 구성](eval200.md)).
 
-## 외부 서비스 없는 fixture 실행
-
-```bash
-struct4search-evaluate \
-  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
-  --evaluation-config tests/fixtures/evaluation_mini/release.json \
-  --gate-config tests/fixtures/evaluation_mini/gate.yaml \
-  --baseline-report tests/fixtures/evaluation_mini/baseline_report.json \
-  --qa-scores tests/fixtures/evaluation_mini/qa_scores.jsonl \
-  --output-root /tmp/s4s-evaluation
-```
-
-fixture 명령은 GPU, OpenSearch, embedding server, reader와 유료 API를 호출하지 않습니다. evaluator 설치·출력·gate 재현성 확인에 사용합니다.
-
-## production profile 실행
+## 실행
 
 ```bash
-struct4search-evaluate \
-  --profile configs/production.yaml \
-  --evaluation-config <평가 릴리스 JSON> \
-  --gate-config configs/evaluation-gate.yaml \
-  --baseline-report <기준 report JSON> \
-  --qa-scores <QA 점수 JSONL> \
-  --output-root /absolute/path/to/evaluation-output
+struct4search-evaluate --run-root <출력 디렉터리> --output-root <결과 디렉터리>
 ```
 
-이 경로는 profile이 지정한 OpenSearch, embedding과 reader를 실제 사용합니다. 실행 전에 평가 대상 index, endpoint, model ID·revision과 prompt를 확인합니다.
-
-이미 존재하는 run root 아래 표준 위치에 결과를 쓰려면 `--output-root` 대신 다음처럼 사용합니다.
-
-```bash
-struct4search-evaluate \
-  --run-root /absolute/path/to/run-root \
-  --profile configs/production.yaml \
-  --evaluation-config <평가 릴리스 JSON> \
-  --gate-config configs/evaluation-gate.yaml
-```
-
-결과는 `<run-root>/evaluation/final200`에 기록됩니다.
+평가는 실제 [검색·답변 파이프라인](../query/overview.md)을 그대로 사용합니다. 별도의 평가용 검색 경로를 두지 않으므로 실제 검색·답변 경로의 결과를 평가합니다.
 
 ## 결과 파일
 
-| 파일 | 내용 |
-|---|---|
-| `retrieval_predictions.query_service.jsonl` | 질의별 실제 QueryService 결과 |
-| `retrieval_scores_per_query.jsonl` | 질의별 검색 점수 |
-| `qa_answers.jsonl` | 질의별 답변과 Citation |
-| `EVALUATION_REPORT.json` | 평가 지표 요약 |
-| `RELEASE_GATE.json` | gate 판정과 blocker |
-| `EVALUATION_RESULTS.json` | CLI 최종 결과 |
+| 파일                                          | 내용          |
+| ------------------------------------------- | ----------- |
+| `retrieval_predictions.query_service.jsonl` | 질의별 검색 결과   |
+| `retrieval_scores_per_query.jsonl`          | 질의별 검색 점수   |
+| `qa_answers.jsonl`                          | 질의별 답변과 인용  |
+| `EVALUATION_RESULTS.json`                   | 전체 평가 결과 요약 |
 
-CLI exit code는 gate가 `PASS`이면 0, 그 외에는 1입니다. 입력 인자·파일 계약 오류는 argparse exit code 2로 composition 전에 종료됩니다.
+## 검색 지표
 
-## 재현성 기록
+| 지표                         | 뜻                          |
+| -------------------------- | -------------------------- |
+| `ndcg_at_k`                | 정답 근거가 상위에 배치된 정도          |
+| `required_recall_at_k`     | 필요한 정답 근거를 상위 k에서 얼마나 찾았는가 |
+| `hit_at_k`                 | 상위 k에 정답 근거가 하나라도 있는가      |
+| `minimal_set_success_at_k` | 답변에 필요한 최소 근거 집합을 모두 찾았는가  |
 
-결과와 함께 code commit, resolved profile, index 이름, 평가 release, model ID·immutable revision, tokenizer, machine locator의 effective value와 provenance를 보존합니다. 같은 조건에서 검색 결과가 달라지면 먼저 이 receipt와 live OpenSearch pipeline hash를 비교합니다.
+검색 결과와 정답 근거를 비교할 때는 **원문 청크가 가리키는 위치가 실제 정답 근거와 겹치는지** 확인합니다. 같은 문서라는 이유만으로 정답으로 판정하지 않습니다.
 
-지표 의미는 [평가 지표와 검증 방법](metrics.md), 평가셋 구성은 [평가셋 구성](eval200.md), 회귀 판정은 [기준 성능과 회귀 판정](regression-gates.md)을 확인합니다.
+## QA 지표
+
+답변은 정답과 필수 claim을 기준으로 채점합니다. 문자열 일치가 아니라 의미가 같은지를 평가하며, 필수 claim별 충족 여부를 보수적으로 판정합니다.
+
+| 점수 | 뜻                              |
+| -- | ------------------------------ |
+| 4  | 모든 필수 내용이 정확하고 중대한 오류가 없음      |
+| 3  | 대체로 정확하나 경미한 누락이나 부정확성이 있음     |
+| 2  | 핵심 내용의 일부만 충족함                 |
+| 1  | 최소한의 관련 내용만 있고 중대한 누락이나 오류가 있음 |
+| 0  | 오답이거나 무응답                      |
+
+정답 범위를 넘어 법적 기준·수치·요건 등을 단정한 답변은 별도로 표시합니다. 검색 근거는 맞지만 답변이 근거보다 과하게 확장되는 경우를 확인하기 위한 것입니다.
+
+## 인용 검증
+
+답변 결과에는 인용 정리 집계가 함께 기록됩니다.
+
+| 집계                                       | `0`이 아니면                   |
+| ---------------------------------------- | -------------------------- |
+| `duplicate_citations_removed`            | 한 claim 안에서 같은 근거를 반복해 인용함 |
+| `retrieval_expression_citations_removed` | 검색표현을 인용하려 함               |
+| `out_of_context_citations_removed`       | Context에 없는 ID를 인용하려 함     |
+| `unsupported_claims_removed`             | 원문 근거가 없는 claim이 제거됨       |
+
+네 값이 모두 `0`이어야 정상입니다. 값이 `0`이 아니면 프롬프트, Context 구성 또는 인용 처리 과정을 확인합니다.
+
+## 재현성 확인
+
+같은 인덱스·평가셋·모델·설정에서는 같은 검색 결과가 나와야 합니다. 동일 조건의 두 실행에서 결과가 달라지면 인덱스나 설정 등 실행 조건이 달라졌는지 먼저 확인합니다.
+
+평가 결과를 기록할 때는 **무엇을 평가했는지 함께 남깁니다.** 코드 commit, 실행 프로파일, 인덱스 이름, 평가셋 릴리스, 사용 모델을 함께 기록합니다([기준 성능과 회귀 판정](regression-gates.md)).
+
+## 실패 질의 확인
+
+`retrieval_scores_per_query.jsonl`에서 점수가 낮은 질의를 찾은 뒤, `retrieval_predictions.query_service.jsonl`에서 같은 질의의 검색 결과를 확인합니다.
+
+정답 근거가 후보에 없으면 검색 단계에서 근거를 찾지 못한 경우이고, 후보에는 있지만 상위에 배치되지 않았다면 순위 문제로 볼 수 있습니다.

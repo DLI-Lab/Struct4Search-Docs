@@ -2,69 +2,62 @@
 sidebar_position: 1
 title: 테스트 구성과 실행
 ---
-
 # 테스트 구성과 실행
 
-검증 경로는 CPU 자동 테스트, 격리 서비스 integration, production E2E로 구분합니다.
+Struct4Search의 검증은 **모듈 테스트**와 **E2E 검증**으로 나뉩니다. 모듈 테스트는 코드와 데이터 계약이 유지되는지 확인하고, E2E 검증은 실제 서비스가 연결되어 동작하는지와 검색·답변 성능이 유지되는지 확인합니다.
 
-| 구분 | 확인하는 것 | GPU·유료 API | 외부 서비스 |
+| 구분 | 확인하는 것 | 모델·서비스 | 명령 |
 |---|---|---|---|
-| 전체 pytest | 코드·설정·offline contract | 없음 | 기본적으로 없음 |
-| fixture evaluator/API | 실제 entrypoint와 composition | 없음 | 없음 |
-| PostgreSQL/OpenSearch integration | 실제 저장·Native RRF | 없음 | 격리 instance 필요 |
-| production E2E | 모델 포함 전체 pipeline | GPU 필요 | 모두 필요 |
+| 모듈 테스트 | 코드와 데이터 계약 | 필요 없음 | `pytest` |
+| E2E — 문서 한 건 | 전체 파이프라인 연결 | 필요 | `struct4search-smoke-e2e` |
+| E2E — 평가셋 | 검색·답변 성능 | 필요 | `struct4search-evaluate` |
 
-## 전체 비GPU 테스트
+**모듈 테스트가 통과해도 검색·답변 품질까지 보장되지는 않습니다.** 예를 들어 프롬프트를 변경하면 코드 계약은 그대로 유지되면서 실제 답변 품질은 달라질 수 있습니다.
 
-```bash
-python -m pytest -q
-```
-
-테스트 collection의 integration case는 명시적으로 준비된 임시 서비스나 immutable fixture가 있을 때만 실행합니다. 외부 GPT API를 실제로 호출하지 않고 mock/offline contract로 검증합니다.
-
-## fixture evaluator
+## 모듈 테스트
 
 ```bash
-struct4search-evaluate \
-  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
-  --evaluation-config tests/fixtures/evaluation_mini/release.json \
-  --gate-config tests/fixtures/evaluation_mini/gate.yaml \
-  --baseline-report tests/fixtures/evaluation_mini/baseline_report.json \
-  --qa-scores tests/fixtures/evaluation_mini/qa_scores.jsonl \
-  --output-root /tmp/s4s-evaluation
-```
+pytest
+````
 
-이 명령은 외부 모델·OpenSearch 없이 evaluator의 실제 파일 출력과 release gate를 검증합니다.
+외부 모델이나 서비스 없이 코드와 데이터 계약을 확인합니다. 영역별 테스트와 각 테스트가 확인하는 범위는 [테스트 범위](test-levels.md)에 있습니다.
 
-## fixture API
-
-```bash
-struct4search-api \
-  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
-  --host 127.0.0.1 \
-  --port 3100
-```
-
-`GET /v1/health`, `POST /v1/response`, SIGINT graceful shutdown과 포트 해제를 확인합니다.
-
-## production E2E
+## E2E — 문서 한 건
 
 ```bash
 struct4search-smoke-e2e
 ```
 
-이 명령은 고정 문서 한 건으로 production 경로를 실행합니다. GPU, local model snapshot, PostgreSQL, OpenSearch, Temporal과 모델 서비스가 필요합니다. CPU 설치 확인 명령으로 사용하지 않습니다.
+고정된 문서 한 건으로 인덱싱부터 답변까지 전체 파이프라인을 통과시킵니다. 별칭을 바꾸거나 서비스를 재시작하지 않으므로 기존 인덱스에는 영향을 주지 않습니다.
 
-실제 평가셋 E2E는 `struct4search-evaluate --profile configs/production.yaml ...`을 사용합니다. 평가 자산·gate·output 인자를 반드시 명시하며, 자세한 계약은 [검색과 QA 평가 실행](retrieval-qa.md)을 확인합니다.
+이 검증에서는 성능을 측정하지 않고, **각 단계와 외부 서비스가 정상적으로 연결되어 동작하는지** 확인합니다.
 
-## 변경별 최소 검증
+## E2E — 평가셋
 
-| 바꾼 것 | pytest | fixture entrypoint | production E2E |
-|---|---|---|---|
-| 설정 schema·composition | 필수 | 필수 | 영향 시 필수 |
-| 서비스 주소·모델·prompt | 필수 | offline contract | 필수 |
-| 파싱·청킹·NER·KG | 필수 | — | 필수 |
-| 검색·RRF·Context | 필수 | 필수 | 평가셋 필수 |
-| API transport | 필수 | 실제 listening 필수 | 필요 시 필수 |
+```bash
+struct4search-evaluate --run-root <출력 디렉터리> --output-root <결과 디렉터리>
+```
 
-모듈 테스트 통과만으로 검색·답변 품질이 보장되지는 않습니다. 성능 변경은 동일 index·평가 release·model revision을 기록한 production 평가로 별도 판정합니다.
+현재 사용하는 평가셋은 두 가지입니다.
+
+| 평가셋    |    문서 |  질의 | 쓰는 때             |
+| ------ | ----: | --: | ---------------- |
+| 소규모 평가 |   100 | 100 | 변경 중 빠른 성능 확인    |
+| 대규모 평가 | 2,567 | 200 | 기준선 비교와 최종 회귀 확인 |
+
+평가셋의 구성은 [평가셋 구성](eval200.md), 지표의 의미는 [평가 지표와 검증 방법](metrics.md), 실행 방법과 결과 확인은 [검색과 QA 평가 실행](retrieval-qa.md)에서 설명합니다.
+
+## 무엇을 언제 돌리는가
+
+| 바꾼 것               | 모듈 테스트 | 문서 한 건 E2E | 평가셋 E2E |
+| ------------------ | ------ | ---------- | ------- |
+| 설정 스키마·계약          | 필수     | —          | —       |
+| 서비스 주소·모델 교체       | 필수     | 필수         | 필수      |
+| 파싱·청킹·NER·KG 구축    | 필수     | 필수         | 필수      |
+| Metadata·검색표현 프롬프트 | 필수     | 필수         | 필수      |
+| 검색 파라미터·점수 통합      | 필수     | —          | 필수      |
+| Context 구성         | 필수     | —          | 필수 (QA) |
+| 답변 프롬프트·모델         | 필수     | —          | 필수 (QA) |
+| 동시성                | 필수     | 필수         | —       |
+
+검색이나 답변에 영향을 주는 변경은 한쪽 지표만 확인하고 끝내지 않습니다. **검색 결과가 좋아져도 최종 Context가 달라지면 답변 품질은 낮아질 수 있으므로**, 검색과 QA를 함께 확인합니다.

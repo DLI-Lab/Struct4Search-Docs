@@ -25,7 +25,7 @@ Triple 하나는 다음과 같은 형태입니다.
   "tail_id": "e_9a1c33be07d5f1204c88",
   "evidence_spans": ["... 일부 생략 ..."]
 }
-```
+````
 
 각 Triple은 어떤 원문에서 추출되었는지 근거를 함께 가집니다. 생성된 Triple은 같은 문서 안에서 모여 하나의 지식그래프를 구성합니다.
 
@@ -56,11 +56,7 @@ KG는 **문서 단위로 구축**하며, 다른 문서의 Entity와 관계를 �
 KG 구축은 문서 인덱싱 과정에서 실행됩니다.
 
 ```bash
-struct4search-ingest \
-  --config configs/production.yaml \
-  --services configs/services/cold-services.yaml \
-  --output /absolute/path/to/new-isolated-output \
-  --document-id <문서 ID>
+struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
 ```
 
 실행 후 문서별 Triple과 지식그래프가 생성되었는지 확인합니다.
@@ -81,3 +77,4 @@ struct4search-ingest \
 | Triple 추출과 그래프 구성 | `src/struct4search/ingest/stages/graph_core.py`        |
 | 프롬프트              | `prompts/triple/f400-v3-entity-local/v1.txt`           |
 | 설정                | `configs/ingest-production.yaml` · `triple` · `kg`     |
+

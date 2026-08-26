@@ -5,68 +5,109 @@ title: API Reference
 
 # API Reference
 
-`struct4search-api`가 제공하는 canonical HTTP 계약입니다.
+Struct4Search API에서 제공하는 주요 경로를 정리합니다. 각 API의 전체 파라미터, 요청·응답 Schema와 직접 호출은 **Swagger UI**에서 확인할 수 있습니다.
 
-## 서버 실행
+## API 사용 정보
 
-fixture provider는 외부 서비스 없이 실행할 수 있습니다.
-
-```bash
-struct4search-api \
-  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
-  --host 127.0.0.1 \
-  --port 3100
-```
-
-production provider는 같은 위치에 `--profile configs/production.yaml`을 사용합니다. 두 provider를 동시에 지정하거나 모두 생략할 수 없습니다.
-
-현재 canonical app은 FastAPI의 Swagger UI와 OpenAPI HTTP endpoint를 비활성화합니다. 실제 route 계약은 이 페이지와 코드·테스트를 기준으로 확인합니다.
+| 항목 | 내용 |
+|---|---|
+| 프레임워크 | FastAPI |
+| 기본 형식 | `application/json` |
+| 파일 응답 | 원본 문서·페이지·figure는 바이너리 응답 |
+| 인증 | 현재 없음 |
+| API 버전 | `/v1` |
+| Swagger UI | `/docs` |
+| OpenAPI Schema | `/openapi.json` |
 
 ## 검색과 답변
 
 | Method | Path | 주요 입력 | 주요 출력 |
 |---|---|---|---|
-| `GET` | `/v1/health` | 없음 | `status`, `transport` |
-| `POST` | `/v1/response` | JSON `query` 필수, `query_id` 선택, `X-Request-ID` 헤더 선택 | 답변과 Citation |
-| `GET` | `/v1/source-pdf` | `source_uri` | 인용 원본 바이너리 |
+| `GET` | `/v1/health` | 없음 | 검색·답변 경로 상태 |
+| `POST` | `/v1/response` | `query` 필수, `query_id` 선택, `X-Request-ID` 헤더 선택 | 답변과 Citation |
+| `GET` | `/v1/source-pdf` | `source_uri` | 인용된 원본 PDF |
 
-```bash
-curl --fail http://127.0.0.1:3100/v1/health
-curl --fail \
-  --header 'Content-Type: application/json' \
-  --data '{"query":"안전모 착용 기준은?","query_id":"q001"}' \
-  http://127.0.0.1:3100/v1/response
+`POST /v1/response`는 [검색·답변 파이프라인](../query/overview.md)을 실행하는 API입니다.
+
+대표 응답은 다음과 같습니다.
+
+```json
+{
+  "answer": "...",
+  "citations": [
+    {
+      "unit_id": "ruf_..."
+    }
+  ],
+  "insufficient_evidence": false,
+  "search_results": [],
+  "generation_mode": "llm",
+  "degraded": false,
+  "retrieval_index": "...",
+  "answer_context": {
+    "original_block_count": 10,
+    "representation_count": 10
+  }
+}
 ```
 
-대표 응답 필드는 `answer`, `citations`, `insufficient_evidence`, `search_results`, `generation_mode`, `degraded`, `retrieval_index`, `answer_context`입니다. Citation의 `unit_id`는 원문 근거인 `ruf_` ID여야 합니다.
+## 문서 조회
 
-## 문서 조회 경로
+| Method | Path | 주요 입력 | 주요 출력 |
+|---|---|---|---|
+| `GET` | `/v1/capabilities` | 조회 조건 | 지원하는 문서 기능 |
+| `GET` | `/v1/documents` | 조회 조건 | 문서 목록 |
+| `GET` | `/v1/idr` | `document_id` | 문서 IDR |
+| `GET` | `/v1/document-pipeline` | `document_id` | 문서 파이프라인 결과 |
+| `GET` | `/v1/document-file` | `document_id` | 원본 문서 |
+| `GET` | `/v1/document-page` | `document_id`, `page`, `scale` 선택 | 문서 페이지 이미지 |
+| `GET` | `/v1/idr/figure` | `document_id`, `block_id` | IDR figure |
+| `POST` | `/v1/kg/subgraph` | JSON 요청 본문 | 지식그래프 부분 그래프 |
 
-canonical server는 아래 route schema를 등록하지만, 현재 기본 composition에는 document-management backend가 연결되지 않아 모두 HTTP 503을 반환합니다.
+## 웹 UI 호환 경로
 
-| Method | Path |
-|---|---|
-| `GET` | `/v1/capabilities` |
-| `GET` | `/v1/documents` |
-| `GET` | `/v1/idr` |
-| `GET` | `/v1/document-pipeline` |
-| `GET` | `/v1/document-file` |
-| `GET` | `/v1/document-page` |
-| `GET` | `/v1/idr/figure` |
-| `POST` | `/v1/kg/subgraph` |
+웹 UI에서는 같은 문서 조회 기능을 `/api/documents/...` 형태로도 사용합니다.
 
-웹 UI 호환 경로 `/api/documents`, `/api/documents/capabilities`, `/api/documents/{document_id}/...`도 같은 backend port로 전달됩니다. 페이지 번호는 1부터 시작합니다.
+| Method | Path | 주요 입력 | 주요 출력 |
+|---|---|---|---|
+| `GET` | `/api/documents/capabilities` | 조회 조건 | 지원하는 문서 기능 |
+| `GET` | `/api/documents` | 조회 조건 | 문서 목록 |
+| `GET` | `/api/documents/{document_id}/pipeline` | `document_id` | 문서 파이프라인 결과 |
+| `GET` | `/api/documents/{document_id}/idr` | `document_id` | 문서 IDR |
+| `GET` | `/api/documents/{document_id}/pdf` | `document_id` | 원본 PDF |
+| `GET` | `/api/documents/{document_id}/pages/{page}` | `document_id`, `page` | 페이지 이미지 |
+| `GET` | `/api/documents/{document_id}/figures/{block_id}` | `document_id`, `block_id` | figure |
+| `GET` | `/api/documents/{document_id}/connections` | `document_id` | 문서 연결 관계 |
 
-## 오류와 종료
+`/api/documents/{document_id}/pages/{page}`의 `page`는 **1부터 시작합니다.**
 
-transport는 입력 오류·근거 부족·source 조회 실패를 canonical JSON 오류로 변환합니다. SIGINT/SIGTERM 종료 시 FastAPI lifespan과 Uvicorn shutdown이 완료된 뒤 listening port가 해제되어야 합니다.
+`/v1`은 Struct4Search의 API 경로이고, `/api/documents/...`는 웹 UI에서 사용하는 문서 조회 호환 경로입니다.
+
+## 조건부로 제공되는 경로
+
+문서 조회와 웹 UI 호환 API는 문서 조회 라우터가 애플리케이션에 연결된 경우에 제공됩니다. 해당 라우터를 사용하지 않는 구성에서는 검색·답변 API만 사용할 수 있습니다.
+
+현재 실행 환경에서 실제로 제공되는 API 목록은 Swagger UI에서 확인합니다.
+
+## 전체 명세 확인
+
+이 페이지는 API 전체를 빠르게 찾기 위한 요약입니다. 다음 정보는 Swagger UI에서 확인합니다.
+
+- Query·Path·Header 파라미터
+- Request Body Schema
+- Response Schema
+- HTTP 상태 코드
+- 필수·선택 필드
+- 요청·응답 예시
+- API 직접 실행
+
+API의 요청·응답 계약과 실행 방식은 [실행 계약](api-contract.md)도 함께 참고합니다.
 
 ## 코드 참조
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| CLI와 listening | `src/struct4search/entrypoints/cli/api.py` · `main` |
-| provider composition | `src/struct4search/entrypoints/api/server.py` · `compose_api_app` |
-| `/v1` transport | `src/struct4search/entrypoints/api/legacy_response.py` · `create_app` |
-| 문서 route schema | `src/struct4search/entrypoints/api/document_viewer.py` · `create_document_router` |
-| QueryService 조립 | `src/struct4search/bootstrap/composition.py` |
+| 애플리케이션 구성과 `/v1` API | `src/struct4search/entrypoints/api/legacy_response.py` |
+| 문서 조회 API | `src/struct4search/entrypoints/api/document_viewer.py` |
+| 웹 UI 전송 계약 | `src/struct4search/entrypoints/api/web_contracts.py` |
+| API 조립 | `src/struct4search/bootstrap/composition.py` |

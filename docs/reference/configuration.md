@@ -18,14 +18,14 @@ Struct4Search의 실행 설정은 **실행 프로파일**과 **셸 환경변수*
 
 | 파일                                    | 역할                   |
 | ------------------------------------- | -------------------- |
-| `configs/production.yaml`             | CLI가 선택하는 production 통합 profile |
-| `configs/base.yaml`                   | production이 상속하는 typed profile |
-| `configs/ingest-production.yaml`      | base가 상속하는 ingest pipeline 설정 |
+| `configs/ingest-production.yaml`      | 문서 인덱싱 파이프라인         |
+| `configs/production.yaml`             | 검색·답변 파이프라인          |
+| `configs/base.yaml`                   | 두 프로파일이 공통으로 사용하는 설정 |
 | `configs/services/cold-services.yaml` | 실행할 외부 서비스 정의        |
 | `configs/evaluation-release.json`     | 평가셋 릴리스              |
 | `configs/machine-paths.yaml`          | 기계별 경로               |
 
-production 상속 순서는 `production.yaml → base.yaml → ingest-production.yaml`입니다. 기계마다 달라지는 경로는 `machine-paths.yaml` 또는 allowlist된 셸 환경변수에서 가져옵니다.
+프로파일은 `extends`를 통해 공통 설정을 이어받을 수 있으며, 기계마다 달라지는 경로는 `machine-paths.yaml` 또는 셸 환경변수에서 가져옵니다.
 
 ### 문서 인덱싱 프로파일
 

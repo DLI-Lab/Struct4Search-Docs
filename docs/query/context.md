@@ -27,7 +27,7 @@ user     질문: {질의}
          근거 2 [ruf_...] ...
 
          JSON 형식으로 답하라.
-```
+````
 
 ## 근거 구성
 
@@ -95,4 +95,7 @@ LLM Context 구성은 검색·답변 파이프라인에서 자동으로 실행�
 | 근거 구성    | `src/struct4search/query/answer/context_renderer.py` · `render_f400_evidence` |
 | 토큰 범위 계산 | `src/struct4search/query/answer/token_budget.py` · `ReaderTokenBudget`        |
 | 시스템 프롬프트 | `prompts/answer/industrial-safety-grounded-claims/v1.txt`                     |
-| 설정        | `configs/production.yaml` · `query.reader`                                    |
+| 환경변수     | `configs/production.yaml` · `query.reader`                                    |
+
+```
+```

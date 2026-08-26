@@ -23,7 +23,7 @@ Entity 하나는 다음과 같은 형태입니다.
   "confidence": 0.83,
   "page_index": 2
 }
-```
+````
 
 ## 동작 방식
 
@@ -60,11 +60,7 @@ Entity 하나는 다음과 같은 형태입니다.
 NER은 문서 인덱싱 과정에서 실행됩니다.
 
 ```bash
-struct4search-ingest \
-  --config configs/production.yaml \
-  --services configs/services/cold-services.yaml \
-  --output /absolute/path/to/new-isolated-output \
-  --document-id <문서 ID>
+struct4search-ingest --output <출력 디렉터리> --document-id <문서 ID>
 ```
 
 산출물에서 문서별 Entity가 생성되었는지와 결과의 `label`이 정의된 여덟 유형 안에 있는지 확인합니다.
@@ -76,3 +72,4 @@ struct4search-ingest \
 | NER 실행 | `src/struct4search/ner_stage.py`                  |
 | 설정     | `configs/ingest-production.yaml` · `ner`          |
 | 다음 단계  | `src/struct4search/ingest/stages/entity_local.py` |
+

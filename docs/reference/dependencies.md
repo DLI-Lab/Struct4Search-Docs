@@ -7,20 +7,6 @@ title: 외부 의존
 
 Struct4Search를 실행하는 데 필요한 외부 서비스, 모델과 주요 패키지를 정리합니다.
 
-## 기본 개발 환경
-
-| 항목 | 요구사항 |
-|---|---|
-| Python | 3.12 이상, 검증 기준 CPython 3.12 |
-| 가상환경 | `venv` 또는 `virtualenv` |
-| 패키지 설치 | `python -m pip install -r requirements.txt` |
-| Git | 저장소 clone과 commit 식별 |
-| Node.js | Docs를 빌드할 때만 20 이상 |
-
-Debian/Ubuntu에서 `python3.12 -m venv`가 `ensurepip is not available`로 실패하면 `python3.12-venv` OS 패키지를 설치합니다. OS 패키지 설치 권한이 없으면 사용자 영역에 `virtualenv`를 설치해 가상환경을 만들 수 있습니다.
-
-`requirements.txt`는 CPU test와 API extra를 constraints와 함께 설치합니다. production ingest는 `.[ingest]`, MinerU vLLM service는 `.[mineru-service]`를 별도 환경에 설치합니다. `.[all]`은 GPU용 vLLM을 포함하므로 CPU 검증 환경에 설치하지 않습니다.
-
 ## 서비스
 
 | 서비스 | 쓰는 단계 | 사용할 수 없으면 |
@@ -60,7 +46,7 @@ Debian/Ubuntu에서 `python3.12 -m venv`가 `ensurepip is not available`로 실�
 | `requests` | HTTP 호출 |
 | `transformers` | 모델·토크나이저 연동 |
 
-전체 패키지 역할과 버전 범위는 `pyproject.toml`, CPU 고정 버전은 `constraints/py312-cpu.txt`에서 확인합니다. MinerU, Qwen과 임베딩 서버처럼 별도 프로세스로 실행되는 서비스의 환경은 별도로 관리합니다.
+전체 패키지와 버전 범위는 `pyproject.toml`에서 확인할 수 있습니다. MinerU, Qwen과 임베딩 서버처럼 별도 프로세스로 실행되는 서비스의 환경은 별도로 관리합니다.
 
 ## 하드웨어
 
