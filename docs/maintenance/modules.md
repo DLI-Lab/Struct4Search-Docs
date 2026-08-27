@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 4
 title: 파이프라인 구현 변경 및 확장
 ---
 

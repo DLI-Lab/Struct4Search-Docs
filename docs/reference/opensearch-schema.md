@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 title: OpenSearch 인덱스 구조
 ---
 
