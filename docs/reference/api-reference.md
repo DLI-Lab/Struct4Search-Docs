@@ -7,24 +7,6 @@ title: API Reference
 
 `struct4search-api`가 제공하는 HTTP API입니다. 현재 Runtime `master`의 FastAPI 라우터에 등록된 19개 operation을 모두 정리합니다.
 
-## Swagger UI
-
-외부 서비스 없이 Swagger UI를 확인하려면 저장소에 포함된 예제 검색 결과로 서버를 실행합니다.
-
-```bash
-struct4search-api \
-  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
-  --host 127.0.0.1 \
-  --port 3100
-```
-
-| 주소 | 용도 |
-|---|---|
-| `http://127.0.0.1:3100/docs` | Swagger UI에서 API 목록과 요청 형식 확인 |
-| `http://127.0.0.1:3100/openapi.json` | 현재 실행 코드에서 생성한 OpenAPI schema |
-
-운영 실행에서는 `--fixture-results` 대신 `--profile configs/production.yaml`을 사용합니다. 두 옵션은 함께 사용할 수 없습니다.
-
 ## 검색과 원본 출처
 
 | Method | Path | 입력 | 결과 |
@@ -78,11 +60,11 @@ struct4search-api \
 
 ## 별도 프로세스의 API
 
-아래 API도 Runtime `master`에 포함되어 있지만 `struct4search-api`와는 다른 프로세스와 포트에서 실행됩니다. 따라서 canonical Swagger UI에는 합쳐서 표시되지 않습니다.
+아래 API도 Runtime `master`에 포함되어 있지만 `struct4search-api`와는 다른 프로세스와 포트에서 실행됩니다.
 
 ### Restored snapshot API
 
-`struct4search-restored-snapshot-api`는 복원한 OpenSearch snapshot을 조회하며 다음 경로를 사용합니다. 같은 FastAPI app factory를 사용하므로 `/docs`와 `/openapi.json`도 제공합니다.
+`struct4search-restored-snapshot-api`는 복원한 OpenSearch snapshot을 조회하며 다음 경로를 사용합니다.
 
 | Method | Path | 기능 |
 |---|---|---|
@@ -176,14 +158,12 @@ struct4search-api \
 | `GET` | `/health/live` |
 | `GET` | `/health/ready` |
 
-Swagger UI는 이 draft 파일이 아니라 현재 실행 코드가 생성하는 `/openapi.json`을 사용합니다.
-
 ## 코드 위치
 
 | 확인할 내용 | 파일 |
 |---|---|
 | API 실행 명령 | `backend/struct4search/entrypoints/cli/api.py` |
 | API 조립 | `backend/struct4search/entrypoints/api/server.py` |
-| 검색·답변과 Swagger | `backend/struct4search/entrypoints/api/legacy_response.py` |
+| 검색·답변 | `backend/struct4search/entrypoints/api/legacy_response.py` |
 | 문서 조회 경로 | `backend/struct4search/entrypoints/api/document_viewer.py` |
 | 계약 검토용 draft | `openapi/struct4search-v1.yaml` |
