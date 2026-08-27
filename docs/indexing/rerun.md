@@ -146,6 +146,7 @@ struct4search-ingest \
 | Metadata, KG 또는 검색표현이 생성되지 않음  | LLM 서비스 상태, 모델 설정과 인증 정보     |
 | NER 단계에서 실패함                   | NER 서비스 상태와 모델 로드 여부         |
 | 인덱싱 단계에서 실패함                   | OpenSearch 주소, 인덱스 존재 여부와 매핑 |
+| `403 index_create_block_exception` 오류가 발생함 | 서버의 디스크 여유 공간과 OpenSearch의 `cluster.blocks.create_index` 설정 |
 | 실행은 끝났지만 완료 기록이 없음             | 마지막 단계의 오류와 누락된 산출물          |
 | 일부 문서만 반복해서 실패함                | 해당 문서의 마지막 성공 단계와 입력 파일      |
 
