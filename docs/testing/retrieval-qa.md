@@ -1,13 +1,13 @@
 ---
-sidebar_position: 5
-title: 검색과 QA 평가 실행
+sidebar_position: 2
+title: 평가 실행과 통과 판정
 ---
 
-# 검색과 QA 평가 실행
+# 평가 실행과 통과 판정
 
-Evaluator는 저장소에 포함된 예제 검색 결과 파일 또는 운영 QueryService를 사용해 검색과 답변을 함께 평가합니다.
+`struct4search-evaluate`는 QueryService의 최종 검색 결과와 답변을 저장하고 통과 여부를 판정합니다. 검색 점수는 evaluator가 계산하지만, 답변의 의미 품질 점수는 별도 평가 결과를 `--qa-scores`로 전달해야 합니다.
 
-## CPU 환경에서 먼저 확인
+## CPU에서 evaluator 확인
 
 ```bash
 struct4search-evaluate \
@@ -19,92 +19,76 @@ struct4search-evaluate \
   --output-root /tmp/struct4search-evaluation
 ```
 
-`--fixture-results`는 예제 검색 결과 파일을 지정하는 옵션입니다. 이 명령은 GPU·OpenSearch·embedding·reader·유료 API를 호출하지 않습니다.
+이 명령은 저장소의 예제 검색 결과를 다시 읽어 평가 흐름과 산출물 형식을 확인합니다. 실제 검색·답변 서비스나 유료 API는 호출하지 않습니다.
 
-## 운영 평가 전 확인
+## 운영 결과 평가
 
-* 평가 대상 코퍼스가 색인되어 있어야 합니다.
-* OpenSearch, embedding, reader 서비스가 실행 중이어야 합니다.
-* 평가 릴리스, 기준 report, QA score 파일을 준비해야 합니다.
-
-| 평가셋     |    문서 |  질의 | 쓰는 때             |
-| ------- | ----: | --: | ---------------- |
-| 소규모 평가셋 |   100 | 100 | 변경 중 빠른 성능 확인    |
-| 대규모 평가셋 | 2,567 | 200 | 기준선 비교와 최종 회귀 확인 |
-
-소규모 평가셋은 검색 공간이 100문서로 제한되어 있어 대규모 검색 환경의 난이도를 그대로 반영하지는 않습니다. **기준 성능과 회귀 판정에는 대규모 평가셋을 사용합니다**([평가셋 구성](eval200.md)).
-
-## 운영 평가 실행
+평가 대상 코퍼스를 색인하고 OpenSearch, embedding, reader 서비스를 실행한 뒤 다음 명령을 사용합니다.
 
 ```bash
 struct4search-evaluate \
   --profile configs/production.yaml \
   --evaluation-config configs/evaluation-release.json \
   --gate-config configs/evaluation-gate.yaml \
-  --baseline-report <기준_report.json> \
-  --qa-scores <QA_점수.jsonl> \
+  --baseline-report <기준_EVALUATION_REPORT.json> \
+  --qa-scores <정규화한_QA_점수.jsonl> \
   --output-root /absolute/path/to/evaluation-output
 ```
 
-기존 run 아래에 결과를 남기려면 `--output-root` 대신 `--run-root <run_root>`를 사용합니다. `--run-root`와 `--output-root`, `--profile`과 `--fixture-results`는 각각 하나만 선택할 수 있습니다.
+`--profile`은 실제 QueryService를 실행하고, `--fixture-results`는 이미 저장한 결과를 읽습니다. 두 옵션 중 하나만 사용합니다. 결과를 기존 run 아래에 남기려면 `--output-root` 대신 `--run-root <run_root>`를 사용하며, 파일은 `<run_root>/evaluation/final200`에 생성됩니다.
+
+`--qa-scores` 파일은 평가 질의마다 다음 형식의 행을 하나씩 가져야 합니다. `score`는 0 이상 1 이하의 값입니다.
+
+```json
+{"query_id": "q001", "score": 1.0}
+```
+
+답변 평가자가 0–4 점수를 출력했다면 `score = correctness_score / 4`로 정규화합니다. evaluator는 이 판단을 직접 생성하지 않습니다.
 
 ## 결과 파일
 
-| 파일                                          | 내용          |
-| ------------------------------------------- | ----------- |
-| `retrieval_predictions.query_service.jsonl` | 질의별 검색 결과   |
-| `retrieval_scores_per_query.jsonl`          | 질의별 검색 점수   |
-| `qa_answers.jsonl`                          | 질의별 답변과 인용  |
-| `EVALUATION_REPORT.json`                    | 검색·답변 평가 요약 |
-| `RELEASE_GATE.json`                         | release gate 판정 |
-| `EVALUATION_RESULTS.json`                   | 전체 평가 결과 요약 |
+| 파일 | 내용 |
+|---|---|
+| `retrieval_predictions.query_service.jsonl` | 최종 Context의 문서 순위와 답변·인용 |
+| `retrieval_scores_per_query.jsonl` | 질의별 검색 점수 |
+| `qa_answers.jsonl` | 답변, 인용, Context 검색 결과 |
+| `EVALUATION_REPORT.json` | 검색 지표와 인용 정리 집계 |
+| `RELEASE_GATE.json` | 통과 기준의 검사 항목과 판정 사유 |
+| `EVALUATION_RESULTS.json` | 전체 결과와 최종 상태 |
 
-## 검색 지표
+지표의 계산 단위와 해석은 [평가 지표](metrics.md)에서 확인합니다.
 
-| 지표                         | 뜻                          |
-| -------------------------- | -------------------------- |
-| `ndcg_at_k`                | 정답 근거가 상위에 배치된 정도          |
-| `required_recall_at_k`     | 필요한 정답 근거를 상위 k에서 얼마나 찾았는가 |
-| `hit_at_k`                 | 상위 k에 정답 근거가 하나라도 있는가      |
-| `minimal_set_success_at_k` | 답변에 필요한 최소 근거 집합을 모두 찾았는가  |
+## 통과 판정
 
-검색 결과와 정답 근거를 비교할 때는 **원문 청크가 가리키는 위치가 실제 정답 근거와 겹치는지** 확인합니다. 같은 문서라는 이유만으로 정답으로 판정하지 않습니다.
+실제 조건은 `configs/evaluation-gate.yaml`이 정합니다.
 
-## QA 지표
+| 상태 | 뜻 |
+|---|---|
+| `PASS` | 필요한 자료가 있고 모든 조건을 통과함 |
+| `FAIL` | 지표, 기준선 하락 폭 또는 인용 조건을 통과하지 못함 |
+| `BLOCKED` | 필요한 산출물, 기준선, QA 점수 또는 지표가 없거나 형식이 잘못됨 |
 
-답변은 정답과 필수 claim을 기준으로 채점합니다. 문자열 일치가 아니라 의미가 같은지를 평가하며, 필수 claim별 충족 여부를 보수적으로 판정합니다.
+통과 판정은 다음 항목을 확인합니다.
 
-| 점수 | 뜻                              |
-| -- | ------------------------------ |
-| 4  | 모든 필수 내용이 정확하고 중대한 오류가 없음      |
-| 3  | 대체로 정확하나 경미한 누락이나 부정확성이 있음     |
-| 2  | 핵심 내용의 일부만 충족함                 |
-| 1  | 최소한의 관련 내용만 있고 중대한 누락이나 오류가 있음 |
-| 0  | 오답이거나 무응답                      |
+- 필수 평가 산출물이 생성됐는지
+- 검색 지표가 설정된 최소값 이상인지
+- QA 점수가 모든 질의에 있고 평균 기준을 만족하는지
+- 내용이 있는 답변에 최종 Context의 원문 인용이 있는지
+- 기준 보고서보다 지표가 허용 범위 이상 하락하지 않았는지
 
-정답 범위를 넘어 법적 기준·수치·요건 등을 단정한 답변은 별도로 표시합니다. 검색 근거는 맞지만 답변이 근거보다 과하게 확장되는 경우를 확인하기 위한 것입니다.
+판정이 `PASS`가 아니면 `RELEASE_GATE.json`의 `failures`와 `blockers`를 먼저 확인합니다.
 
-## 인용 검증
+## 기준선과 재평가 범위
 
-답변 결과에는 인용 정리 집계가 함께 기록됩니다.
+기준 보고서는 같은 코드, profile, index, 평가셋 릴리스, 전처리 모델, 답변 모델에서 만든 결과를 사용합니다. 평가셋 릴리스나 index, 전처리 모델이 바뀌면 새 조건에서 기준 보고서를 다시 만듭니다.
 
-| 집계                                       | `0`이 아니면                   |
-| ---------------------------------------- | -------------------------- |
-| `duplicate_citations_removed`            | 한 claim 안에서 같은 근거를 반복해 인용함 |
-| `retrieval_expression_citations_removed` | 검색표현을 인용하려 함               |
-| `out_of_context_citations_removed`       | Context에 없는 ID를 인용하려 함     |
-| `unsupported_claims_removed`             | 원문 근거가 없는 claim이 제거됨       |
+| 변경한 부분 | 검색 평가 | QA 평가 |
+|---|---:|---:|
+| 파싱·청킹·NER·KG | 필수 | 필수 |
+| Metadata·검색표현 프롬프트 | 필수 | 필수 |
+| 검색 파라미터·점수 통합 | 필수 | 필수 |
+| Context 구성 | — | 필수 |
+| 답변 프롬프트·모델 | — | 필수 |
+| 동시성·서비스 주소 | — | — |
 
-네 값이 모두 `0`이어야 정상입니다. 값이 `0`이 아니면 프롬프트, Context 구성 또는 인용 처리 과정을 확인합니다.
-
-## 재현성 확인
-
-같은 인덱스·평가셋·모델·설정에서는 같은 검색 결과가 나와야 합니다. 동일 조건의 두 실행에서 결과가 달라지면 인덱스나 설정 등 실행 조건이 달라졌는지 먼저 확인합니다.
-
-평가 결과를 기록할 때는 **무엇을 평가했는지 함께 남깁니다.** 코드 commit, 실행 프로파일, 인덱스 이름, 평가셋 릴리스, 사용 모델을 함께 기록합니다([기준 성능과 회귀 판정](regression-gates.md)).
-
-## 실패 질의 확인
-
-`retrieval_scores_per_query.jsonl`에서 점수가 낮은 질의를 찾은 뒤, `retrieval_predictions.query_service.jsonl`에서 같은 질의의 검색 결과를 확인합니다.
-
-정답 근거가 후보에 없으면 검색 단계에서 근거를 찾지 못한 경우이고, 후보에는 있지만 상위에 배치되지 않았다면 순위 문제로 볼 수 있습니다.
+`retrieval_scores_per_query.jsonl`에서 점수가 낮은 질의를 찾은 뒤 `retrieval_predictions.query_service.jsonl`의 같은 `query_id`를 확인하면 검색 누락과 순위 문제를 구분할 수 있습니다.

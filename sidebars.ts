@@ -79,9 +79,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'testing/overview',
-        'testing/test-levels',
         'testing/retrieval-qa',
-        'testing/regression-gates',
         'testing/eval200',
         'testing/metrics',
       ],
