@@ -1,24 +1,24 @@
 ---
-sidebar_position: 9
+sidebar_position: 2
 title: CLI Reference
 ---
 
 # CLI Reference
 
-설치 후 사용할 수 있는 `struct4search-*` 명령을 모두 정리합니다. 명령 이름의 정본은 Runtime 저장소의 `pyproject.toml` `[project.scripts]`이며, 아래 목록은 현재 `Master`에 등록된 18개 entrypoint와 일치합니다.
+설치 후 사용할 수 있는 `struct4search-*` 명령과 각 명령에 필요한 옵션을 정리합니다.
 
-```bash
-python -m pip install -c constraints/py312-cpu.txt -e '.[test,api]'
-```
+처음 실행하는 경우에는 [설치와 첫 실행](../quickstart.md)을 먼저 진행합니다. 이 페이지에서는 실행하려는 작업에 맞는 명령을 찾고, 해당 명령의 필수 옵션과 실행 예시를 확인할 수 있습니다.
 
-## 공통 규칙
+## 공통 실행 조건
 
 - 명령은 저장소 루트에서 실행합니다.
-- 공개 `struct4search-*` 명령은 시작할 때 루트의 `.env`를 읽습니다. 이미 셸에 export한 값은 덮어쓰지 않습니다.
-- `--config`와 `--profile`은 pipeline과 query 동작을 정의한 YAML입니다. `--services`는 모델·OpenSearch·Temporal process를 어떻게 실행할지 정의한 YAML입니다.
-- `--output`은 기존 실행과 겹치지 않는 절대 경로를 사용합니다.
-- `--document-id`는 여러 번 전달할 수 있습니다. 생략하면 profile의 전체 문서를 대상으로 합니다.
-- 모든 명령은 `--help`를 지원합니다. 성공은 exit code `0`, 잘못된 인자나 준비되지 않은 환경은 non-zero입니다.
+- 공개 `struct4search-*` 명령은 시작할 때 저장소 루트의 `.env`를 읽습니다. 셸에 이미 설정된 값은 덮어쓰지 않습니다.
+- `--config`와 `--profile`은 파이프라인과 검색·답변 동작을 정의한 설정 파일입니다.
+- `--services`는 모델, OpenSearch와 Temporal 등 외부 서비스를 어떻게 연결할지 정의한 설정 파일입니다.
+- 잘못된 옵션 조합이나 존재하지 않는 설정 파일을 지정하면 외부 서비스를 구성하기 전에 실행이 종료됩니다.
+- 모든 명령은 `--help`를 지원합니다.
+
+실제 인덱싱과 검색·답변을 실행하려면 설정에 지정된 외부 서비스가 준비되어 있어야 합니다. 필요한 서비스와 실행 조건은 [설치 요구사항](dependencies.md)에서 확인합니다.
 
 ## 어떤 명령을 선택할까
 

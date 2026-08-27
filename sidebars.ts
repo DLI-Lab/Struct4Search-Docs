@@ -53,7 +53,6 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'reference/api-reference',
-        'reference/api-contract',
         'reference/cli',
         'reference/configuration',
         'reference/dependencies',

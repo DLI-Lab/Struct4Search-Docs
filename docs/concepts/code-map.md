@@ -38,7 +38,7 @@ Struct4Search/
 |---|---|---|
 | `configs/` | 실행 설정과 외부 서비스 구성을 관리합니다 | [설정](../reference/configuration.md), [설정 변경](../maintenance/configuration.md) |
 | `prompts/` | Metadata·Triple·검색표현·답변 프롬프트와 버전을 관리합니다 | [프롬프트 목록](../reference/prompts.md), [프롬프트 변경](../maintenance/prompts.md) |
-| `openapi/` | HTTP 요청과 응답 형식의 명세를 보관합니다 | [API Reference](../reference/api-reference.md), [API 계약](../reference/api-contract.md) |
+| `openapi/` | HTTP 요청과 응답 형식의 명세를 보관합니다 | [API Reference](../reference/api-reference.md) |
 | `frontend/chatkit_demo/` | 문서 관리·파이프라인·검색 결과를 보여주는 React 화면과 로컬 API 어댑터입니다 | `frontend/chatkit_demo/README.md`, [API Reference](../reference/api-reference.md) |
 | `tests/` | 단위·회귀·통합 테스트와 예제 입력을 보관합니다 | [테스트와 평가 시작하기](../testing/overview.md) |
 | `backend/struct4search/bootstrap/` | 설정에 맞는 Parser·LLM·저장소·검색 구현을 조립합니다 | [개요](../overview.md), [설정](../reference/configuration.md) |
@@ -55,7 +55,7 @@ Struct4Search/
 | `backend/struct4search/query/retrieval/` | 검색 결과를 정리하고 통합하여 최종 근거를 선택합니다 | [검색·답변 파이프라인](../query/overview.md), [검색 결과 통합](../query/score-integration.md) |
 | `backend/struct4search/query/answer/` | 답변 Context, token 예산, 구조화 답변과 Citation을 처리합니다 | [Context 구성](../query/context.md), [구조화 답변](../query/structured-answer.md), [출처 표기](../query/citations.md) |
 | `backend/struct4search/adapters/parsing/` | Parser 결과를 공통 IDR 구조로 변환합니다 | [파싱](../indexing/parsing.md) |
-| `backend/struct4search/adapters/llm/` | local Qwen과 hosted GPT 호출을 공통 계약으로 제공합니다 | [모델 호출 지도](../reference/model-calls.md), [API 계약](../reference/api-contract.md) |
+| `backend/struct4search/adapters/llm/` | local Qwen과 hosted GPT 호출을 공통 계약으로 제공합니다 | [모델 호출 지도](../reference/model-calls.md) |
 | `backend/struct4search/adapters/persistence/` | PostgreSQL 문서·Metadata·KG 저장소를 연결합니다 | [저장소와 재처리](../reference/storage.md) |
 | `backend/struct4search/adapters/search/` | 질의 embedding과 OpenSearch Hybrid 검색을 실행합니다 | [Hybrid 검색](../query/hybrid-search.md), [RRF](../query/rrf.md) |
 | `backend/struct4search/entrypoints/` | CLI, API와 백그라운드 worker의 실행 진입점을 제공합니다 | [CLI Reference](../reference/cli.md), [API Reference](../reference/api-reference.md) |
