@@ -71,8 +71,6 @@ const sidebars: SidebarsConfig = {
         'maintenance/configuration',
         'maintenance/models',
         'maintenance/modules',
-        'maintenance/search-context',
-        'maintenance/data-index',
       ],
     },
     {

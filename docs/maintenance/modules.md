@@ -1,82 +1,46 @@
 ---
 sidebar_position: 5
-title: 모듈 추가와 교체
+title: 파이프라인 구현 교체와 단계 추가
 ---
 
-# 모듈 추가와 교체
+# 파이프라인 구현 교체와 단계 추가
 
-파이프라인에 새로운 단계를 추가하거나 기존 모듈의 구현을 교체하는 방법입니다.
+이 페이지는 설정값이 아니라 파이프라인 코드의 구성을 바꿀 때 사용합니다. 기존 입력·출력을 그대로 두고 구현만 바꾸는 일과, 새로운 산출물을 만드는 단계를 추가하는 일을 구분합니다.
 
-## 구현 교체와 단계 추가
+| 작업 | 해당하는 경우 | 주요 변경 위치 |
+|---|---|---|
+| 구현 교체 | 기존 입력·출력 계약을 유지하면서 Parser, 검색, Reader 등의 구현을 바꾸는 경우 | 계약 구현체, `bootstrap/composition.py`, `adapters/orchestration/back_pipeline.py` |
+| 단계 추가 | 새로운 입력·출력과 산출물을 만드는 처리를 파이프라인에 넣는 경우 | `ingest/contracts.py`, `ingest/stages/`, `orchestration/dag.py` |
 
-| 경우    | 하는 일                              |
-| ----- | --------------------------------- |
-| 구현 교체 | 기존 입력·출력 계약을 유지하면서 구현만 바꿉니다       |
-| 단계 추가 | 새로운 입력·출력과 산출물을 정의하고 파이프라인에 연결합니다 |
+## 기존 구현을 교체할 때
 
-기존 계약을 유지하는 구현 교체는 조립 지점에서 새 구현을 연결하는 방식으로 처리할 수 있습니다. 새로운 단계를 추가하는 경우에는 설정, 실행 순서와 완료 조건까지 함께 정의해야 합니다.
+검색·답변 구현은 `backend/struct4search/query/contracts.py`의 입력·출력 계약을 따릅니다. 예를 들어 질의 Embedding, 검색, Reader는 각각 `EmbeddingPort`, `RetrievalStrategy`, `Reader`를 구현합니다.
 
-## 구현 교체
+1. 기존 계약과 같은 입력·출력을 제공하는 구현체를 만듭니다.
+2. `backend/struct4search/bootstrap/composition.py`의 조립 지점에서 새 구현을 선택하도록 연결합니다.
+3. 계약 테스트와 API·평가·E2E를 실행해 모든 진입점이 같은 구현을 사용하는지 확인합니다.
 
-검색·답변 파이프라인의 주요 계약은 다음과 같습니다.
+입력·출력 형식이 달라지면 구현 교체가 아니라 계약 변경입니다. 해당 결과를 사용하는 후속 단계도 함께 수정합니다.
 
-| 계약                   | 역할              |
-| -------------------- | --------------- |
-| `EmbeddingPort`      | 질의를 임베딩 벡터로 변환  |
-| `RetrievalStrategy`  | 검색 후보 조회        |
-| `Reader`             | 원문 근거로 답변 생성    |
-| `CitationNormalizer` | Citation 검증과 정리 |
-| `SourceLinkResolver` | 원문 출처 연결        |
-| `RetrievalPolicies`  | 검색 결과 점수 통합     |
+인덱싱 단계의 구현만 교체하는 경우에는 `backend/struct4search/ingest/contracts.py`의 계약을 유지하고 `backend/struct4search/adapters/orchestration/back_pipeline.py`의 조립을 바꿉니다.
 
-구현을 교체할 때는 다음 순서로 진행합니다.
+## 인덱싱 단계를 추가할 때
 
-1. 기존 계약과 같은 입력·출력을 제공하는 구현을 만듭니다.
-2. `backend/struct4search/bootstrap/composition.py`에서 기존 구현 대신 새 구현을 연결합니다.
-3. 관련 테스트와 E2E를 실행해 기존 파이프라인과 정상적으로 연결되는지 확인합니다.
+1. `backend/struct4search/ingest/contracts.py`에 단계의 입력·출력과 산출물 계약을 정의합니다.
+2. `backend/struct4search/ingest/stages/`에 단계 구현을 추가합니다.
+3. `backend/struct4search/orchestration/dag.py`에 필요한 입력, 생성하는 출력, 실행 범위와 resource pool을 등록합니다.
+4. `backend/struct4search/adapters/orchestration/back_pipeline.py`에서 단계 구현을 실제 실행 경로에 연결합니다.
+5. 설정이 필요하면 설정 Schema와 profile을 추가하고, 새 산출물을 완료 판정과 재개 검증에 포함합니다.
+6. 단계 계약 테스트와 한 문서 E2E를 실행합니다.
 
-계약 자체를 변경하는 경우에는 단순한 구현 교체가 아니므로 해당 데이터를 사용하는 후속 단계도 함께 수정해야 합니다.
-
-## 단계 추가
-
-문서 인덱싱 단계는 `backend/struct4search/ingest/stages/`에 구현되어 있으며 오케스트레이션에서 실행 순서를 구성합니다.
-
-새 단계를 추가할 때는 다음 항목을 함께 정합니다.
-
-* **입력과 출력** — 어떤 이전 단계의 결과를 받아 무엇을 만드는지 정의합니다.
-* **실행 위치** — 전체 파이프라인의 어느 단계 사이에서 실행할지 정합니다.
-* **산출물** — 이후 단계가 사용할 결과와 저장 위치를 정합니다.
-* **설정** — 필요한 설정 키를 스키마와 실행 프로파일에 추가합니다.
-* **완료 조건** — 어떤 결과가 있어야 해당 단계가 완료된 것으로 볼지 정합니다.
-* **재실행 범위** — 결과가 바뀌었을 때 어느 후속 단계까지 다시 처리해야 하는지 정합니다.
-
-## 함께 수정할 위치
-
-| 대상      | 확인할 내용             |
-| ------- | ------------------ |
-| 설정 스키마  | 새 설정 키와 타입         |
-| 실행 프로파일 | 실제 사용할 설정값         |
-| 조립 지점   | 새 구현의 연결           |
-| 오케스트레이션 | 단계의 실행 위치와 순서      |
-| 완료 판정   | 새 산출물을 완료 조건에 포함할지 |
-| 테스트     | 입력·출력 계약과 전체 연결    |
-| 웹 문서    | 새 단계 또는 변경된 동작 설명  |
-
-## 재실행 범위
-
-문서 인덱싱 단계의 구현이나 산출물이 바뀌면 그 결과를 사용하는 후속 단계도 다시 처리해야 합니다.
-
-* 인덱싱 데이터가 달라지면 해당 단계 이후를 다시 처리하고 재색인합니다.
-* 검색·답변 구현만 교체하고 기존 인덱스의 구조와 데이터가 그대로라면 재색인은 필요하지 않습니다.
-* 데이터 구조나 OpenSearch 매핑까지 바뀌는 경우에는 [데이터와 인덱스 구조 변경](data-index.md)의 절차를 따릅니다.
-
-변경 후에는 [변경 영향과 재실행 범위](change-map.md)에서 필요한 재처리 범위를 확인하고, 관련 테스트와 E2E를 실행합니다.
+변경 후 다시 실행할 범위와 새 index 필요 여부는 [변경 영향과 재실행 범위](change-map.md)에서 확인합니다.
 
 ## 코드 참조
 
-| 확인할 내용    | 파일·심볼                                        |
-| --------- | -------------------------------------------- |
-| 검색·답변 계약  | `backend/struct4search/query/contracts.py`       |
-| 구현 조립     | `backend/struct4search/bootstrap/composition.py` |
-| 문서 인덱싱 단계 | `backend/struct4search/ingest/stages/`           |
-| 실행 순서     | `backend/struct4search/adapters/orchestration/`  |
+| 확인할 내용 | 파일·심볼 |
+|---|---|
+| 검색·답변 계약 | `backend/struct4search/query/contracts.py` |
+| 인덱싱 단계 계약 | `backend/struct4search/ingest/contracts.py` · `IngestStage` |
+| 구현 조립 | `backend/struct4search/bootstrap/composition.py` |
+| 인덱싱 실행 순서 | `backend/struct4search/orchestration/dag.py` · `F400_INGESTION_DAG` |
+| 인덱싱 실행 연결 | `backend/struct4search/adapters/orchestration/back_pipeline.py` |
