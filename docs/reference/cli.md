@@ -40,7 +40,7 @@ Struct4Search에서 제공하는 `struct4search-*` 명령의 실행 형식, 필�
 
 | 명령                        | 실행 형식                                                                    | 설명                                                                                     |
 | ------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| `struct4search-env`       | `struct4search-env [--shell]`                                            | 현재 선택된 Python과 import 경로를 출력합니다. `--shell`을 지정하면 환경을 직접 변경하지 않고 적용할 `export` 문을 출력합니다. |
+| `struct4search-env`       | `struct4search-env [--shell]`                                            | 설정과 환경변수에서 해석된 실행 Python과 import 경로를 출력합니다. `--shell`을 지정하면 환경을 직접 변경하지 않고 적용할 `export` 문을 출력합니다. |
 | `struct4search-preflight` | `struct4search-preflight`                                                | GPU 프로세스 소유권, 필수 포트, 고아 프로세스, 디스크와 OpenSearch 차단 상태를 검사합니다.                            |
 | `struct4search-bootstrap` | `struct4search-bootstrap (--profile PROFILE \| --stack STACK) [--check]` | 프로파일에 정의된 OpenSearch Native RRF 검색 파이프라인을 생성합니다. `--check`를 지정하면 변경하지 않고 현재 상태만 확인합니다. |
 | `struct4search-stack`     | `struct4search-stack --stack STACK {api\|document\|chatkit\|ui\|up}`     | API, 문서 조회 백엔드, ChatKit adapter, React UI 중 하나를 선택하거나 `up`으로 전체 서비스를 실행합니다.            |
