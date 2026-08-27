@@ -55,7 +55,6 @@ const sidebars: SidebarsConfig = {
         'reference/api-reference',
         'reference/cli',
         'reference/dependencies',
-        'reference/data-schema',
         'reference/opensearch-schema',
         'reference/storage',
         'reference/model-calls',

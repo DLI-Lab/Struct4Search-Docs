@@ -46,13 +46,23 @@ Struct4Search 문서와 코드에서 반복해서 사용하는 주요 용어를 
 | ID | 뜻 |
 |---|---|
 | `d…` | 문서 ID |
+| `#p…#b…#e…` | 문서 안의 페이지 · 블록 · 요소 위치 |
 | `fc_…` | 원문 청크 ID |
 | `ruf_…` | 검색과 Citation에서 사용하는 원문 검색 단위 ID |
 | `e_…` | Entity ID |
 | `kgtr_…` | Triple ID |
 | `rte_…` | 검색표현 ID |
 
-ID 사이의 관계는 [데이터 구조와 ID 체계](data-schema.md)에서 설명합니다.
+```text
+문서 d…
+  └─ 요소 #p…#b…#e…
+      └─ 원문 청크 fc_…
+          └─ 원문 검색 단위 ruf_…
+              ├─ Triple kgtr_…
+              └─ 검색표현 rte_…
+```
+
+`fc_` 원문 청크와 `ruf_` 원문 검색 단위는 1:1로 연결됩니다. 검색과 답변의 Citation에서는 `ruf_`를 사용하며, `rte_` 검색표현은 Citation으로 사용할 수 없습니다.
 
 ## 검색
 

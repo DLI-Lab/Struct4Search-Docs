@@ -26,7 +26,7 @@ title: 원문 청킹
 }
 ````
 
-ID 종류와 의미는 [데이터 구조와 ID 체계](../reference/data-schema.md)에서 설명합니다.
+ID 종류와 의미는 [용어 사전](../reference/glossary.md#id)에서 설명합니다.
 
 ## 동작 방식
 

@@ -38,7 +38,7 @@ Struct4Search는 두 개의 파이프라인으로 구성됩니다.
 | 문서 처리 단계 이해하기 | [문서 인덱싱 파이프라인](indexing/overview.md) |
 | 검색과 답변 생성 과정 이해하기 | [검색·답변 파이프라인](query/overview.md) |
 | 모델·프롬프트·설정 변경하기 | [유지보수](maintenance/change-map.md) |
-| 정확한 설정과 데이터 구조 찾기 | [레퍼런스](reference/data-schema.md) |
+| ID와 용어 찾기 | [용어 사전](reference/glossary.md) |
 | 변경 후 동작 검증하기 | [테스트와 평가](testing/overview.md) |
 
 처음 실행하는 경우에는 [설치와 첫 실행](quickstart.md)부터 시작합니다.

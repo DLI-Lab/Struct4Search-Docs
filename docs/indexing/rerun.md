@@ -44,7 +44,7 @@ struct4search-ingest \
 
 `complete.json`이 없으면 같은 위치의 `failure.json`과 실행 로그에서 실패한 단계를 확인합니다.
 
-단계별 산출물이 저장되는 위치는 [저장소와 보존](../reference/storage.md)에서 확인합니다. 각 산출물의 주요 필드와 ID 연결은 [데이터 구조와 ID 체계](../reference/data-schema.md)와 각 단계 문서의 `입력과 출력`에서 확인합니다.
+단계별 산출물이 저장되는 위치는 [저장소와 보존](../reference/storage.md)에서 확인합니다. ID 연결은 [용어 사전](../reference/glossary.md#id), 각 산출물의 주요 필드는 단계 문서의 `입력과 출력`에서 확인합니다.
 
 
 ## 여러 문서 실행하기
