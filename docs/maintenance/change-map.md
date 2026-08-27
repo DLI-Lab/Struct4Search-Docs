@@ -11,20 +11,20 @@ title: 변경 지점 찾기
 
 | 바꾸려는 것 | 위치 | 영향을 받는 단계 | 재처리·재색인 | 자세히 보기 |
 |---|---|---|---|---|
-| 파서·페이지 판정 | `configs/production.yaml`<br>`parser` | 문서 파싱 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
-| 청크 크기·오버랩 | `configs/production.yaml`<br>`chunking` | 원문 청킹 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
-| NER 모델·라벨 | `configs/production.yaml`<br>`ner` | NER 이후 | 재처리 · 재색인 | [모델 교체](models.md) |
-| Metadata 필드 | `backend/struct4search/domain/`<br>`metadata_fields.yaml` | Metadata 생성 이후 | 재처리 · 재색인 | [프롬프트와 규칙 수정](prompts.md) |
-| KG 묶기 기준 | `configs/production.yaml`<br>`triple` | KG 구축 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
-| 검색표현 생성 방식 | `configs/production.yaml`<br>`g2` | 검색표현 생성 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
-| 임베딩 모델·차원 | `configs/production.yaml`<br>`index` | 인덱싱 | 새 인덱스 필요 | [데이터와 인덱스 구조 변경](data-index.md) |
-| OpenSearch 매핑 | `backend/struct4search/`<br>`index_stage.py` | 인덱싱 | 새 인덱스 필요 | [데이터와 인덱스 구조 변경](data-index.md) |
-| 검색 깊이·후보 수 | `configs/production.yaml`<br>`query.native_rrf` | 검색·답변 | 없음 | [검색과 Context 수정](search-context.md) |
-| 최종 근거 수 | `configs/production.yaml`<br>`query.native_rrf.`<br>`final_source_top_k` | Context · 답변 | 없음 | [검색과 Context 수정](search-context.md) |
-| 답변 모델 | `configs/production.yaml`<br>`query.reader` | 답변 | 없음 | [모델 교체](models.md) |
+| 파서·페이지 판정 | `configs/production.yaml`<br />`parser` | 문서 파싱 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
+| 청크 크기·오버랩 | `configs/production.yaml`<br />`chunking` | 원문 청킹 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
+| NER 모델·라벨 | `configs/production.yaml`<br />`ner` | NER 이후 | 재처리 · 재색인 | [모델 교체](models.md) |
+| Metadata 필드 | `backend/struct4search/domain/`<br />`metadata_fields.yaml` | Metadata 생성 이후 | 재처리 · 재색인 | [프롬프트와 규칙 수정](prompts.md) |
+| KG 묶기 기준 | `configs/production.yaml`<br />`triple` | KG 구축 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
+| 검색표현 생성 방식 | `configs/production.yaml`<br />`g2` | 검색표현 생성 이후 | 재처리 · 재색인 | [설정 수정](configuration.md) |
+| 임베딩 모델·차원 | `configs/production.yaml`<br />`index` | 인덱싱 | 새 인덱스 필요 | [데이터와 인덱스 구조 변경](data-index.md) |
+| OpenSearch 매핑 | `backend/struct4search/`<br />`index_stage.py` | 인덱싱 | 새 인덱스 필요 | [데이터와 인덱스 구조 변경](data-index.md) |
+| 검색 깊이·후보 수 | `configs/production.yaml`<br />`query.native_rrf` | 검색·답변 | 없음 | [검색과 Context 수정](search-context.md) |
+| 최종 근거 수 | `configs/production.yaml`<br />`query.native_rrf.`<br />`final_source_top_k` | Context · 답변 | 없음 | [검색과 Context 수정](search-context.md) |
+| 답변 모델 | `configs/production.yaml`<br />`query.reader` | 답변 | 없음 | [모델 교체](models.md) |
 | Metadata·Triple·검색표현 프롬프트 | `prompts/` | 해당 생성 단계 이후 | 재처리 · 재색인 | [프롬프트와 규칙 수정](prompts.md) |
 | 답변 프롬프트 | `prompts/answer/` | 답변 | 없음 | [프롬프트와 규칙 수정](prompts.md) |
-| 단계 추가·교체 | `backend/struct4search/ingest/stages/`<br>`bootstrap/composition.py` | 해당 단계 이후 | 변경 범위에 따라 결정 | [모듈 추가와 교체](modules.md) |
+| 단계 추가·교체 | `backend/struct4search/ingest/stages/`<br />`bootstrap/composition.py` | 해당 단계 이후 | 변경 범위에 따라 결정 | [모듈 추가와 교체](modules.md) |
 
 ## 재처리 범위
 
