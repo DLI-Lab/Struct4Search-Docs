@@ -70,7 +70,6 @@ const sidebars: SidebarsConfig = {
         'maintenance/change-map',
         'maintenance/configuration',
         'maintenance/models',
-        'maintenance/prompts',
         'maintenance/modules',
         'maintenance/search-context',
         'maintenance/data-index',

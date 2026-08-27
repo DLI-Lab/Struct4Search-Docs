@@ -37,7 +37,7 @@ Struct4Search/
 | 코드 영역 | 역할 | 다루는 문서 |
 |---|---|---|
 | `configs/` | 실행 설정과 외부 서비스 구성을 관리합니다 | [설치 요구사항](../reference/dependencies.md), [설정 수정](../maintenance/configuration.md) |
-| `prompts/` | Metadata·Triple·검색표현·답변 프롬프트와 버전을 관리합니다 | [프롬프트 목록](../reference/prompts.md), [프롬프트 변경](../maintenance/prompts.md) |
+| `prompts/` | Metadata·Triple·검색표현·답변 프롬프트와 버전을 관리합니다 | [프롬프트와 출력 검증](../reference/prompts.md) |
 | `openapi/` | HTTP 요청과 응답 형식의 명세를 보관합니다 | [API Reference](../reference/api-reference.md) |
 | `frontend/chatkit_demo/` | 문서 관리·파이프라인·검색 결과를 보여주는 React 화면과 로컬 API 어댑터입니다 | `frontend/chatkit_demo/README.md`, [API Reference](../reference/api-reference.md) |
 | `tests/` | 단위·회귀·통합 테스트와 예제 입력을 보관합니다 | [테스트와 평가 시작하기](../testing/overview.md) |
