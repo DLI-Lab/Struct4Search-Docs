@@ -15,7 +15,19 @@ const config: Config = {
     mermaid: true,
     hooks: {onBrokenMarkdownLinks: 'warn'},
   },
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: [
+    '@docusaurus/theme-mermaid',
+    [
+      '@getcanary/docusaurus-theme-search-pagefind',
+      {
+        includeRoutes: ['docs/**'],
+        maxPages: 8,
+        maxSubResults: 3,
+        _base: '/Struct4Search-Docs',
+        _replace: '/Struct4Search-Docs/Struct4Search-Docs',
+      },
+    ],
+  ],
   i18n: {
     defaultLocale: 'ko',
     locales: ['ko'],
