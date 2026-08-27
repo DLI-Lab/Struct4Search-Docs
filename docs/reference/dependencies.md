@@ -148,6 +148,18 @@ PY
 
 model ID만 바꾸면 snapshot이 자동으로 다운로드되는 구조가 아닙니다. `configs/machine-paths.yaml` 또는 허용된 `S4S_*` 환경변수로 해당 host의 cache와 model 경로를 지정해야 합니다.
 
+| 환경변수 | 용도 |
+|---|---|
+| `S4S_PYTHON_INTERPRETER` | 관리 서비스용 Python |
+| `S4S_VLLM_SITE_PACKAGES` · `S4S_EXTRA_SITE_PACKAGES` · `S4S_VLLM_BIN` | vLLM과 추가 Python 경로 |
+| `S4S_MINERU_RUNTIME_DEPS` · `S4S_MINERU_MODEL_ROOT` | MinerU 실행 의존성과 모델 위치 |
+| `S4S_HUGGINGFACE_CACHE` | model snapshot cache |
+| `S4S_OPENSEARCH_HOME` · `S4S_OPENSEARCH_CONFIG` | host-managed OpenSearch 경로 |
+| `S4S_ARTIFACT_PRODUCTION_ROOT` · `S4S_ARTIFACT_EVALUATION_ROOT` · `S4S_ARTIFACT_TEST_FIXTURE_ROOT` · `S4S_ARTIFACT_CONTROL_ROOT` | artifact 경로 |
+| `S4S_KG_DSN` · `S4S_DOCUMENT_DSN` | KG와 document metadata PostgreSQL 연결 |
+| `S4S_REPOSITORY_ROOT` | wheel 설치 후 checkout을 찾을 때 사용할 저장소 경로 |
+| `OPENAI_API_KEY` | OpenAI provider를 선택한 profile에서만 사용 |
+
 ```bash
 cp .env.example .env
 # .env에 이 host의 DSN, model cache와 service 경로 입력
@@ -156,6 +168,14 @@ struct4search-preflight
 ```
 
 `.env`는 `KEY=value`만 사용합니다. 비밀값은 Git에 commit하지 않습니다. 공개 `struct4search-*` 명령만 `.env`를 자동으로 읽으며, 일반 Python import는 읽지 않습니다.
+
+`.env` 파일은 다음 순서로 선택합니다.
+
+1. `S4S_ENV_FILE`로 지정한 파일
+2. `S4S_REPOSITORY_ROOT/.env`
+3. 소스 저장소 루트의 `.env`
+
+셸에 이미 설정된 환경변수는 `.env` 값으로 덮어쓰지 않습니다.
 
 ## 외부 service가 필요한 시점
 

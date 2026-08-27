@@ -36,12 +36,12 @@ Struct4Search/
 
 | 코드 영역 | 역할 | 다루는 문서 |
 |---|---|---|
-| `configs/` | 실행 설정과 외부 서비스 구성을 관리합니다 | [설정](../reference/configuration.md), [설정 변경](../maintenance/configuration.md) |
+| `configs/` | 실행 설정과 외부 서비스 구성을 관리합니다 | [설치 요구사항](../reference/dependencies.md), [설정 수정](../maintenance/configuration.md) |
 | `prompts/` | Metadata·Triple·검색표현·답변 프롬프트와 버전을 관리합니다 | [프롬프트 목록](../reference/prompts.md), [프롬프트 변경](../maintenance/prompts.md) |
 | `openapi/` | HTTP 요청과 응답 형식의 명세를 보관합니다 | [API Reference](../reference/api-reference.md) |
 | `frontend/chatkit_demo/` | 문서 관리·파이프라인·검색 결과를 보여주는 React 화면과 로컬 API 어댑터입니다 | `frontend/chatkit_demo/README.md`, [API Reference](../reference/api-reference.md) |
 | `tests/` | 단위·회귀·통합 테스트와 예제 입력을 보관합니다 | [테스트와 평가 시작하기](../testing/overview.md) |
-| `backend/struct4search/bootstrap/` | 설정에 맞는 Parser·LLM·저장소·검색 구현을 조립합니다 | [개요](../overview.md), [설정](../reference/configuration.md) |
+| `backend/struct4search/bootstrap/` | 설정에 맞는 Parser·LLM·저장소·검색 구현을 조립합니다 | [개요](../overview.md), [설정 수정](../maintenance/configuration.md) |
 | `backend/struct4search/ingest/` | 인덱싱 단계의 실행 순서, 재개와 완료 기록을 관리합니다 | [문서 인덱싱 파이프라인](../indexing/overview.md), [파이프라인 실행 및 재처리](../indexing/rerun.md) |
 | `backend/struct4search/ingest/stages/parsing/` | PDF 파싱과 페이지별 Parser 선택을 담당합니다 | [파싱](../indexing/parsing.md) |
 | `backend/struct4search/ingest/stages/chunking/` | 파싱 결과를 고정 크기 원문 청크로 나눕니다 | [청킹](../indexing/chunking.md) |
