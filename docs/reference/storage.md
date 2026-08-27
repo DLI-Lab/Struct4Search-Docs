@@ -11,11 +11,11 @@ title: 저장소
 
 | 저장소 | 저장하는 것 |
 |---|---|
-| 파일 산출물 | 단계별 중간 결과와 문서 처리 상태 |
-| PostgreSQL | 문서 단위 지식그래프 |
+| 파일 산출물 | 단계별 중간 결과와 실행 기록 |
+| PostgreSQL | 문서·Metadata와 문서 단위 지식그래프 |
 | OpenSearch | 검색에 사용하는 원문 청크·검색표현과 임베딩 벡터 |
 
-각 저장소는 역할이 다릅니다. 파일 산출물은 파이프라인 재개와 재처리에 사용하고, PostgreSQL은 KG를 보관하며, OpenSearch는 실제 검색 데이터를 제공합니다.
+각 저장소는 역할이 다릅니다. 파일 산출물은 처리 결과와 실행 기록을 남기고, PostgreSQL은 문서 조회 데이터와 KG를 보관하며, OpenSearch는 실제 검색 데이터를 제공합니다.
 
 ## 파일 산출물
 
@@ -28,16 +28,22 @@ title: 저장소
 ├─ kg/documents/<문서 ID>/         문서 지식그래프
 ├─ v3/documents/<문서 ID>/         KG 구축을 위한 청크 묶음
 ├─ metadata/documents/<문서 ID>/   Metadata
-└─ g2/documents/<문서 ID>/         검색표현
-````
+├─ g2/documents/<문서 ID>/         검색표현
+└─ orchestration.sqlite3           단계별 실행 기록
+```
 
-문서 처리가 끝나면 완료 기록이 남습니다. 이 산출물을 기준으로 어느 단계까지 처리되었는지 확인하고, 중단된 실행을 이어받습니다.
+중단 후 같은 `--output` 경로로 다시 실행하면, 프로그램이 `orchestration.sqlite3`에서 완료된 단계를 확인합니다. 이미 끝난 단계는 건너뛰고 끝나지 않은 단계부터 다시 실행하므로 이 파일은 직접 수정하거나 삭제하지 않습니다.
 
 재개와 단계별 재처리 방법은 [파이프라인 실행 및 재처리 방법](../indexing/rerun.md)에서 설명합니다.
 
 ## PostgreSQL
 
-문서 단위 지식그래프는 PostgreSQL에 저장됩니다.
+문서 조회에 사용하는 Canonical IDR와 Metadata, 문서 단위 지식그래프는 PostgreSQL에 저장됩니다.
+
+| 테이블 | 저장하는 것 |
+|---|---|
+| `public.documents` | 문서 정보와 Canonical IDR |
+| `public.document_metadata` | 문서별 Metadata |
 
 | 테이블                 | 저장하는 것       |
 | ------------------- | ------------ |
@@ -74,7 +80,7 @@ OpenSearch에는 검색에 사용하는 두 종류의 검색 단위가 저장됩
 | 저장소        | 동작                                |
 | ---------- | --------------------------------- |
 | 파일 산출물     | 해당 문서의 단계별 산출물을 새 결과로 갱신          |
-| PostgreSQL | 해당 문서의 지식그래프를 새 버전으로 저장           |
+| PostgreSQL | 같은 실행에서는 해당 문서의 KG를 교체하고, 새 실행에서는 새 버전으로 저장 |
 | OpenSearch | 해당 문서의 기존 검색 단위를 제거하고 새 검색 단위로 교체 |
 
 다른 문서의 결과는 그대로 유지됩니다.
@@ -89,9 +95,10 @@ OpenSearch에는 검색에 사용하는 두 종류의 검색 단위가 저장됩
 
 ## 코드 참조
 
-| 확인할 내용           | 파일·심볼                                             |
-| ---------------- | ------------------------------------------------- |
-| 문서 처리 상태와 완료 기록  | `backend/struct4search/ingest/service.py`             |
-| PostgreSQL KG 저장 | `backend/struct4search/kg_store.py`                   |
-| OpenSearch 색인 갱신 | `backend/struct4search/index_stage.py`                |
-| 저장소 설정           | `configs/production.yaml` · `kg` · `index` |
+| 확인할 내용 | 파일·심볼 |
+|---|---|
+| 실행 기록과 재개 | `backend/struct4search/orchestration/state_store.py` · `backend/struct4search/adapters/orchestration/back_pipeline.py` |
+| PostgreSQL 문서·Metadata 저장 | `backend/struct4search/document_catalog.py` |
+| PostgreSQL KG 저장 | `backend/struct4search/kg_store.py` |
+| OpenSearch 색인 갱신 | `backend/struct4search/ingest/stages/indexing/stage.py` |
+| 저장소 설정 | `configs/ingest-production.yaml` · `kg` · `index` |
