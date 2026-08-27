@@ -5,7 +5,7 @@ title: 평가셋과 릴리스
 
 # 평가셋과 릴리스
 
-평가에는 고정된 두 릴리스를 사용합니다. 평가 자료는 Git 저장소가 아니라 서버에 있으며, `configs/machine-paths.yaml` 또는 해당 `S4S_*` 환경변수로 위치를 지정합니다.
+고정 100문서·100질의는 `struct4search-final-100-100-e2e`, 전체 2,567문서·200질의는 `struct4search-final-full-2567-200-e2e`로 실행합니다. 실행 전에 100/100 자료는 `S4S_ARTIFACT_TEST_FIXTURE_ROOT`, 2567/200 자료는 `S4S_ARTIFACT_EVALUATION_ROOT`로 지정합니다. 평가 자료는 Git 저장소에 포함되지 않습니다.
 
 | 평가셋 | 규모 | 실행 명령 | 용도 |
 |---|---:|---|---|

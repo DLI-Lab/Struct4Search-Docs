@@ -5,7 +5,7 @@ title: 테스트와 평가
 
 # 테스트와 평가
 
-변경 범위에 맞는 검증부터 실행합니다. 외부 서비스가 필요 없는 테스트를 먼저 실행하고, 인덱싱·검색·답변 경로를 바꾼 경우에만 해당 E2E를 이어서 실행합니다.
+설치한 저장소가 정상적으로 동작하는지 확인할 때 사용하는 명령을 모았습니다. CPU 환경에서는 전체 테스트와 예제 evaluator·API를 실행할 수 있습니다. 실제 인덱싱부터 답변까지 확인할 때는 서버의 모델과 PostgreSQL·OpenSearch·Temporal을 준비한 뒤 필요한 규모의 E2E 명령을 사용합니다.
 
 ## 검증 단계
 
@@ -14,8 +14,8 @@ title: 테스트와 평가
 | 코드와 설정 계약 | `python -m pytest -q` | CPU |
 | evaluator와 API 계약 | 저장소의 예제 파일을 사용하는 명령 | CPU |
 | 문서 한 건의 전체 연결 | `struct4search-smoke-e2e` | GPU, 모델, PostgreSQL, OpenSearch, Temporal |
-| 고정 100문서·100질의 | `struct4search-final-100-100-e2e` | GPU, 모델, 외부 평가 자산과 서비스 |
-| 전체 2,567문서·200질의 | `struct4search-final-full-2567-200-e2e` | GPU, 모델, 외부 평가 자산과 서비스 |
+| 고정 100문서·100질의 | `struct4search-final-100-100-e2e` | GPU, 모델, 외부 평가 자료와 서비스 |
+| 전체 2,567문서·200질의 | `struct4search-final-full-2567-200-e2e` | GPU, 모델, 외부 평가 자료와 서비스 |
 
 ## CPU 테스트
 
@@ -72,7 +72,7 @@ struct4search-final-100-100-e2e
 struct4search-final-full-2567-200-e2e
 ```
 
-평가 자산과 각 명령의 용도는 [평가셋과 릴리스](eval200.md), evaluator 실행 결과와 통과 판정은 [평가 실행과 통과 판정](retrieval-qa.md)에서 확인합니다.
+평가 자료와 각 명령의 용도는 [평가셋과 릴리스](eval200.md), evaluator 실행 결과와 통과 판정은 [평가 실행과 통과 판정](retrieval-qa.md)에서 확인합니다.
 
 ## 변경별 최소 검증
 

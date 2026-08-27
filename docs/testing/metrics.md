@@ -5,7 +5,7 @@ title: 평가 지표
 
 # 평가 지표
 
-검색 지표는 QueryService가 답변에 전달한 최종 Context의 **문서 ID 순위**를 정답 문서 목록(qrels)과 비교해 계산합니다. 청크나 원문 근거 구간의 겹침을 채점하는 지표가 아닙니다. 실행 방법과 결과 파일은 [평가 실행과 통과 판정](retrieval-qa.md)에 있습니다.
+`struct4search-evaluate`를 실행한 뒤 검색 점수와 답변 정리 횟수는 `EVALUATION_REPORT.json`, QA 평균과 통과 여부는 `RELEASE_GATE.json`에서 확인합니다. 검색은 최종 Context의 문서 순위로 평가하고, QA는 질의마다 0·1·2 중 하나로 채점합니다. 실행 명령은 [평가 실행과 통과 판정](retrieval-qa.md)에 있습니다.
 
 ## 검색 지표
 
@@ -23,39 +23,28 @@ title: 평가 지표
 
 ## QA 점수
 
-답변 평가는 정답과 필수 답변 항목을 기준으로 외부 평가자가 수행합니다. 현재 평가자 계약의 원점수는 0–4입니다.
+답변은 정답과 필수 답변 항목을 기준으로 0·1·2 중 하나로 채점합니다.
 
-| 원점수 | 뜻 |
+| 점수 | 뜻 |
 |---:|---|
-| 4 | 모든 필수 내용이 정확하고 중대한 오류가 없음 |
-| 3 | 대체로 정확하나 경미한 누락이나 부정확성이 있음 |
-| 2 | 핵심 내용의 일부만 충족함 |
-| 1 | 최소한의 관련 내용만 있고 중대한 누락이나 오류가 있음 |
+| 2 | 필요한 내용을 모두 정확하게 답했고 중대한 오류가 없음 |
+| 1 | 일부는 맞지만 중요한 내용이 빠졌거나 중대한 오류가 있음 |
 | 0 | 오답이거나 무응답 |
 
-통과 판정에 전달하는 `--qa-scores`의 `score`는 원점수를 4로 나눈 0–1 값입니다. evaluator는 답변을 직접 채점하지 않고 전달받은 점수의 누락, 범위, 평균만 검사합니다.
+`--qa-scores`에는 질의마다 이 점수를 하나씩 기록합니다. evaluator는 점수를 새로 만들지 않고, 누락된 질의와 허용하지 않는 값이 없는지 확인한 뒤 0–2 범위의 평균을 계산합니다.
 
-## 인용 집계
+## 답변에서 제거된 항목
 
-`EVALUATION_REPORT.json`의 `citation_normalization`은 답변 후처리에서 제거된 항목을 합산합니다.
+답변 모델이 만든 결과에는 중복되거나 원문을 가리키지 않는 인용이 섞일 수 있습니다. Struct4Search는 응답을 내보내기 전에 이런 항목을 제거합니다. `EVALUATION_REPORT.json`의 `citation_normalization`은 평가한 모든 질의에서 각 항목을 몇 번 제거했는지 합산한 값이며, 최종 답변에 남은 인용 수가 아닙니다.
 
-| 항목 | 제거된 내용 |
+| 필드 | 실제로 제거한 것 |
 |---|---|
-| `duplicate_citations_removed` | 한 답변 항목에서 반복된 같은 인용 |
-| `retrieval_expression_citations_removed` | 원문 대신 검색표현을 가리킨 인용 |
-| `out_of_context_citations_removed` | 최종 Context에 없는 ID를 가리킨 인용 |
-| `unsupported_claims_removed` | 원문 근거가 없는 claim |
+| `duplicate_citations_removed` | 같은 답변 문장에 반복해서 붙은 동일한 원문 ID |
+| `retrieval_expression_citations_removed` | 원문 청크가 아니라 검색을 위해 생성한 문장을 가리킨 ID |
+| `out_of_context_citations_removed` | 해당 질의의 최종 Context에 들어 있지 않은 원문 ID |
+| `unsupported_claims_removed` | 유효한 원문 인용이 하나도 남지 않은 답변 문장 |
 
-값이 0이 아니면 프롬프트, Context 구성 또는 인용 후처리를 확인합니다. 이 집계 자체가 현재 통과 기준의 실패 조건은 아니며, 내용이 있는 답변에 최종 Context의 원문 인용이 하나도 없으면 실패로 판정합니다.
-
-## 결과 해석
-
-| 결과 | 먼저 확인할 부분 |
-|---|---|
-| 검색 지표가 낮음 | 인덱싱 결과와 검색 단계 |
-| 검색 지표는 유지되지만 QA가 낮음 | Context 구성과 답변 생성 |
-| `hit_at_k`는 높지만 `minimal_set_success_at_k`가 낮음 | 여러 문서가 필요한 질의의 후보 수와 최종 Context |
-| 인용 제거 집계가 증가함 | 답변 프롬프트와 인용 후처리 |
+모두 `0`이면 제거할 항목이 없었다는 뜻입니다. 값이 `0`보다 크면 최종 답변은 정리되어 정상으로 보일 수 있지만, 모델의 원래 출력에는 잘못된 인용이나 근거 없는 문장이 있었다는 뜻입니다. 어떤 질의에서 제거됐는지는 `retrieval_predictions.query_service.jsonl`의 같은 필드를 확인합니다. 이 횟수만으로 평가가 실패하지는 않지만, 내용이 있는 최종 답변에 원문 인용이 하나도 없으면 통과하지 못합니다. 인용을 정리하는 규칙은 [답변 후처리 및 원본 출처 연결](../query/citations.md)에 있습니다.
 
 ## 코드 참조
 
@@ -63,5 +52,5 @@ title: 평가 지표
 |---|---|
 | 검색 지표 계산 | `backend/struct4search/evaluation/retrieval.py` · `score_prediction_rows` |
 | 통과 판정 | `backend/struct4search/evaluation/gate.py` · `evaluate_release_gate` |
-| QA 원점수 계약 | `backend/struct4search/evaluation/qa.py` |
-| QA 점수 정규화 | `backend/struct4search/evaluation/terra_judgments.py` |
+| QA 점수 계약 | `backend/struct4search/evaluation/qa.py` |
+| QA 점수 검사와 집계 | `backend/struct4search/evaluation/terra_judgments.py` |

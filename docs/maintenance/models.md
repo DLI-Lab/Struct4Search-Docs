@@ -91,4 +91,4 @@ struct4search-preflight
 struct4search-smoke-e2e
 ```
 
-그다음 [검색과 QA 평가 실행](../testing/retrieval-qa.md)에서 영향받은 평가를 실행합니다. 새 index를 만드는 변경은 기존 index를 바로 삭제하지 않습니다. 새 index의 검색과 답변을 검증한 뒤 production 연결을 전환합니다.
+그다음 [평가 실행과 통과 판정](../testing/retrieval-qa.md)에서 영향받은 평가를 실행합니다. 새 index를 만드는 변경은 기존 index를 바로 삭제하지 않습니다. 새 index의 검색과 답변을 검증한 뒤 production 연결을 전환합니다.

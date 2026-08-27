@@ -5,7 +5,7 @@ title: 평가 실행과 통과 판정
 
 # 평가 실행과 통과 판정
 
-`struct4search-evaluate`는 QueryService의 최종 검색 결과와 답변을 저장하고 통과 여부를 판정합니다. 검색 점수는 evaluator가 계산하지만, 답변의 의미 품질 점수는 별도 평가 결과를 `--qa-scores`로 전달해야 합니다.
+검색·답변 평가에는 `struct4search-evaluate`를 사용합니다. 저장소에서 동작만 확인할 때는 `--fixture-results`, 서버의 실제 검색·답변을 평가할 때는 `--profile`을 지정합니다. 두 경우 모두 질의별 QA 점수 0·1·2를 담은 파일을 `--qa-scores`로 전달해야 통과 여부를 확인할 수 있습니다.
 
 ## CPU에서 evaluator 확인
 
@@ -31,19 +31,19 @@ struct4search-evaluate \
   --evaluation-config configs/evaluation-release.json \
   --gate-config configs/evaluation-gate.yaml \
   --baseline-report <기준_EVALUATION_REPORT.json> \
-  --qa-scores <정규화한_QA_점수.jsonl> \
+  --qa-scores <QA_점수.jsonl> \
   --output-root /absolute/path/to/evaluation-output
 ```
 
 `--profile`은 실제 QueryService를 실행하고, `--fixture-results`는 이미 저장한 결과를 읽습니다. 두 옵션 중 하나만 사용합니다. 결과를 기존 run 아래에 남기려면 `--output-root` 대신 `--run-root <run_root>`를 사용하며, 파일은 `<run_root>/evaluation/final200`에 생성됩니다.
 
-`--qa-scores` 파일은 평가 질의마다 다음 형식의 행을 하나씩 가져야 합니다. `score`는 0 이상 1 이하의 값입니다.
+`--qa-scores` 파일은 평가 질의마다 다음 형식의 행을 하나씩 가져야 합니다. `score`에는 정수 `0`, `1`, `2`만 사용할 수 있습니다.
 
 ```json
-{"query_id": "q001", "score": 1.0}
+{"query_id": "q001", "score": 2}
 ```
 
-답변 평가자가 0–4 점수를 출력했다면 `score = correctness_score / 4`로 정규화합니다. evaluator는 이 판단을 직접 생성하지 않습니다.
+`2`는 필요한 내용을 정확하게 답한 경우, `1`은 일부만 맞거나 중요한 누락이 있는 경우, `0`은 오답 또는 무응답입니다. evaluator는 답변을 직접 채점하지 않으며, 다른 값이 들어오면 평가를 `BLOCKED`로 종료합니다.
 
 ## 결과 파일
 
@@ -72,7 +72,7 @@ struct4search-evaluate \
 
 - 필수 평가 산출물이 생성됐는지
 - 검색 지표가 설정된 최소값 이상인지
-- QA 점수가 모든 질의에 있고 평균 기준을 만족하는지
+- 모든 질의에 0·1·2 중 하나의 QA 점수가 있고 평균이 설정한 기준을 만족하는지
 - 내용이 있는 답변에 최종 Context의 원문 인용이 있는지
 - 기준 보고서보다 지표가 허용 범위 이상 하락하지 않았는지
 
