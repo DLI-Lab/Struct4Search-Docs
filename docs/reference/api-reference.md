@@ -35,12 +35,6 @@ struct4search-api \
 
 `query`가 없거나 비어 있으면 `422`를 반환합니다. 예제 결과 파일을 사용할 때는 그 파일에 있는 `query_id`를 사용해야 합니다.
 
-## 현재 제공 범위
-
-문서 조회와 원본 PDF 전송 경로는 API에 남아 있지만, 최신 기본 composition에는 문서 관리 backend와 source PDF transport가 연결되어 있지 않습니다. 따라서 `/v1/source-pdf`와 `/v1/documents` 계열, `/api/documents/...` 계열은 현재 `503`을 반환합니다. 검색·답변에는 `/v1/health`, `/v1/response`를 사용합니다.
-
-FastAPI의 Swagger UI는 노출하지 않습니다. 기계가 읽는 OpenAPI schema는 `/openapi.json`에서 확인할 수 있습니다.
-
 ## 코드 위치
 
 | 확인할 내용 | 파일 |
