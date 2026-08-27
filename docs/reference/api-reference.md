@@ -93,7 +93,3 @@ Policy review API는 로컬 검토 화면에서 사용합니다.
 |---|---|---|
 | `GET` | `/api/decisions` | 저장된 정책 검토 결과 |
 | `POST` | `/api/decisions` | 정책 검토 결과 추가 |
-
-## OpenAPI
-
-FastAPI로 구현된 프로세스는 `/openapi.json`을 제공합니다. Swagger UI와 ReDoc은 비활성화되어 있습니다.
