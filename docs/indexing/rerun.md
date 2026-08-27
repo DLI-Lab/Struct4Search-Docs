@@ -9,9 +9,16 @@ title: 문서 인덱싱 실행과 상태 확인
 
 샘플 문서로 전체 시스템을 처음 실행하려면 먼저 [설치와 첫 실행](../quickstart.md)을 진행합니다. 파싱, 청킹, NER, KG 구축 등 각 단계의 동작을 이해하려면 [문서 인덱싱 파이프라인](overview.md)을 참고합니다.
 
-## 문서 1 건 실행하기
+## 문서 한 건 실행하기
 
 전체 문서를 실행하기 전에 문서 한 건으로 파이프라인과 외부 서비스가 정상적으로 동작하는지 확인하는 것을 권장합니다.
+
+먼저 Temporal을 시작하고 서버 상태를 점검합니다. `struct4search-preflight`가 정상 종료된 뒤 인덱싱을 실행합니다.
+
+```bash
+docker compose -f deploy/temporal-compose.yaml up -d
+struct4search-preflight
+```
 
 ```bash
 struct4search-ingest \
@@ -19,7 +26,7 @@ struct4search-ingest \
   --services configs/services/cold-services.yaml \
   --output <출력_디렉터리> \
   --document-id d002343_6b6d39ebe6
-````
+```
 
 | 인자              | 설명                                                  |
 | --------------- | --------------------------------------------------- |
@@ -33,20 +40,9 @@ struct4search-ingest \
 
 ## 실행 결과 확인하기
 
-실행 후에는 다음 두 가지를 확인합니다.
+인덱싱이 끝나면 `<출력_디렉터리>/documents/<문서_ID>/complete.json`을 확인합니다. 이 파일에는 `run_id`, `document_id`, `indexed_units`와 각 단계의 결과가 저장됩니다. 전체 실행 결과는 `<출력_디렉터리>/FINAL_REPORT.json`에서 확인합니다.
 
-1. 문서의 완료 기록이 생성되었는지
-2. 완료 기록에 색인된 검색 단위 수가 기록되었는지
-
-완료 기록에는 다음 정보가 포함됩니다.
-
-* `run_id`
-* `document_id`
-* 색인된 검색 단위 수
-* 완료된 단계
-* 실패하거나 남아 있는 단계
-
-완료 기록이 있으면 해당 문서의 인덱싱이 끝난 것입니다. 완료 기록이 없으면 실행 로그에서 마지막으로 완료된 단계를 확인하고, 해당 단계의 서비스와 산출물을 점검합니다.
+`complete.json`이 없으면 같은 위치의 `failure.json`과 실행 로그에서 실패한 단계를 확인합니다.
 
 단계별 산출물이 저장되는 위치는 [저장소와 보존](../reference/storage.md)에서 확인합니다. 각 산출물의 주요 필드와 ID 연결은 [데이터 구조와 ID 체계](../reference/data-schema.md)와 각 단계 문서의 `입력과 출력`에서 확인합니다.
 
@@ -84,13 +80,14 @@ struct4search-ingest \
 
 실행 프로세스가 종료되어도 이미 생성된 단계별 산출물은 출력 디렉터리에 남습니다.
 
-중단되기 전과 동일한 설정, 출력 디렉터리와 문서 목록으로 명령을 다시 실행하면 완료된 단계는 재사용하고, 끝나지 않은 단계부터 이어서 처리합니다.
+처음 실행할 때 사용한 설정, 출력 디렉터리와 `--document-id`를 그대로 넣어 다시 실행합니다. 완료된 단계는 재사용하고, 끝나지 않은 단계부터 이어서 처리합니다.
 
 ```bash
 struct4search-ingest \
   --config configs/production.yaml \
   --services configs/services/cold-services.yaml \
-  --output <기존_출력_디렉터리>
+  --output <기존_출력_디렉터리> \
+  --document-id <기존_문서_ID>
 ```
 
 따라서 단순히 실행이 중단된 경우에는 기존 산출물을 삭제하거나 새로운 출력 디렉터리를 만들지 않습니다.
