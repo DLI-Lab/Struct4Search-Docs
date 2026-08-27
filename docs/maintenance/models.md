@@ -5,81 +5,90 @@ title: 모델 교체
 
 # 모델 교체
 
-모델을 바꿀 때는 실행 profile, 서비스 정의, 재처리 범위를 함께 확인합니다.
+모델 ID 하나를 바꾸는 것으로 교체가 끝나지 않습니다. model catalog, 실행 profile, service 정의, host의 snapshot 경로를 함께 맞춘 뒤 영향받는 단계만 다시 실행합니다.
 
-## 교체 대상
+## 교체 대상과 설정 위치
 
-| 모델 | 쓰는 단계 | 설정 위치 |
+| 모델 | 쓰는 단계 | 주요 설정 위치 |
 |---|---|---|
-| MinerU | 문서 파싱의 스캔·복합 페이지 | `configs/production.yaml` · `parser` |
-| GLiNER | NER | `configs/production.yaml` · `ner` |
-| Qwen | Metadata 생성 · KG 구축 · 검색표현 생성 | `configs/production.yaml` · `llm` |
-| 임베딩 모델 | 인덱싱과 질의 임베딩 | `configs/production.yaml` · `index` |
-| 답변 모델 | 답변과 출처 표기 | `configs/production.yaml` · `query.reader` |
+| MinerU | 스캔·복합 페이지 파싱 | `configs/services/cold-services.yaml` · `parser` |
+| GLiNER | NER | `configs/model-catalog.yaml` · `configs/production.yaml` · `ner` |
+| Ingest LLM | Metadata · Triple/KG · G2 검색표현 | `configs/model-catalog.yaml` · `configs/production.yaml` · `llm`, `triple`, `g2` |
+| 임베딩 모델 | 문서·검색표현·질의 임베딩 | `configs/model-catalog.yaml` · `configs/production.yaml` · `index` · `configs/services/cold-services.yaml` |
+| Reader LLM | 최종 답변과 출처 표기 | `configs/production.yaml` · `query.reader` |
+
+각 모델에서 설정할 수 있는 값의 설명은 [모델 호출과 설정](../reference/model-calls.md#모델-설정)에 있습니다.
+
+## 자동으로 바뀌지 않는 값
+
+LLM이나 임베딩 model 이름을 바꿔도 context 길이와 vector 차원은 model metadata에서 자동 계산되지 않습니다.
+
+| 값 | 자동 변경 여부 | 바꾸는 위치와 의미 |
+|---|---|---|
+| model ID·revision | 자동 아님 | `configs/model-catalog.yaml`. ID와 immutable revision을 함께 지정합니다. |
+| host의 model snapshot 경로 | 자동 아님 | `configs/machine-paths.yaml` 또는 허용된 `S4S_*` 환경변수. catalog model과 같은 snapshot을 가리켜야 합니다. |
+| `llm.context_tokens` | 자동 아님 | `configs/production.yaml`. 값을 정하면 local Qwen service의 `--max-model-len`에는 자동 전달됩니다. |
+| `query.reader.generation.context_window_tokens` | 자동 아님 | `configs/production.yaml`. reader가 prompt와 답변 token budget을 계산할 때 사용합니다. 현재 local reader에서는 `llm.context_tokens`와 같아야 합니다. |
+| `query.reader.tokenizer` | 자동 아님 | `configs/production.yaml`. reader model과 같은 tokenizer를 명시합니다. |
+| embedding service 입력 길이 | 자동 아님 | `configs/services/cold-services.yaml`의 embedding service `--max-model-len`입니다. 현재 값은 `8192`입니다. |
+| `index.dimension` | 자동 아님 | `configs/production.yaml`. embedding 출력 차원과 같아야 하며 변경하면 새 OpenSearch index가 필요합니다. |
+
+질의 embedding adapter에는 별도의 `query_vector context length` 환경변수가 없습니다. 질의 문자열을 `/v1/embeddings`로 보내며, 허용 입력 길이는 embedding service의 `--max-model-len`이 결정합니다. 따라서 embedding model을 교체할 때 service 입력 길이를 수동으로 검토합니다.
 
 ## 변경 절차
 
-1. `configs/production.yaml`에서 현재 값과 상속된 값을 확인한 뒤 모델 이름과 endpoint를 변경합니다.
-2. 직접 실행하는 서비스라면 `configs/services/cold-services.yaml`의 서비스 정의도 함께 변경합니다.
-3. 아래 표에서 영향을 받는 단계와 재색인 여부를 확인합니다.
-4. 변경 후 문서 한 건 E2E와 필요한 평가를 실행합니다.
+1. `configs/model-catalog.yaml`에서 model ID와 immutable revision을 변경합니다.
+2. `configs/machine-paths.yaml` 또는 `.env`의 허용된 `S4S_*` 값이 같은 snapshot을 가리키도록 합니다.
+3. `configs/production.yaml`에서 model name, endpoint, tokenizer, context 길이, 출력 길이와 vector 차원을 검토합니다.
+4. local service를 직접 실행한다면 `configs/services/cold-services.yaml`의 model 경로, `--max-model-len`, GPU와 memory 설정을 함께 변경합니다.
+5. 아래 재실행 범위에 따라 기존 실행과 분리된 output·index에서 한 문서 E2E를 실행합니다.
+6. 검색 또는 답변에 영향을 주는 교체는 QA 평가까지 다시 확인합니다.
 
-프로파일의 모델 설정과 실제 실행되는 서비스가 서로 다르지 않도록 두 위치를 함께 확인합니다.
+profile과 service가 다른 model·context 길이를 가리키면 시작 단계 validation 또는 model endpoint 점검에서 실패해야 합니다. 숫자를 임의로 늘리지 말고 새 모델이 실제로 지원하는 최대 길이와 현재 GPU memory를 기준으로 정합니다.
 
 ## 모델별 확인 사항
 
 ### MinerU
 
-MinerU는 스캔·복합 페이지 파싱에 사용됩니다. 모델을 바꾸면 파싱 결과가 달라질 수 있으므로 이후 문서 인덱싱 결과를 다시 생성해야 합니다.
-
-디지털 PDF의 pdf4LLM 처리에는 MinerU가 사용되지 않습니다.
+MinerU 교체는 스캔·복합 페이지의 파싱 결과를 바꿉니다. 이후 Canonical IDR와 인덱싱 결과를 다시 생성합니다. 디지털 PDF의 pdf4LLM 처리에는 MinerU가 사용되지 않습니다.
 
 ### GLiNER
 
-NER 모델과 `revision`을 함께 관리합니다. 모델을 변경하면 추출되는 Entity와 이후 KG 결과가 달라질 수 있습니다.
+model ID와 revision을 함께 관리합니다. 새 모델이 현재 Entity 유형과 출력 형식을 지원하는지 확인한 뒤 NER 이후 결과를 다시 생성합니다.
 
-새 모델을 사용할 때는 기존에 사용하는 Entity 유형과 출력 형식을 지원하는지도 함께 확인합니다.
+### Ingest LLM
 
-### Qwen
-
-Metadata 생성, KG 구축, 검색표현 생성에 사용됩니다.
-
-이 단계들은 구조화된 출력을 사용하므로 모델을 변경할 때는 해당 프롬프트와 출력 형식을 정상적으로 따르는지 확인합니다. 어느 단계의 모델을 바꿨는지에 따라 그 단계 이후만 다시 처리합니다.
+Metadata, Triple/KG, G2는 구조화된 출력을 사용합니다. model과 context 길이를 바꾼 뒤 각 단계의 prompt와 출력 형식을 따르는지 설정 전달 테스트와 한 문서 실행으로 확인합니다. 어느 역할을 바꿨는지에 따라 해당 단계 이후만 다시 처리합니다.
 
 ### 임베딩 모델
 
-원문 청크와 검색표현을 색인할 때 사용하는 임베딩과 사용자 질의의 임베딩은 **같은 모델과 벡터 차원**을 사용해야 합니다.
+문서·검색표현을 색인하는 embedding과 사용자 질의를 변환하는 embedding은 같은 model과 vector 차원을 사용해야 합니다. 입력 길이와 `index.dimension`도 새 모델에 맞춰 수동으로 검토합니다.
 
-임베딩 모델이나 벡터 차원을 바꾸면 기존 인덱스의 벡터와 호환되지 않으므로 새 인덱스를 만들고 다시 색인합니다.
+model이나 차원이 바뀌면 기존 vector와 호환되지 않습니다. 기존 index를 삭제하지 않고 새 index를 생성해 다시 색인한 뒤 검색 결과를 검증합니다.
 
-### 답변 모델
+### Reader LLM
 
-답변 모델은 최종 Top-10 원문 청크로 구성된 Context를 받아 답변과 Citation을 생성합니다.
-
-모델을 변경할 때는 현재 `claims` 출력 Schema와 인용 규칙을 지원하는지 확인합니다. 답변 모델만 변경하는 경우 기존 인덱스는 그대로 사용할 수 있습니다.
+Reader는 최종 검색 결과로 만든 context를 받아 답변과 citation을 생성합니다. `query.reader.model`, `tokenizer`, `generation.context_window_tokens`, `generation_boundary_tokens`, `output_token_policy`를 함께 검토하고 현재 `claims` 출력 형식과 인용 규칙을 따르는지 확인합니다. Reader만 바꾸는 경우 기존 index는 그대로 사용할 수 있습니다.
 
 ## 재실행 범위
 
 | 바꾼 모델 | 다시 도는 단계 | 재색인 |
 |---|---|---|
 | MinerU | 문서 파싱 이후 | 필요 |
-| GLiNER | NER · KG 구축 · 검색표현 생성 · 인덱싱 | 필요 |
-| Metadata 생성용 Qwen | Metadata 생성 · 검색표현 생성 · 인덱싱 | 필요 |
-| KG 구축용 Qwen | KG 구축 · 검색표현 생성 · 인덱싱 | 필요 |
-| 검색표현 생성용 Qwen | 검색표현 생성 · 인덱싱 | 필요 |
-| 임베딩 모델 | 인덱싱 | 새 인덱스 필요 |
-| 답변 모델 | 답변 | 없음 |
-
-답변 모델만 변경하면 검색 결과와 기존 색인은 그대로 사용할 수 있으므로 QA 평가를 다시 확인합니다. 문서 인덱싱에 사용하는 모델을 변경하면 검색 대상 데이터가 달라질 수 있으므로 검색과 QA를 함께 평가합니다.
+| GLiNER | NER · KG · 검색표현 · 인덱싱 | 필요 |
+| Metadata용 Ingest LLM | Metadata · 검색표현 · 인덱싱 | 필요 |
+| Triple/KG용 Ingest LLM | Triple/KG · 검색표현 · 인덱싱 | 필요 |
+| G2용 Ingest LLM | 검색표현 · 인덱싱 | 필요 |
+| 임베딩 모델 또는 차원 | 인덱싱 | 새 index 필요 |
+| Reader LLM | 답변 | 없음 |
 
 ## 변경 후 확인
 
-먼저 문서 한 건으로 전체 경로가 정상적으로 동작하는지 확인합니다.
+먼저 사전조건과 한 문서 production E2E를 확인합니다.
 
 ```bash
+struct4search-preflight
 struct4search-smoke-e2e
 ```
 
-검색이나 답변 품질에 영향을 주는 모델을 변경했다면 검색과 QA 평가 실행에서 필요한 평가를 실행합니다.
-
-임베딩 모델처럼 새 인덱스를 만드는 변경은 기존 인덱스를 바로 삭제하지 않습니다. 새 인덱스를 검증한 뒤 검색에서 사용하는 연결 이름(alias)이 새 인덱스를 가리키도록 바꿉니다. 자세한 절차는 데이터와 인덱스 구조 변경에 있습니다.
+그다음 [검색과 QA 평가 실행](../testing/retrieval-qa.md)에서 영향받은 평가를 실행합니다. 새 index를 만드는 변경은 기존 index를 바로 삭제하지 않습니다. 새 index의 검색과 답변을 검증한 뒤 production 연결을 전환합니다.
