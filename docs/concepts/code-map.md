@@ -45,10 +45,10 @@ Struct4Search/
 | `backend/struct4search/adapters/persistence/` | PostgreSQL을 비롯한 저장소 연동을 담당합니다 | [저장소와 재처리](../reference/storage.md) |
 | `backend/struct4search/adapters/search/` | 질의 임베딩과 OpenSearch Hybrid 검색을 실행합니다 | [Hybrid 검색](../query/hybrid-search.md), [RRF](../query/rrf.md) |
 | `backend/struct4search/query/` | 질의 처리, 검색 결과 통합, 답변과 출처 연결을 담당합니다 | [검색·답변 파이프라인](../query/overview.md) |
-| `backend/struct4search/entrypoints/` | CLI, API와 백그라운드 worker의 실행 진입점을 제공합니다 | [실행 명령](../reference/cli.md), [API 실행과 경로](../reference/api-reference.md) |
+| `backend/struct4search/entrypoints/` | CLI, API와 백그라운드 worker의 실행 진입점을 제공합니다 | [실행 명령](../reference/cli.md), [API Reference](../reference/api-reference.md) |
 | `backend/struct4search/orchestration/` | Temporal workflow와 실행 상태를 관리합니다 | [실행 명령](../reference/cli.md) |
-| `openapi/` | HTTP 요청과 응답 형식의 명세를 보관합니다 | [API 실행과 경로](../reference/api-reference.md), [API 계약](../reference/api-contract.md) |
-| `frontend/chatkit_demo/` | 문서 관리·파이프라인·검색 결과를 보여주는 React 화면과 로컬 API 어댑터입니다 | `frontend/chatkit_demo/README.md`, [API 실행과 경로](../reference/api-reference.md) |
+| `openapi/` | HTTP 요청과 응답 형식의 명세를 보관합니다 | [API Reference](../reference/api-reference.md), [API 계약](../reference/api-contract.md) |
+| `frontend/chatkit_demo/` | 문서 관리·파이프라인·검색 결과를 보여주는 React 화면과 로컬 API 어댑터입니다 | `frontend/chatkit_demo/README.md`, [API Reference](../reference/api-reference.md) |
 | `backend/struct4search/evaluation/` | 검색·답변 지표와 회귀 gate를 계산합니다 | [검색과 QA 평가 실행](../testing/retrieval-qa.md) |
 | `tests/` | 단위·회귀·통합 테스트와 예제 입력을 보관합니다 | [테스트와 평가 시작하기](../testing/overview.md) |
 

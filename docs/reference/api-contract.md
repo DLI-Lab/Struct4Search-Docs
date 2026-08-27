@@ -42,4 +42,4 @@ title: 실행 규칙
 | API 요청의 `query`가 없거나 비어 있음 | `422` 응답 |
 | 외부 서비스 또는 source transport를 사용할 수 없음 | `503` 응답 |
 
-실제 명령 예시는 [실행 명령](cli.md), HTTP 경로는 [API 실행과 경로](api-reference.md)에서 확인합니다.
+실제 명령 예시는 [실행 명령](cli.md), HTTP 경로는 [API Reference](api-reference.md)에서 확인합니다.

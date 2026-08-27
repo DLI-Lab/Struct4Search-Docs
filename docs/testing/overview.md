@@ -48,7 +48,7 @@ struct4search-api \
   --port 3100
 ```
 
-다른 터미널에서 `/v1/health`, `/v1/response`를 확인합니다. API 경로와 예시는 [API 실행과 경로](../reference/api-reference.md)에 있습니다.
+다른 터미널에서 `/v1/health`, `/v1/response`를 확인합니다. API 경로와 예시는 [API Reference](../reference/api-reference.md)에 있습니다.
 
 ## 운영 E2E
 
