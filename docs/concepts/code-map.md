@@ -55,7 +55,7 @@ Struct4Search/
 | `backend/struct4search/query/retrieval/` | 검색 결과를 정리하고 통합하여 최종 근거를 선택합니다 | [검색·답변 파이프라인](../query/overview.md), [검색 결과 통합](../query/score-integration.md) |
 | `backend/struct4search/query/answer/` | 답변 Context, token 예산, 구조화 답변과 Citation을 처리합니다 | [Context 구성](../query/context.md), [구조화 답변](../query/structured-answer.md), [출처 표기](../query/citations.md) |
 | `backend/struct4search/adapters/parsing/` | Parser 결과를 공통 IDR 구조로 변환합니다 | [파싱](../indexing/parsing.md) |
-| `backend/struct4search/adapters/llm/` | local Qwen과 hosted GPT 호출을 공통 계약으로 제공합니다 | [모델 호출 지도](../reference/model-calls.md) |
+| `backend/struct4search/adapters/llm/` | local Qwen과 hosted GPT 호출을 공통 계약으로 제공합니다 | [모델 사용 위치](../reference/model-calls.md) |
 | `backend/struct4search/adapters/persistence/` | PostgreSQL 문서·Metadata·KG 저장소를 연결합니다 | [저장소와 재처리](../reference/storage.md) |
 | `backend/struct4search/adapters/search/` | 질의 embedding과 OpenSearch Hybrid 검색을 실행합니다 | [Hybrid 검색](../query/hybrid-search.md), [RRF](../query/rrf.md) |
 | `backend/struct4search/entrypoints/` | CLI, API와 백그라운드 worker의 실행 진입점을 제공합니다 | [CLI Reference](../reference/cli.md), [API Reference](../reference/api-reference.md) |

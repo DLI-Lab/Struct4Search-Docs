@@ -17,7 +17,7 @@ title: 모델 교체
 | 임베딩 모델 | 문서·검색표현·질의 임베딩 | `configs/model-catalog.yaml` · `configs/production.yaml` · `index` · `configs/services/cold-services.yaml` |
 | Reader LLM | 최종 답변과 출처 표기 | `configs/production.yaml` · `query.reader` |
 
-각 모델에서 설정할 수 있는 값의 설명은 [모델 호출과 설정](../reference/model-calls.md#모델-설정)에 있습니다.
+파이프라인의 단계별 모델과 설정 시작점은 [모델 사용 위치](../reference/model-calls.md)에서 확인합니다.
 
 ## 자동으로 바뀌지 않는 값
 

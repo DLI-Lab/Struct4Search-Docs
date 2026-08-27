@@ -189,5 +189,5 @@ curl --fail \
 
 - 전체 명령과 인자: [CLI Reference](reference/cli.md)
 - API 요청과 응답: [API Reference](reference/api-reference.md)
-- model·service 설정: [모델 호출과 설정](reference/model-calls.md)
+- 단계별 모델·service 위치: [모델 사용 위치](reference/model-calls.md)
 - 검색·답변 품질 평가: [검색과 QA 평가 실행](testing/retrieval-qa.md)

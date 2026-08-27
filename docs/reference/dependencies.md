@@ -197,4 +197,4 @@ struct4search-preflight
 
 `struct4search-preflight`는 GPU process, 포트, 디스크 또는 OpenSearch write block이 안전하지 않으면 의도적으로 non-zero를 반환합니다. 이 경우 설치를 다시 하는 것이 아니라 출력에 명시된 host·service 조건을 해결합니다.
 
-환경별 첫 답변까지의 순서는 [설치와 첫 실행](../quickstart.md), model별 YAML 설정은 [모델 호출 지도](model-calls.md)에서 확인합니다.
+환경별 첫 답변까지의 순서는 [설치와 첫 실행](../quickstart.md), 단계별 모델과 설정 위치는 [모델 사용 위치](model-calls.md)에서 확인합니다.
