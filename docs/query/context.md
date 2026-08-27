@@ -9,7 +9,7 @@ title: LLM Context 구성
 
 ## 입력과 출력
 
-| | |
+| 구분 | 내용 |
 |---|---|
 | 입력 | [Top-10 원문 청크](score-integration.md)와 해당 청크를 찾아낸 검색표현 |
 | 출력 | 시스템 프롬프트 + 질의 + 답변 근거 |
@@ -27,7 +27,7 @@ user     질문: {질의}
          근거 2 [ruf_...] ...
 
          JSON 형식으로 답하라.
-````
+```
 
 ## 근거 구성
 
@@ -63,39 +63,36 @@ user     질문: {질의}
 
 검색 결과에 사용할 원문 근거가 없으면 답변 모델을 호출하지 않습니다.
 
-### 설정값
+## 환경변수
 
-| profile key                                               | 기본값                                           | 의미                           |
-| ---------------------------------------------------- | ----------------------------------------------- | ---------------------------- |
-| `query.reader.generation.context_window_tokens`      | 16384                                           | 답변 모델이 한 번에 처리할 수 있는 전체 토큰 수 |
-| `query.reader.generation.generation_boundary_tokens` | 4                                               | 입력과 출력 사이에 확보하는 토큰 범위        |
-| `query.reader.generation.output_token_policy`        | `exact_canonical_prompt_remainder_no_margin_v1` | 입력을 제외하고 남은 토큰을 출력에 사용하는 방식  |
+| 환경변수 | 기본값 | 의미 |
+|---|---|---|
+| `query.reader.generation.`<br>`context_window_tokens` | `16384` | 답변 모델이 한 번에 처리할 수 있는 전체 Context 토큰 수 |
+| `query.reader.generation.`<br>`generation_boundary_tokens` | `4` | 입력과 출력 사이에 확보하는 토큰 범위 |
+| `query.reader.generation.`<br>`output_token_policy` | `exact_canonical_prompt_`<br>`remainder_no_margin_v1` | 입력에 사용한 토큰을 제외하고 남은 범위를 답변 생성에 사용하는 방식 |
 
 답변에 사용할 수 있는 출력 토큰 수는 고정값이 아니라 전체 Context 길이에 따라 달라집니다.
 
 시스템 프롬프트 전문은 [프롬프트와 출력 검증](../reference/prompts.md)에서 확인할 수 있습니다.
 
-## 사용 또는 결과 확인
+## 실행 및 결과 확인
 
 LLM Context 구성은 검색·답변 파이프라인에서 자동으로 실행됩니다.
 
 구성된 Context에서는 다음을 확인합니다.
 
-| 확인할 것 | 정상                       |
-| ----- | ------------------------ |
+| 확인할 것 | 정상 |
+|---|---|
 | 원문 근거 | 최대 10개이며 검색 결과의 순서를 따릅니다 |
-| 근거 ID | 모두 원문 청크 ID(`ruf_`)입니다   |
-| 검색표현  | 검색표현으로 검색된 청크에만 붙습니다     |
-| 인용 표시 | 검색표현에는 `인용 불가`가 표시됩니다    |
+| 근거 ID | 모두 원문 청크 ID(`ruf_`)입니다 |
+| 검색표현 | 검색표현을 통해 검색된 청크에만 포함됩니다 |
+| 인용 표시 | 검색표현에는 `인용 불가`가 표시됩니다 |
 
 ## 코드 참조
 
-| 확인할 내용   | 파일·심볼                                                                         |
-| -------- | ----------------------------------------------------------------------------- |
-| 근거 구성    | `backend/struct4search/query/answer/context_renderer.py` · `render_f400_evidence` |
-| 토큰 범위 계산 | `backend/struct4search/query/answer/token_budget.py` · `ReaderTokenBudget`        |
-| 시스템 프롬프트 | `prompts/answer/industrial-safety-grounded-claims/v1.txt`                     |
-| profile     | `configs/production.yaml` · `query.reader`                                    |
-
-```
-```
+| 확인할 내용 | 파일·심볼 |
+|---|---|
+| 근거 구성 | `backend/struct4search/query/answer/`<br>`context_renderer.py` · `render_f400_evidence` |
+| 토큰 범위 계산 | `backend/struct4search/query/answer/`<br>`token_budget.py` · `ReaderTokenBudget` |
+| 시스템 프롬프트 | `prompts/answer/`<br>`industrial-safety-grounded-claims/v1.txt` |
+| 환경변수 | `configs/production.yaml`<br>`query.reader` |
