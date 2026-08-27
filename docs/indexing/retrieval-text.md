@@ -60,11 +60,11 @@ Metadata는 검색표현의 문맥을 보강하는 데 사용됩니다. 검색�
 
 | 환경변수 | 기본값 | 의미 |
 |---|---|---|
-| `g2.selector` | `weighted_undirected_pagerank` | 지식그래프에서 핵심 주제를 선정하는 방식 |
-| `g2.grouping_policy` | `networkx_salience_topic_proximity_other_fallback` | 같은 주제를 설명하는 Triple을 묶는 방식 |
-| `g2.triple_token_budget` | `6000` | 한 번의 생성 요청에 포함할 Triple의 최대 토큰 수 |
-| `g2.minimum_distinct_triples_per_expression` | `1` | 검색표현 하나를 생성하는 데 필요한 최소 Triple 수 |
-| `g2.metadata_priority` | 정의 파일 기준 | 검색표현의 문맥 보강에 사용할 Metadata 우선순위 |
+| `g2.selector` | `weighted_undirected_`<br>`pagerank` | 지식그래프에서 검색표현 생성에 사용할 핵심 주제를 선정하는 방식 |
+| `g2.grouping_policy` | `networkx_salience_`<br>`topic_proximity_`<br>`other_fallback` | 같은 주제를 설명하는 Triple을 어떤 기준으로 묶을지 결정하는 방식 |
+| `g2.triple_token_budget` | `6000` | 한 번의 검색표현 생성 요청에 포함할 Triple의 최대 토큰 수 |
+| `g2.minimum_distinct_triples_per_expression` | `1` | 검색표현 하나를 생성하기 위해 필요한 최소 Triple 수 |
+| `g2.metadata_priority` | 정의 파일<br>기준 | 검색표현의 문맥을 보강할 때 우선적으로 사용할 Metadata의 순서 |
 
 검색표현 생성 방식이나 Triple 묶음 기준을 변경하면 생성 결과가 달라지므로, 검색표현 생성 이후 단계를 다시 처리해야 합니다([파이프라인 실행 및 재처리 방법](rerun.md)).
 
