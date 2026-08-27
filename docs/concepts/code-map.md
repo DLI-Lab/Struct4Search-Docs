@@ -11,17 +11,14 @@ title: 디렉터리 구조
 
 ```text
 Struct4Search/
-├─ backend/
-│  └─ struct4search/           백엔드 소스 코드
+├─ backend/                    백엔드 소스 코드
 ├─ configs/                    실행 프로파일, 서비스 정의, 모델·기계 경로 설정
 ├─ constraints/                검증된 CPU 의존성의 고정 버전
 ├─ deploy/                     Temporal 등 서비스 배포 파일
-├─ frontend/
-│  └─ chatkit_demo/            React 제품 화면과 로컬 API 어댑터
+├─ frontend/                   React 제품 화면과 로컬 API 어댑터
 ├─ openapi/                    HTTP API 명세
 ├─ prompts/                    Metadata·Triple·검색표현·답변 프롬프트
-├─ scripts/
-│  └─ ops/                     환경 적용과 운영 보조 명령
+├─ scripts/                    환경 적용과 운영 보조 명령
 ├─ tests/                      단위·회귀·E2E 테스트와 예제 데이터
 ├─ .env.example                호스트별 환경 변수 서식
 ├─ README.md                   프로젝트 소개와 빠른 시작
@@ -33,70 +30,46 @@ Struct4Search/
 
 `requirements.txt`는 GPU 없이 설치하는 Python 패키지 목록이고, `constraints/py312-cpu.txt`는 CPU 환경에서 검증한 고정 버전 목록입니다.
 
-## 백엔드 소스 코드
+## 설치와 구성
 
-```text
-backend/struct4search/
-├─ ingest/                     문서 파싱부터 색인까지의 흐름
-│  └─ stages/                  청킹·NER·Metadata·Triple·그래프·검색표현 단계
-├─ query/                      검색·답변 흐름
-│  ├─ retrieval/               검색 결과 투영·점수 통합·중복 제거
-│  └─ answer/                  Context·답변·인용 처리
-├─ adapters/                   OpenSearch·PostgreSQL·LLM·파서·Temporal 연결
-├─ bootstrap/                  설정을 읽고 실제 구현을 조립하는 위치
-├─ config/                     profile과 프롬프트 해석
-├─ core/                       공통 계약, 오류, 실행 기록
-├─ domain/                     문서·메타데이터의 도메인 정의
-├─ entrypoints/                실행 진입점
-│  ├─ cli/                     `struct4search-*` 명령
-│  ├─ api/                     FastAPI 경로
-│  └─ workers/                 ingest·Temporal·감시 worker
-├─ evaluation/                 검색·QA 평가와 release gate
-├─ e2e/                        승인된 E2E 실행 구성
-├─ orchestration/              서비스 상태·workflow·실행 환경 관리
-├─ resources/                  package에 포함되는 OpenSearch 파일
-└─ observability/              상태와 인수인계 지표
-```
-
-## 제품 화면
-
-```text
-frontend/chatkit_demo/
-├─ src/                         React 화면과 상태·API 연결 코드
-├─ public/                      정적 파일
-├─ scripts/                     화면·문서 관리 확인 스크립트
-├─ server.py                    ChatKit 로컬 API 어댑터
-├─ idr_service.py               문서 처리 결과를 읽는 로컬 API
-├─ .env.example                 화면 전용 환경 변수 서식
-├─ package.json                 Node.js 패키지와 실행 명령
-└─ README.md                    화면 실행과 API 연결 방법
-```
-
-제품 화면은 OpenSearch나 PostgreSQL에 직접 연결하지 않습니다. `struct4search-stack --stack <stack> up`이 Response API, 문서 결과 API, ChatKit 어댑터, Vite 화면을 같은 설정으로 실행합니다. 화면만 따로 실행할 때는 `frontend/chatkit_demo/.env.example`을 사용합니다.
-
-## 코드와 문서 대응
+아래 표의 백엔드 경로는 `backend/struct4search/` 기준입니다.
 
 | 코드·설정 영역 | 확인할 문서 |
 |---|---|
 | `README.md`, `REQUIREMENTS.md`, `.env.example`, `pyproject.toml`, `requirements*.txt`, `constraints/` | [설치 요구사항](../reference/dependencies.md), [설치와 첫 실행](../quickstart.md) |
-| `backend/` | [데이터 흐름](data-flow.md) |
-| `backend/struct4search/` | [개요](../overview.md) |
-| `backend/struct4search/ingest/` | [문서 인덱싱 파이프라인](../indexing/overview.md) |
-| `backend/struct4search/ingest/stages/` | [파싱](../indexing/parsing.md), [청킹](../indexing/chunking.md), [NER](../indexing/ner.md), [Metadata](../indexing/metadata.md), [지식그래프](../indexing/triple-kg.md), [검색표현](../indexing/retrieval-text.md) |
-| `backend/struct4search/query/` | [검색·답변 파이프라인](../query/overview.md) |
-| `backend/struct4search/query/retrieval/` | [Hybrid 검색](../query/hybrid-search.md), [RRF](../query/rrf.md), [검색 결과 점수 통합](../query/score-integration.md) |
-| `backend/struct4search/query/answer/` | [Context 구성](../query/context.md), [답변 형식](../query/structured-answer.md), [출처 연결](../query/citations.md) |
-| `backend/struct4search/adapters/` | [저장소와 재처리](../reference/storage.md), [API 계약](../reference/api-contract.md) |
-| `backend/struct4search/bootstrap/`, `backend/struct4search/config/` | [설정](../reference/configuration.md), [설정 변경](../maintenance/configuration.md) |
-| `backend/struct4search/entrypoints/cli/` | [실행 명령](../reference/cli.md) |
-| `backend/struct4search/entrypoints/api/` | [API 실행과 경로](../reference/api-reference.md), [API 계약](../reference/api-contract.md) |
-| `backend/struct4search/evaluation/`, `backend/struct4search/e2e/` | [테스트와 평가 시작하기](../testing/overview.md), [검색과 QA 평가 실행](../testing/retrieval-qa.md) |
-| `configs/` | [설정](../reference/configuration.md), [설정 변경](../maintenance/configuration.md) |
-| `deploy/` | [설치 요구사항](../reference/dependencies.md) |
+| `configs/`, `deploy/` | [설정](../reference/configuration.md), [설정 변경](../maintenance/configuration.md) |
+| `bootstrap/`, `config/`, `core/`, `domain/` | [개요](../overview.md), [설정](../reference/configuration.md) |
+
+## 문서 인덱싱
+
+| 코드·설정 영역 | 확인할 문서 |
+|---|---|
+| `ingest/` | [문서 인덱싱 파이프라인](../indexing/overview.md) |
+| `ingest/stages/` | [파싱](../indexing/parsing.md), [청킹](../indexing/chunking.md), [NER](../indexing/ner.md), [Metadata](../indexing/metadata.md), [지식그래프](../indexing/triple-kg.md), [검색표현](../indexing/retrieval-text.md) |
+| `adapters/parsing/`, `adapters/persistence/`, `adapters/llm/` | [저장소와 재처리](../reference/storage.md), [API 계약](../reference/api-contract.md) |
+
+## 검색과 답변
+
+| 코드·설정 영역 | 확인할 문서 |
+|---|---|
+| `query/` | [검색·답변 파이프라인](../query/overview.md) |
+| `query/retrieval/`, `adapters/search/` | [Hybrid 검색](../query/hybrid-search.md), [RRF](../query/rrf.md), [검색 결과 점수 통합](../query/score-integration.md) |
+| `query/answer/` | [Context 구성](../query/context.md), [답변 형식](../query/structured-answer.md), [출처 연결](../query/citations.md) |
+| `prompts/`, `resources/opensearch/` | [프롬프트 목록](../reference/prompts.md), [프롬프트 변경](../maintenance/prompts.md), [OpenSearch 인덱스 구조](../reference/opensearch-schema.md) |
+
+## 서비스 실행과 제품 화면
+
+| 코드·설정 영역 | 확인할 문서 |
+|---|---|
+| `entrypoints/cli/`, `entrypoints/workers/`, `orchestration/`, `scripts/ops/` | [실행 명령](../reference/cli.md) |
+| `entrypoints/api/`, `openapi/` | [API 실행과 경로](../reference/api-reference.md), [API 계약](../reference/api-contract.md) |
 | `frontend/`, `frontend/chatkit_demo/` | `frontend/README.md`, `frontend/chatkit_demo/README.md`, [API 실행과 경로](../reference/api-reference.md) |
-| `openapi/` | [API 계약](../reference/api-contract.md) |
-| `prompts/` | [프롬프트 목록](../reference/prompts.md), [프롬프트 변경](../maintenance/prompts.md) |
-| `scripts/ops/` | [실행 명령](../reference/cli.md) |
-| `tests/` | [테스트와 평가 시작하기](../testing/overview.md), [검색과 QA 평가 실행](../testing/retrieval-qa.md) |
+
+## 테스트와 평가
+
+| 코드·설정 영역 | 확인할 문서 |
+|---|---|
+| `evaluation/`, `tests/` | [테스트와 평가 시작하기](../testing/overview.md), [검색과 QA 평가 실행](../testing/retrieval-qa.md) |
+| `e2e/`, `observability/` | [테스트와 평가 시작하기](../testing/overview.md) |
 
 `.env`에는 접속 문자열과 API key만 둡니다. `struct4search-*` 명령은 실행할 때 `.env`를 자동으로 읽고, 이미 export한 값은 유지합니다. 검색·모델·프롬프트의 동작 값은 profile과 버전 관리된 설정 파일에서 관리합니다.
