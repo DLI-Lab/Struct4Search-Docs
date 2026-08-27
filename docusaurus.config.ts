@@ -20,11 +20,8 @@ const config: Config = {
     [
       '@getcanary/docusaurus-theme-search-pagefind',
       {
+        indexOnly: true,
         includeRoutes: ['docs/**'],
-        maxPages: 8,
-        maxSubResults: 3,
-        _base: '/Struct4Search-Docs',
-        _replace: '/Struct4Search-Docs/Struct4Search-Docs',
       },
     ],
   ],
