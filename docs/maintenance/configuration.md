@@ -28,7 +28,8 @@ title: 설정 수정
 | 허용되지 않은 고정값 | 실행 거부 |
 | 프로파일 스키마 버전 불일치 | 실행 거부 |
 | 프롬프트 정의 불일치 | 실행 거부 |
-| OpenSearch search pipeline 정의 불일치 | 실행 거부 |
+| profile의 OpenSearch search pipeline ID나 template hash 불일치 | 검색 조립 거부 |
+| OpenSearch에 설치된 search pipeline의 누락·변경 | 첫 검색 직전에 거부 |
 
 잘못된 설정이 그대로 실행되지 않도록 시작 단계에서 확인합니다.
 
@@ -36,9 +37,9 @@ title: 설정 수정
 
 설정 파일에 직접 적지 않고 다른 설정으로부터 계산되는 값도 있습니다.
 
-예를 들어 답변 출력 예산은 Context Window에서 시스템 프롬프트, 질의와 근거가 사용한 토큰을 제외한 범위에서 결정됩니다.
+예를 들어 답변 출력 예산은 Context Window에서 채팅 template이 적용된 전체 프롬프트의 토큰 수와 `generation_boundary_tokens`를 뺀 값입니다. 전체 프롬프트에는 시스템 프롬프트, 질의와 근거가 포함됩니다.
 
-이처럼 코드에서 계산되는 값은 별도의 설정 항목으로 추가하지 않습니다.
+계산 결과인 `max_output_tokens`는 직접 설정하지 않습니다. 출력 예산을 바꾸려면 profile의 `context_window_tokens`, `generation_boundary_tokens`, `output_token_policy`를 확인합니다.
 
 ## 새 설정 키를 추가할 때
 
