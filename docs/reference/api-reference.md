@@ -5,126 +5,121 @@ title: API Reference
 
 # API Reference
 
-Struct4Search API는 문서를 등록하고 인덱싱한 뒤, 같은 인덱스에서 문서를 검색하거나
-근거가 포함된 답변을 받는 데 사용합니다. 설치가 끝난 개발자는 이 페이지의 명령을
-그대로 실행하면 됩니다. 설치가 필요하면 먼저 [설치와 첫 실행](../quickstart.md)을
-참고합니다.
+Struct4Search API는 문서를 등록하고 인덱싱한 뒤, 같은 인덱스에서 원문을 검색하거나
+근거가 포함된 답변을 생성할 때 사용합니다. 설치와 서버 실행은
+[설치와 첫 실행](../quickstart.md)에서 먼저 완료합니다.
 
-## 전체 API 목록
+## 기본 정보
 
-외부 시스템에서는 `공개` API를 사용합니다. `호환` API는 기존 클라이언트를 유지하기
-위한 경로이고, `화면 내부` API는 Struct4Search 웹 화면이 사용하는 경로입니다.
-
-### 운영 상태
-
-| Method | Endpoint | 용도 |
-|---|---|---|
-| `GET` | `/health/live` | API 프로세스가 실행 중인지 확인합니다. |
-| `GET` | `/health/ready` | 검색·답변 요청을 받을 준비가 됐는지 확인합니다. |
-
-### 외부 연동 API
-
-| Method | Endpoint | 용도 |
-|---|---|---|
-| `GET` | `/v1/capabilities` | 현재 문서 저장소에서 사용할 수 있는 기능을 확인합니다. |
-| `POST` | `/v1/documents` | 새 문서를 등록하고 문서 ID를 발급받습니다. |
-| `GET` | `/v1/documents` | 등록된 문서를 검색·필터링하여 조회합니다. |
-| `GET` | `/v1/documents/{document_id}` | 문서 한 건의 상세 정보와 인덱싱 정보를 조회합니다. |
-| `PATCH` | `/v1/documents/{document_id}` | 사용자가 관리하는 문서 메타데이터를 수정합니다. |
-| `DELETE` | `/v1/documents/{document_id}` | 등록된 문서를 삭제합니다. |
-| `GET` | `/v1/idr` | 문서의 현재 파싱 결과(IDR)를 조회합니다. |
-| `GET` | `/v1/document-pipeline` | 문서별 파싱·KG·메타데이터·검색표현 처리 상태를 조회합니다. |
-| `POST` | `/v1/kg/subgraph` | 선택한 문서들의 지식그래프 일부를 조회합니다. |
-| `GET` | `/v1/document-file` | 등록된 원본 문서를 열거나 내려받습니다. |
-| `GET` | `/v1/document-page` | 문서의 특정 페이지를 이미지로 조회합니다. |
-| `GET` | `/v1/idr/figure` | IDR 블록에 연결된 그림을 조회합니다. |
-| `POST` | `/v1/ingest/jobs` | 등록한 문서의 인덱싱 작업을 시작합니다. |
-| `GET` | `/v1/ingest/jobs` | 인덱싱 작업 목록을 조회합니다. |
-| `GET` | `/v1/ingest/jobs/{job_id}` | 인덱싱 작업 한 건의 상태를 조회합니다. |
-| `GET` | `/v1/ingest/jobs/{job_id}/documents` | 작업에 포함된 문서별 처리 결과를 조회합니다. |
-| `POST` | `/v1/ingest/jobs/{job_id}/retry` | 실패한 인덱싱 작업을 다시 실행합니다. |
-| `POST` | `/v1/ingest/jobs/{job_id}/cancel` | 실행 중인 인덱싱 작업의 취소를 요청합니다. |
-| `POST` | `/v1/search` | 답변을 생성하지 않고 관련 원문을 검색합니다. |
-| `POST` | `/v1/responses` | 검색 근거가 포함된 답변을 생성합니다. |
-
-### 호환 API
-
-| Method | Endpoint | 용도 |
-|---|---|---|
-| `GET` | `/v1/health` | 기존 클라이언트용 상태 확인 경로입니다. |
-| `POST` | `/v1/response` | 기존 단일 답변 클라이언트용 경로입니다. |
-| `GET` | `/v1/source-pdf` | 기존 검색 결과에 연결된 PDF 원문을 조회합니다. |
-
-### 화면 내부 API
-
-| Method | Endpoint | 용도 |
-|---|---|---|
-| `GET` | `/api/documents/capabilities` | 문서 관리 화면이 사용할 수 있는 기능을 확인합니다. |
-| `GET` | `/api/documents` | 문서 관리 화면의 문서 목록을 조회합니다. |
-| `GET` | `/api/documents/{document_id}/pipeline` | 문서 관리 화면의 단계별 처리 결과를 조회합니다. |
-| `GET` | `/api/documents/{document_id}/idr` | 문서 관리 화면의 파싱 결과를 조회합니다. |
-| `GET` | `/api/documents/{document_id}/pdf` | 문서 관리 화면에서 PDF 원문을 엽니다. |
-| `GET` | `/api/documents/{document_id}/pages/{page}` | 문서 관리 화면에서 특정 페이지를 조회합니다. |
-| `GET` | `/api/documents/{document_id}/figures/{block_id}` | 문서 관리 화면에서 파싱된 그림을 조회합니다. |
-| `GET` | `/api/documents/{document_id}/connections` | 문서 관리 화면에서 현재 검색·답변 연결 정보를 조회합니다. |
-
-요청·응답 스키마를 바로 확인하려면 서버 실행 후 Swagger UI
-`http://127.0.0.1:8289/docs` 또는 OpenAPI JSON
-`http://127.0.0.1:8289/openapi.json`을 엽니다.
-
-## 서버 실행
-
-제품 화면까지 함께 실행할 때는 저장소 루트에서 다음 명령을 사용합니다.
-
-```bash
-export S4S_DOCUMENT_DSN='postgresql://USER:PASSWORD@HOST:PORT/DATABASE'
-export S4S_KG_DSN='postgresql://USER:PASSWORD@HOST:PORT/DATABASE'
-
-# 서버를 외부에 공개할 때 설정합니다. 로컬 개발에서는 생략할 수 있습니다.
-export S4S_API_KEY='충분히-긴-임의-값'
-
-struct4search-bootstrap --stack configs/services/local-stack.yaml
-struct4search-stack --stack configs/services/local-stack.yaml up
-```
-
-명령을 실행한 터미널을 열어 둡니다. 서버를 모두 종료할 때는 그 터미널에서 `Ctrl-C`를
-누릅니다.
-
-기본 주소는 다음과 같습니다.
-
-| 용도 | 주소 |
+| 항목 | 값 |
 |---|---|
-| API | `http://127.0.0.1:8289` |
+| Base URL | `http://127.0.0.1:8289` |
+| 인증 | `Authorization: Bearer $S4S_API_KEY` 또는 `X-API-Key: $S4S_API_KEY` |
+| JSON 요청 | `Content-Type: application/json` |
 | Swagger UI | `http://127.0.0.1:8289/docs` |
-| 웹 화면 | `http://127.0.0.1:5173` |
+| OpenAPI JSON | `http://127.0.0.1:8289/openapi.json` |
 
-`struct4search-bootstrap`은 검색에 필요한 OpenSearch RRF 설정을 생성하거나 현재 설정을
-검증합니다. 기존 문서와 인덱스는 변경하지 않습니다.
-
-## 공통 설정
-
-제품 전체를 실행했다면 다른 터미널에서 다음 값을 준비합니다.
+`S4S_API_KEY`가 설정되지 않은 로컬 환경에서는 인증 헤더를 생략할 수 있습니다.
+아래 예제는 API 키가 설정된 환경을 기준으로 작성했습니다.
 
 ```bash
 export S4S_BASE_URL='http://127.0.0.1:8289'
+export S4S_API_KEY='replace-with-your-api-key'
 ```
 
-`S4S_API_KEY`를 서버에 설정했다면 모든 데이터 요청에 다음 헤더 중 하나가 필요합니다.
+## 전체 API 목록
+
+API는 개발자가 실제로 수행하는 작업을 기준으로 묶었습니다. API 이름을 누르면 요청,
+응답, 실행 예제와 오류 정보를 바로 확인할 수 있습니다.
+
+### 서비스 상태
+
+| API | HTTP 요청 | 설명 |
+|---|---|---|
+| [실행 상태 확인](#api-health-live) | `GET /health/live` | API 프로세스가 실행 중인지 확인합니다. |
+| [준비 상태 확인](#api-health-ready) | `GET /health/ready` | 검색·답변 요청을 받을 준비가 됐는지 확인합니다. |
+
+### 문서
+
+| API | HTTP 요청 | 설명 |
+|---|---|---|
+| [기능 확인](#api-capabilities) | `GET /v1/capabilities` | 현재 문서 저장소에서 사용할 수 있는 기능을 확인합니다. |
+| [문서 등록](#api-document-create) | `POST /v1/documents` | PDF 문서를 등록하고 문서 ID를 발급받습니다. |
+| [문서 목록 조회](#api-document-list) | `GET /v1/documents` | 등록된 문서를 검색·필터링하여 조회합니다. |
+| [문서 상세 조회](#api-document-get) | `GET /v1/documents/{document_id}` | 문서 한 건의 상세 정보와 등록 정보를 조회합니다. |
+| [문서 메타데이터 수정](#api-document-update) | `PATCH /v1/documents/{document_id}` | 사용자가 관리하는 문서 메타데이터를 수정합니다. |
+| [문서 삭제](#api-document-delete) | `DELETE /v1/documents/{document_id}` | 문서와 연결된 저장소 데이터를 삭제합니다. |
+| [파싱 결과 조회](#api-idr-get) | `GET /v1/idr` | 문서의 현재 IDR 파싱 결과를 조회합니다. |
+| [파이프라인 결과 조회](#api-document-pipeline) | `GET /v1/document-pipeline` | 파싱·KG·메타데이터·검색표현을 한 번에 조회합니다. |
+| [지식그래프 조회](#api-kg-subgraph) | `POST /v1/kg/subgraph` | 선택한 문서들의 지식그래프 일부를 조회합니다. |
+| [원본 문서 조회](#api-document-file) | `GET /v1/document-file` | 등록된 원본 파일을 열거나 내려받습니다. |
+| [문서 페이지 조회](#api-document-page) | `GET /v1/document-page` | PDF의 특정 페이지를 PNG 이미지로 조회합니다. |
+| [파싱 이미지 조회](#api-idr-figure) | `GET /v1/idr/figure` | IDR의 그림 블록을 PNG 이미지로 조회합니다. |
+
+### 인덱싱 작업
+
+| API | HTTP 요청 | 설명 |
+|---|---|---|
+| [인덱싱 시작](#api-ingest-create) | `POST /v1/ingest/jobs` | 등록한 문서의 인덱싱 작업을 시작합니다. |
+| [인덱싱 작업 목록](#api-ingest-list) | `GET /v1/ingest/jobs` | 최근 인덱싱 작업을 조회합니다. |
+| [인덱싱 작업 상태](#api-ingest-get) | `GET /v1/ingest/jobs/{job_id}` | 작업 한 건의 단계별 상태를 조회합니다. |
+| [문서별 인덱싱 결과](#api-ingest-documents) | `GET /v1/ingest/jobs/{job_id}/documents` | 작업에 포함된 문서별 처리 결과를 조회합니다. |
+| [인덱싱 재시도](#api-ingest-retry) | `POST /v1/ingest/jobs/{job_id}/retry` | 실패하거나 취소된 작업을 다시 실행합니다. |
+| [인덱싱 취소](#api-ingest-cancel) | `POST /v1/ingest/jobs/{job_id}/cancel` | 실행 중인 작업의 취소를 요청합니다. |
+
+### 검색
+
+| API | HTTP 요청 | 설명 |
+|---|---|---|
+| [문서 검색](#api-search) | `POST /v1/search` | 답변을 만들지 않고 관련 원문과 점수를 조회합니다. |
+
+### 답변
+
+| API | HTTP 요청 | 설명 |
+|---|---|---|
+| [근거 기반 답변 생성](#api-responses) | `POST /v1/responses` | 검색 결과를 근거로 답변과 인용 정보를 생성합니다. |
+
+## API 상세
+
+### 서비스 상태
+
+<details id="api-health-live">
+<summary><strong>실행 상태 확인</strong></summary>
+
+API 프로세스가 요청을 받을 수 있는지 확인합니다. 인증이 필요하지 않습니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /health/live` |
+| 인증 | 없음 |
+| 요청 본문 | 없음 |
+| 성공 응답 | `200 OK` |
 
 ```bash
--H "Authorization: Bearer $S4S_API_KEY"
+curl "$S4S_BASE_URL/health/live"
 ```
 
-또는 `X-API-Key: $S4S_API_KEY`를 사용할 수 있습니다. API 키를 설정하지 않은 로컬
-서버에서는 인증 헤더를 빼고 호출합니다.
+```json
+{"status":"ok"}
+```
 
-서버 상태와 전체 요청 스키마는 다음 주소에서 확인합니다.
+</details>
+
+<details id="api-health-ready">
+<summary><strong>준비 상태 확인</strong></summary>
+
+API가 검색·답변 요청을 받을 준비가 됐는지 확인합니다. 인증이 필요하지 않습니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /health/ready` |
+| 인증 | 없음 |
+| 요청 본문 | 없음 |
+| 성공 응답 | `200 OK` |
 
 ```bash
-curl --fail "$S4S_BASE_URL/health/ready"
+curl "$S4S_BASE_URL/health/ready"
 ```
-
-정상적으로 시작된 서버는 다음과 같이 응답합니다.
 
 ```json
 {
@@ -133,134 +128,647 @@ curl --fail "$S4S_BASE_URL/health/ready"
 }
 ```
 
-## 문서 등록
+</details>
 
-**요청** `POST /v1/documents` · **Content-Type** `application/pdf`
+### 문서
 
-PDF 파일 자체를 요청 본문으로 보냅니다. 서버의 파일 경로를 JSON으로 보내는 방식은
-지원하지 않습니다.
+<details id="api-capabilities">
+<summary><strong>기능 확인</strong></summary>
+
+현재 문서 저장소에서 문서 업로드 등 어떤 기능을 사용할 수 있는지 확인합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/capabilities` |
+| 인증 | API key |
+| 요청 본문 | 없음 |
+| 성공 응답 | `200 OK` |
 
 ```bash
-curl --fail-with-body "$S4S_BASE_URL/v1/documents" \
-  -X POST \
+curl "$S4S_BASE_URL/v1/capabilities" \
+  -H "Authorization: Bearer $S4S_API_KEY"
+```
+
+```json
+{
+  "upload": true,
+  "retry": false,
+  "snapshot_catalog_fallback": false,
+  "reason": "문서·IDR·메타데이터는 구성된 문서 저장소에서 읽습니다."
+}
+```
+
+`upload`가 `false`이면 서버에 문서 업로드 경로가 설정되지 않은 상태입니다.
+
+</details>
+
+<details id="api-document-create">
+<summary><strong>문서 등록</strong></summary>
+
+PDF 원본을 그대로 전송해 문서를 등록합니다. 현재 이 API가 직접 받는 형식은 PDF입니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `POST /v1/documents` |
+| 인증 | API key |
+| Content-Type | `application/pdf` |
+| 성공 응답 | `201 Created` |
+
+요청 헤더:
+
+| 헤더 | 필수 | 설명 |
+|---|---|---|
+| `X-Filename` | 아니요 | 저장할 파일명. 기본값은 `document.pdf`입니다. |
+| `X-Corpus-Modality` | 아니요 | `digital`, `mixed`, `scan` 중 하나. 기본값은 `mixed`입니다. |
+| `X-Document-ID` | 아니요 | 호출자가 사용할 문서 ID. 생략하면 파일 내용으로 ID를 생성합니다. |
+
+```bash
+curl -X POST "$S4S_BASE_URL/v1/documents" \
+  -H "Authorization: Bearer $S4S_API_KEY" \
   -H 'Content-Type: application/pdf' \
   -H 'X-Filename: safety-guide.pdf' \
   -H 'X-Corpus-Modality: mixed' \
-  -H "Authorization: Bearer $S4S_API_KEY" \
   --data-binary @safety-guide.pdf
 ```
 
-### 요청 헤더
-
-| 이름 | 필수 | 설명 |
-|---|---:|---|
-| `X-Filename` | 아니요 | 화면에 표시할 PDF 파일명. 기본값은 `document.pdf`입니다. |
-| `X-Corpus-Modality` | 아니요 | `digital`, `mixed`, `scan` 중 하나. 기본값은 `mixed`입니다. |
-| `X-Document-ID` | 아니요 | 호출자가 문서 ID를 관리할 때 지정합니다. 생략하면 파일 SHA-256으로 생성합니다. |
-
-### 성공 응답
-
-```http
-HTTP/1.1 201 Created
-```
-
 ```json
 {
-  "document_id": "dapi_0fe5f782cf5a5df74f4f1938",
+  "document_id": "dapi_58c840a7d2f0",
   "status": "uploaded",
   "filename": "safety-guide.pdf",
-  "page_count": 8,
-  "size": 1076066,
-  "sha256": "0fe5f782cf5a5df74f4f1938..."
+  "page_count": 12,
+  "size": 842113,
+  "sha256": "58c840a7d2f0...",
+  "manifest": "document-manifest.jsonl"
 }
 ```
 
-응답의 `document_id`를 인덱싱 요청에 사용합니다. 같은 파일을 다시 등록하면 기본적으로
-같은 ID가 만들어집니다.
+주요 오류는 빈 파일 또는 용량 초과 `413`, PDF가 아닌 요청 `415`, 손상된 PDF나 잘못된 헤더 값 `422`입니다.
 
-## 문서 인덱싱
+</details>
 
-**요청** `POST /v1/ingest/jobs`
+<details id="api-document-list">
+<summary><strong>문서 목록 조회</strong></summary>
 
-등록한 문서의 ID를 보내면 파싱부터 OpenSearch 인덱싱까지 한 작업으로 실행됩니다.
-단계별 API를 따로 호출할 필요가 없습니다.
+등록된 문서를 검색하고 상태, 파일 형식, 수정일로 필터링합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/documents` |
+| 인증 | API key |
+| 요청 본문 | 없음 |
+| 성공 응답 | `200 OK` |
+
+쿼리 파라미터:
+
+| 이름 | 기본값 | 설명 |
+|---|---|---|
+| `q` | 빈 문자열 | 제목 또는 문서 ID 검색어 |
+| `file_type` | `all` | 파일 형식 필터 |
+| `status` | `all` | 처리 상태 필터 |
+| `error_type` | 없음 | 오류 유형. 여러 번 전달할 수 있습니다. |
+| `updated` | `all` | `all`, `day`, `week`, `month` |
+| `sort` | `updated_desc` | `updated_desc`, `updated_asc`, `name_asc`, `name_desc` |
+| `page` | `1` | 1부터 시작하는 페이지 번호 |
+| `page_size` | `20` | 페이지당 10~100건 |
 
 ```bash
-curl --fail-with-body "$S4S_BASE_URL/v1/ingest/jobs" \
-  -H 'Content-Type: application/json' \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  -d '{
-    "document_ids": ["dapi_0fe5f782cf5a5df74f4f1938"],
-    "idempotency_key": "safety-guide-20260828"
-  }'
-```
-
-| 필드 | 필수 | 설명 |
-|---|---:|---|
-| `document_ids` | 예 | 등록된 문서 ID 목록입니다. 빈 값이나 중복 ID는 허용하지 않습니다. |
-| `idempotency_key` | 아니요 | 같은 요청이 중복 접수되는 것을 막을 때 지정합니다. 최대 200자입니다. |
-
-### 접수 응답
-
-```http
-HTTP/1.1 202 Accepted
+curl "$S4S_BASE_URL/v1/documents?q=safety&status=all&page=1&page_size=20" \
+  -H "Authorization: Bearer $S4S_API_KEY"
 ```
 
 ```json
 {
-  "job_id": "s4s-ingest-111111111111111111111111",
-  "status": "running",
-  "document_ids": ["dapi_0fe5f782cf5a5df74f4f1938"]
+  "items": [
+    {
+      "document_id": "dapi_58c840a7d2f0",
+      "title": "safety-guide.pdf",
+      "file_type": "pdf",
+      "file_size": 842113,
+      "source_available": true,
+      "status": {"overall": "completed", "label": "완료", "error_type": null},
+      "counts": {"pages": 12, "blocks": 186, "entities": 41, "relations": 12}
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "page_size": 20,
+  "page_count": 1,
+  "available_error_types": []
 }
 ```
 
-### 작업 상태 확인
+</details>
+
+<details id="api-document-get">
+<summary><strong>문서 상세 조회</strong></summary>
+
+문서 한 건의 카탈로그 정보, 원본 위치, 사용자 메타데이터와 등록 정보를 조회합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/documents/{document_id}` |
+| 인증 | API key |
+| 경로 변수 | `document_id` |
+| 성공 응답 | `200 OK` |
 
 ```bash
-curl --fail-with-body \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  "$S4S_BASE_URL/v1/ingest/jobs/<job_id>"
+curl "$S4S_BASE_URL/v1/documents/dapi_58c840a7d2f0" \
+  -H "Authorization: Bearer $S4S_API_KEY"
 ```
 
-일반적인 `status` 값은 `running`, `completed`, `failed`, `canceled`입니다. 연결 상태를
-확인할 수 없으면 `unknown`, 취소를 요청한 직후에는 `cancel_requested`가 반환될 수
-있습니다. `completed`가 되면 문서를 검색하고 답변에 사용할 수 있습니다. 여러 문서를
-한 번에 요청한 경우 문서별 결과는 다음 주소에서 확인합니다.
-
-```bash
-curl --fail-with-body \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  "$S4S_BASE_URL/v1/ingest/jobs/<job_id>/documents"
+```json
+{
+  "document_id": "dapi_58c840a7d2f0",
+  "title": "safety-guide.pdf",
+  "file_type": "pdf",
+  "source_available": true,
+  "status": {"overall": "completed", "label": "완료", "error_type": null},
+  "source": "/data/uploads/safety-guide.pdf",
+  "metadata": {"department": "안전관리팀"},
+  "ingest": {"corpus_modality": "mixed"}
+}
 ```
 
-실패한 작업은 `POST /v1/ingest/jobs/<job_id>/retry`, 실행 중인 작업은
-`POST /v1/ingest/jobs/<job_id>/cancel`로 처리합니다.
+문서가 없으면 `404 Not Found`를 반환합니다.
 
-## 문서 검색
+</details>
 
-**요청** `POST /v1/search` · **Content-Type** `application/json`
+<details id="api-document-update">
+<summary><strong>문서 메타데이터 수정</strong></summary>
 
-답변 모델을 호출하지 않고 관련 원문만 검색합니다. 질의 벡터를 따로 만들어 보낼 필요는
-없습니다. 서버가 현재 인덱스를 만들 때 사용한 임베딩 모델로 질문을 변환합니다.
+사용자가 관리하는 문서 메타데이터를 교체합니다. 본문에는 `metadata`만 전달할 수 있습니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `PATCH /v1/documents/{document_id}` |
+| 인증 | API key |
+| Content-Type | `application/json` |
+| 성공 응답 | `200 OK` |
 
 ```bash
-curl --fail-with-body "$S4S_BASE_URL/v1/search" \
+curl -X PATCH "$S4S_BASE_URL/v1/documents/dapi_58c840a7d2f0" \
+  -H "Authorization: Bearer $S4S_API_KEY" \
   -H 'Content-Type: application/json' \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  -H 'X-Request-ID: search-001' \
-  -d '{"query":"위험성평가의 목적은 무엇인가요?"}'
+  -d '{"metadata":{"department":"안전관리팀","retention_years":5}}'
 ```
+
+```json
+{
+  "document_id": "dapi_58c840a7d2f0",
+  "metadata": {"department": "안전관리팀", "retention_years": 5}
+}
+```
+
+문서가 없으면 `404`, 허용되지 않은 필드나 잘못된 본문은 `422`를 반환합니다.
+
+</details>
+
+<details id="api-document-delete">
+<summary><strong>문서 삭제</strong></summary>
+
+문서 DB 행, 검색 인덱스, KG 데이터와 서버가 소유한 업로드 원본을 삭제합니다. 복구가 필요한 데이터는 먼저 백업합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `DELETE /v1/documents/{document_id}` |
+| 인증 | API key |
+| 요청 본문 | 없음 |
+| 성공 응답 | `204 No Content` |
+
+```bash
+curl -i -X DELETE "$S4S_BASE_URL/v1/documents/dapi_58c840a7d2f0" \
+  -H "Authorization: Bearer $S4S_API_KEY"
+```
+
+성공 응답에는 본문이 없습니다. 문서가 없으면 `404`, 검색 저장소 삭제에 실패하면 `502`를 반환할 수 있습니다.
+
+</details>
+
+<details id="api-idr-get">
+<summary><strong>파싱 결과 조회</strong></summary>
+
+문서 DB에 저장된 현재 IDR을 페이지와 블록 단위로 조회합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/idr` |
+| 인증 | API key |
+| 성공 응답 | `200 OK` |
+
+쿼리 파라미터:
+
+| 이름 | 필수 | 설명 |
+|---|---|---|
+| `document_id` | 예 | 조회할 문서 ID |
+| `lineage` | 아니요 | `current`, `kg`, `kg_or_current`. 현재 구현은 문서 DB의 최신 저장본을 반환합니다. |
+
+```bash
+curl "$S4S_BASE_URL/v1/idr?document_id=dapi_58c840a7d2f0" \
+  -H "Authorization: Bearer $S4S_API_KEY"
+```
+
+```json
+{
+  "document_id": "dapi_58c840a7d2f0",
+  "title": "safety-guide.pdf",
+  "parser": "mineru",
+  "schema": "canonical-idr",
+  "lineage": {"kind": "current", "source_store": "public.documents.idr"},
+  "page_count": 12,
+  "block_count": 186,
+  "type_counts": {"text": 141, "figure": 9, "table": 6},
+  "pages": [
+    {
+      "page_index": 0,
+      "page_number": 1,
+      "blocks": [{"id": "b1", "type": "text", "order": 0, "text": "안전 수칙"}]
+    }
+  ]
+}
+```
+
+문서 또는 IDR이 없으면 `404 Not Found`를 반환합니다.
+
+</details>
+
+<details id="api-document-pipeline">
+<summary><strong>파이프라인 결과 조회</strong></summary>
+
+문서 한 건의 처리 상태와 지식그래프, 메타데이터, 검색표현을 한 번에 조회합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/document-pipeline` |
+| 인증 | API key |
+| 필수 쿼리 | `document_id` |
+| 성공 응답 | `200 OK` |
+
+```bash
+curl "$S4S_BASE_URL/v1/document-pipeline?document_id=dapi_58c840a7d2f0" \
+  -H "Authorization: Bearer $S4S_API_KEY"
+```
+
+```json
+{
+  "document_id": "dapi_58c840a7d2f0",
+  "title": "safety-guide.pdf",
+  "document": {"document_id": "dapi_58c840a7d2f0", "file_type": "pdf"},
+  "pipeline": {
+    "overall": "completed",
+    "label": "완료",
+    "stages": [],
+    "counts": {"pages": 12, "entities": 41, "relations": 12}
+  },
+  "kg": {"entities": [], "relations": []},
+  "metadata": [],
+  "search_expressions": {"items": []},
+  "lineage": {"parser_run_id": null, "pipeline_run_id": null}
+}
+```
+
+문서가 없으면 `404`, 검색 저장소 조회에 실패하면 `502`를 반환할 수 있습니다.
+
+</details>
+
+<details id="api-kg-subgraph">
+<summary><strong>지식그래프 조회</strong></summary>
+
+1~50개 문서 ID를 기준으로 엔터티와 관계를 묶어 조회합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `POST /v1/kg/subgraph` |
+| 인증 | API key |
+| Content-Type | `application/json` |
+| 성공 응답 | `200 OK` |
+
+```bash
+curl -X POST "$S4S_BASE_URL/v1/kg/subgraph" \
+  -H "Authorization: Bearer $S4S_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"document_ids":["dapi_58c840a7d2f0"]}'
+```
+
+```json
+{
+  "document_ids": ["dapi_58c840a7d2f0"],
+  "documents": [{"document_id": "dapi_58c840a7d2f0", "title": "safety-guide.pdf", "kg_available": true}],
+  "entities": [{"id": "e1", "text": "보호구", "label": "EQUIPMENT", "document_ids": ["dapi_58c840a7d2f0"]}],
+  "relations": [{"id": "r1", "subject": "작업자", "predicate": "착용", "object": "보호구"}],
+  "metadata": {},
+  "lineage": {"document_id_aligned": true}
+}
+```
+
+문서 ID가 없거나 50개를 초과하면 `422 Unprocessable Entity`를 반환합니다.
+
+</details>
+
+<details id="api-document-file">
+<summary><strong>원본 문서 조회</strong></summary>
+
+등록된 원본 파일을 브라우저에서 열거나 첨부 파일로 내려받습니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/document-file` |
+| 인증 | API key |
+| 성공 응답 | `200 OK`, 파일 바이너리 |
+
+쿼리 파라미터:
+
+| 이름 | 필수 | 설명 |
+|---|---|---|
+| `document_id` | 예 | 조회할 문서 ID |
+| `download` | 아니요 | `true`이면 첨부 파일로 내려받습니다. 기본값은 `false`입니다. |
+
+```bash
+curl "$S4S_BASE_URL/v1/document-file?document_id=dapi_58c840a7d2f0&download=true" \
+  -H "Authorization: Bearer $S4S_API_KEY" \
+  -o safety-guide.pdf
+```
+
+원본이 없거나 접근할 수 없으면 `404 Not Found`를 반환합니다.
+
+</details>
+
+<details id="api-document-page">
+<summary><strong>문서 페이지 조회</strong></summary>
+
+PDF 원본의 특정 페이지를 PNG 이미지로 렌더링합니다. `page`는 1부터 시작합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/document-page` |
+| 인증 | API key |
+| 성공 응답 | `200 OK`, `image/png` |
+
+| 쿼리 | 기본값 | 설명 |
+|---|---|---|
+| `document_id` | 필수 | 조회할 문서 ID |
+| `page` | `1` | 1부터 시작하는 페이지 번호 |
+| `scale` | `1.35` | `0.5`~`3.0` 범위의 렌더링 배율 |
+
+```bash
+curl "$S4S_BASE_URL/v1/document-page?document_id=dapi_58c840a7d2f0&page=1&scale=1.35" \
+  -H "Authorization: Bearer $S4S_API_KEY" \
+  -o page-1.png
+```
+
+PDF 원본이나 요청한 페이지가 없으면 `404 Not Found`를 반환합니다.
+
+</details>
+
+<details id="api-idr-figure">
+<summary><strong>파싱 이미지 조회</strong></summary>
+
+IDR의 그림 블록 좌표를 사용해 원본 PDF에서 해당 영역을 잘라 PNG로 반환합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/idr/figure` |
+| 인증 | API key |
+| 성공 응답 | `200 OK`, `image/png` |
+
+| 쿼리 | 필수 | 설명 |
+|---|---|---|
+| `document_id` | 예 | 조회할 문서 ID |
+| `block_id` | 예 | IDR 그림 블록 ID |
+| `lineage` | 아니요 | `current` 또는 `kg`. 현재 구현은 최신 IDR 저장본을 사용합니다. |
+
+```bash
+curl "$S4S_BASE_URL/v1/idr/figure?document_id=dapi_58c840a7d2f0&block_id=figure-1" \
+  -H "Authorization: Bearer $S4S_API_KEY" \
+  -o figure-1.png
+```
+
+그림 블록, 좌표 또는 원본 PDF를 찾지 못하면 `404 Not Found`를 반환합니다.
+
+</details>
+
+### 인덱싱 작업
+
+인덱싱 작업 응답의 공통 상태는 `running`, `completed`, `failed`, `canceled`, `unknown`입니다.
+취소 요청 직후에는 `cancel_requested`가 반환될 수 있습니다.
+
+<details id="api-ingest-create">
+<summary><strong>인덱싱 시작</strong></summary>
+
+등록한 문서를 지정해 비동기 인덱싱 작업을 시작합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `POST /v1/ingest/jobs` |
+| 인증 | API key |
+| Content-Type | `application/json` |
+| 성공 응답 | `202 Accepted` |
+
+요청 본문:
 
 | 필드 | 필수 | 설명 |
-|---|---:|---|
-| `query` | 예 | 검색할 질문입니다. 빈 문자열은 허용하지 않습니다. |
-| `query_id` | 아니요 | 호출 시스템에서 관리하는 질의 ID입니다. |
-| `X-Request-ID` | 아니요 | HTTP 요청을 로그에서 추적할 때 사용하는 헤더입니다. |
+|---|---|---|
+| `document_ids` | 아니요 | 중복되지 않은 문서 ID 배열. 생략하거나 비우면 서버에 구성된 기본 manifest/profile을 사용합니다. |
+| `idempotency_key` | 아니요 | 같은 작업의 중복 생성을 막는 1~200자 키 |
 
-### 성공 응답
+```bash
+curl -X POST "$S4S_BASE_URL/v1/ingest/jobs" \
+  -H "Authorization: Bearer $S4S_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"document_ids":["dapi_58c840a7d2f0"],"idempotency_key":"safety-guide-v1"}'
+```
 
-```http
-HTTP/1.1 200 OK
+```json
+{
+  "job_id": "ingest-01J...",
+  "status": "running",
+  "temporal_status": "RUNNING",
+  "document_ids": ["dapi_58c840a7d2f0"],
+  "active_stages": ["parsing"],
+  "stages": [],
+  "progress": {"completed": 0, "total": 1},
+  "result": null
+}
+```
+
+같은 멱등 키를 다른 요청에 재사용하면 `409`, 실행 백엔드를 사용할 수 없으면 `503`을 반환합니다.
+
+</details>
+
+<details id="api-ingest-list">
+<summary><strong>인덱싱 작업 목록</strong></summary>
+
+최근 인덱싱 작업을 상태별로 조회합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/ingest/jobs` |
+| 인증 | API key |
+| 성공 응답 | `200 OK` |
+
+| 쿼리 | 기본값 | 설명 |
+|---|---|---|
+| `limit` | `50` | 1~200건 |
+| `status` | 없음 | `running`, `completed`, `failed`, `canceled`, `unknown` |
+| `cursor` | 없음 | 다음 페이지를 조회할 작업 ID |
+
+```bash
+curl "$S4S_BASE_URL/v1/ingest/jobs?status=running&limit=20" \
+  -H "Authorization: Bearer $S4S_API_KEY"
+```
+
+```json
+{
+  "jobs": [{"job_id": "ingest-01J...", "status": "running", "document_ids": ["dapi_58c840a7d2f0"]}],
+  "count": 1,
+  "next_cursor": null
+}
+```
+
+잘못된 상태나 커서는 `422`, 실행 백엔드 연결 실패는 `503`입니다.
+
+</details>
+
+<details id="api-ingest-get">
+<summary><strong>인덱싱 작업 상태</strong></summary>
+
+작업 한 건의 현재 단계, 진행률, 결과와 오류를 조회합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/ingest/jobs/{job_id}` |
+| 인증 | API key |
+| 경로 변수 | `job_id` |
+| 성공 응답 | `200 OK` |
+
+```bash
+curl "$S4S_BASE_URL/v1/ingest/jobs/ingest-01J..." \
+  -H "Authorization: Bearer $S4S_API_KEY"
+```
+
+```json
+{
+  "job_id": "ingest-01J...",
+  "status": "completed",
+  "document_ids": ["dapi_58c840a7d2f0"],
+  "active_stages": [],
+  "stages": [],
+  "progress": {"completed": 1, "total": 1},
+  "completion": {"completed_at": "2026-08-28T10:00:00Z"},
+  "completion_error": null
+}
+```
+
+작업이 없으면 `404`, 실행 백엔드 연결 실패는 `503`입니다.
+
+</details>
+
+<details id="api-ingest-documents">
+<summary><strong>문서별 인덱싱 결과</strong></summary>
+
+한 작업에 포함된 각 문서의 처리 상태와 활성 단계를 조회합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `GET /v1/ingest/jobs/{job_id}/documents` |
+| 인증 | API key |
+| 경로 변수 | `job_id` |
+| 성공 응답 | `200 OK` |
+
+```bash
+curl "$S4S_BASE_URL/v1/ingest/jobs/ingest-01J.../documents" \
+  -H "Authorization: Bearer $S4S_API_KEY"
+```
+
+```json
+{
+  "items": [
+    {"document_id": "dapi_58c840a7d2f0", "status": "completed", "active_stages": []}
+  ],
+  "count": 1
+}
+```
+
+작업이 없으면 `404`, 실행 백엔드 연결 실패는 `503`입니다.
+
+</details>
+
+<details id="api-ingest-retry">
+<summary><strong>인덱싱 재시도</strong></summary>
+
+`failed` 또는 `canceled` 상태의 작업을 다시 실행합니다. 요청 본문은 없습니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `POST /v1/ingest/jobs/{job_id}/retry` |
+| 인증 | API key |
+| 성공 응답 | `202 Accepted` |
+
+```bash
+curl -X POST "$S4S_BASE_URL/v1/ingest/jobs/ingest-01J.../retry" \
+  -H "Authorization: Bearer $S4S_API_KEY"
+```
+
+응답 형식은 [인덱싱 작업 상태](#api-ingest-get)와 같습니다. 재시도할 수 없는 상태는 `409`, 없는 작업은 `404`, 실행 백엔드 연결 실패는 `503`입니다.
+
+</details>
+
+<details id="api-ingest-cancel">
+<summary><strong>인덱싱 취소</strong></summary>
+
+`running` 상태의 작업에 취소를 요청합니다. 요청 본문은 없습니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `POST /v1/ingest/jobs/{job_id}/cancel` |
+| 인증 | API key |
+| 성공 응답 | `202 Accepted` |
+
+```bash
+curl -X POST "$S4S_BASE_URL/v1/ingest/jobs/ingest-01J.../cancel" \
+  -H "Authorization: Bearer $S4S_API_KEY"
+```
+
+```json
+{
+  "job_id": "ingest-01J...",
+  "status": "cancel_requested",
+  "document_ids": ["dapi_58c840a7d2f0"]
+}
+```
+
+취소할 수 없는 상태는 `409`, 없는 작업은 `404`, 실행 백엔드 연결 실패는 `503`입니다.
+
+</details>
+
+### 검색
+
+<details id="api-search">
+<summary><strong>문서 검색</strong></summary>
+
+서버에 설정된 임베딩 모델로 질의를 벡터화하고 OpenSearch에서 관련 원문을 검색합니다. 답변은 생성하지 않습니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `POST /v1/search` |
+| 인증 | API key |
+| Content-Type | `application/json` |
+| 성공 응답 | `200 OK` |
+
+요청 헤더와 본문:
+
+| 위치 | 이름 | 필수 | 설명 |
+|---|---|---|---|
+| 헤더 | `X-Request-ID` | 아니요 | 로그 추적용 요청 ID |
+| 본문 | `query` | 예 | 빈 문자열이 아닌 검색 질의 |
+| 본문 | `query_id` | 아니요 | 호출자가 지정하는 질의 ID |
+
+```bash
+curl -X POST "$S4S_BASE_URL/v1/search" \
+  -H "Authorization: Bearer $S4S_API_KEY" \
+  -H 'Content-Type: application/json' \
+  -H 'X-Request-ID: example-search-001' \
+  -d '{"query":"보호구 착용 기준은 무엇인가요?","query_id":"q-001"}'
 ```
 
 ```json
@@ -268,168 +776,114 @@ HTTP/1.1 200 OK
   "object": "search.result",
   "search_results": [
     {
-      "unit_id": "ruf_43626fd2205a5c8bb5e30acd",
-      "doc_id": "d001843_0aa8cde082",
-      "score": 0.030886196,
-      "content": [
-        {
-          "type": "text",
-          "text": "위험성평가의 목적은 사업장 내 유해·위험요인을 찾아내는 것입니다."
-        }
-      ],
+      "unit_id": "dapi_58c840a7d2f0:p3:b12",
+      "doc_id": "dapi_58c840a7d2f0",
+      "score": 0.87,
+      "content": [{"type": "text", "text": "작업자는 지정된 보호구를 착용해야 합니다."}],
       "grounding": {
-        "source_uri": "/v1/document-page?document_id=d001843_0aa8cde082&unit_id=ruf_43626fd2205a5c8bb5e30acd&page=5",
-        "source_display_name": "d001843_0aa8cde082"
+        "source_uri": "/v1/document-page?document_id=dapi_58c840a7d2f0&page=3",
+        "source_display_name": "safety-guide.pdf"
       }
     }
   ],
-  "count": 10,
+  "count": 1,
   "retrieval_index": "s4s-current"
 }
 ```
 
-검색 결과에서 화면에 표시할 본문은 `content[].text`, 문서 ID는 `doc_id`, 원문 연결은
-`grounding.source_uri`를 사용합니다.
+잘못된 요청은 `422`, 검색 또는 모델 호출 실패는 `502`, 필수 서비스 미구성은 `503`을 반환할 수 있습니다.
 
-## 근거가 포함된 답변
+</details>
 
-**요청** `POST /v1/responses` · **Content-Type** `application/json`
+### 답변
 
-검색 결과를 바탕으로 답변을 생성하고, 답변에 사용한 원문 ID를 함께 반환합니다.
+<details id="api-responses">
+<summary><strong>근거 기반 답변 생성</strong></summary>
+
+문서를 검색한 뒤 설정된 LLM으로 답변을 생성하고 사용한 근거를 함께 반환합니다.
+
+| 항목 | 값 |
+|---|---|
+| HTTP 요청 | `POST /v1/responses` |
+| 인증 | API key |
+| Content-Type | `application/json` |
+| 성공 응답 | `200 OK` |
+
+요청 헤더와 본문:
+
+| 위치 | 이름 | 필수 | 설명 |
+|---|---|---|---|
+| 헤더 | `X-Request-ID` | 아니요 | 로그 추적용 요청 ID. 생략하면 서버가 생성합니다. |
+| 본문 | `query` | 예 | 빈 문자열이 아닌 질문 |
+| 본문 | `query_id` | 아니요 | 호출자가 지정하는 질의 ID |
+| 본문 | `stream` | 아니요 | `true`이면 SSE 이벤트로 응답합니다. 기본값은 `false`입니다. |
+
+일반 응답:
 
 ```bash
-curl --fail-with-body "$S4S_BASE_URL/v1/responses" \
-  -H 'Content-Type: application/json' \
+curl -X POST "$S4S_BASE_URL/v1/responses" \
   -H "Authorization: Bearer $S4S_API_KEY" \
-  -H 'X-Request-ID: response-001' \
-  -d '{
-    "query": "위험성평가의 목적은 무엇인가요?",
-    "stream": false
-  }'
+  -H 'Content-Type: application/json' \
+  -d '{"query":"보호구 착용 기준은 무엇인가요?","query_id":"q-001","stream":false}'
 ```
-
-| 필드 | 필수 | 설명 |
-|---|---:|---|
-| `query` | 예 | 답변할 질문입니다. |
-| `query_id` | 아니요 | 호출 시스템에서 관리하는 질의 ID입니다. |
-| `stream` | 아니요 | `false`이면 JSON, `true`이면 SSE로 응답합니다. 기본값은 `false`입니다. |
-
-### 성공 응답
 
 ```json
 {
-  "id": "response-001",
+  "id": "resp_01J...",
   "object": "response",
   "status": "completed",
-  "answer": "위험성평가의 목적은 사업주와 근로자가 함께 유해·위험요인을 찾아 산업재해를 예방하는 것입니다. [ruf_43626fd2205a5c8bb5e30acd]",
-  "citations": [
-    {
-      "unit_id": "ruf_43626fd2205a5c8bb5e30acd"
-    }
-  ],
+  "answer": "작업자는 작업 유형에 맞게 지정된 보호구를 착용해야 합니다.",
+  "citations": [{"unit_id": "dapi_58c840a7d2f0:p3:b12"}],
   "insufficient_evidence": false,
-  "search_results": [
-    {
-      "unit_id": "ruf_43626fd2205a5c8bb5e30acd",
-      "doc_id": "d001843_0aa8cde082",
-      "grounding": {
-        "source_uri": "/v1/document-page?document_id=d001843_0aa8cde082&unit_id=ruf_43626fd2205a5c8bb5e30acd&page=5"
-      },
-      "answer_used": true
-    }
-  ]
+  "search_results": []
 }
 ```
 
-`answer`의 대괄호 ID와 `citations[].unit_id`가 일치합니다. 원문 위치와 문서 정보는 같은
-응답의 `search_results`에서 찾습니다. 근거가 부족하면 `insufficient_evidence`가
-`true`로 반환됩니다.
-
-### SSE 응답
-
-실시간 작업 상태가 필요하면 `stream`을 `true`로 지정합니다.
+SSE 응답:
 
 ```bash
-curl -N "$S4S_BASE_URL/v1/responses" \
+curl -N -X POST "$S4S_BASE_URL/v1/responses" \
+  -H "Authorization: Bearer $S4S_API_KEY" \
   -H 'Content-Type: application/json' \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  -d '{"query":"위험성평가의 목적은 무엇인가요?","stream":true}'
+  -d '{"query":"보호구 착용 기준은 무엇인가요?","stream":true}'
 ```
 
-서버는 `response.created` 뒤에 `response.completed` 또는 `response.failed`를 보내고,
-마지막에 `done` 이벤트를 보냅니다. 현재 답변은 검증이 끝난 뒤 한 번에 전달되며 토큰
-단위 스트리밍은 제공하지 않습니다.
+서버는 `response.created` 뒤에 `response.completed` 또는 `response.failed` 이벤트를 보내고 마지막에 `done`을 보냅니다. 현재 스트리밍은 토큰 단위 출력이 아니라 처리 상태와 최종 응답을 전달합니다.
 
-## 문서 관리 화면에 연결할 때
+잘못된 요청은 `422`, 검색 또는 LLM 호출 실패는 `502`, 필수 서비스 미구성은 `503`을 반환할 수 있습니다.
 
-문서 목록과 단계별 결과는 같은 API 서버에서 조회합니다.
+</details>
 
-```bash
-# 문서 목록
-curl --fail-with-body \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  "$S4S_BASE_URL/v1/documents?q=위험성평가&page=1&page_size=20"
+## 공통 오류
 
-# 문서 상세
-curl --fail-with-body \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  "$S4S_BASE_URL/v1/documents/<document_id>"
+오류 응답은 HTTP 상태 코드와 함께 원인을 설명하는 `detail` 필드를 반환합니다.
 
-# 파싱·메타데이터·지식그래프·검색표현 결과
-curl --fail-with-body \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  "$S4S_BASE_URL/v1/document-pipeline?document_id=<document_id>"
-
-# 원본 PDF
-curl --fail-with-body \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  "$S4S_BASE_URL/v1/document-file?document_id=<document_id>" \
-  -o document.pdf
-```
-
-사용자가 입력한 관리용 메타데이터는 다음 요청으로 저장합니다. 인덱싱 결과인 메타데이터,
-IDR과 지식그래프는 이 API로 수정할 수 없습니다.
-
-```bash
-curl --fail-with-body "$S4S_BASE_URL/v1/documents/<document_id>" \
-  -X PATCH \
-  -H 'Content-Type: application/json' \
-  -H "Authorization: Bearer $S4S_API_KEY" \
-  -d '{"metadata":{"owner":"안전팀","retention":"5y"}}'
-```
-
-문서를 현재 문서 DB, 지식그래프와 검색 인덱스에서 삭제하려면 다음 요청을 사용합니다.
-
-```bash
-curl --fail-with-body "$S4S_BASE_URL/v1/documents/<document_id>" \
-  -X DELETE \
-  -H "Authorization: Bearer $S4S_API_KEY"
-```
-
-성공하면 응답 본문 없이 `204 No Content`를 반환합니다.
-
-## 오류 응답
-
-오류는 `detail` 필드가 있는 JSON으로 반환됩니다.
+| 상태 | 의미 | 확인할 항목 |
+|---|---|---|
+| `401 Unauthorized` | 인증 실패 | API 키와 인증 헤더 형식을 확인합니다. |
+| `404 Not Found` | 문서, 작업 또는 산출물을 찾지 못함 | ID와 연결된 DB·원본 파일·인덱스를 확인합니다. |
+| `409 Conflict` | 현재 상태에서 요청을 수행할 수 없음 | 멱등 키 또는 작업 상태를 확인합니다. |
+| `413 Content Too Large` | 업로드 파일이 비어 있거나 제한을 초과함 | 파일과 서버 업로드 제한을 확인합니다. |
+| `415 Unsupported Media Type` | 지원하지 않는 업로드 형식 | 문서 등록 API에는 PDF 바이너리를 전송합니다. |
+| `422 Unprocessable Entity` | 경로, 쿼리 또는 본문 검증 실패 | Swagger/OpenAPI 스키마와 요청 값을 비교합니다. |
+| `502 Bad Gateway` | 검색·모델·저장소 호출 실패 | OpenSearch 및 모델 서비스 상태를 확인합니다. |
+| `503 Service Unavailable` | 필수 서비스가 구성되지 않았거나 연결 불가 | DB, OpenSearch, Temporal 및 모델 설정을 확인합니다. |
 
 ```json
-{
-  "detail": "document is unavailable"
-}
+{"detail":"Document is not available: dapi_58c840a7d2f0"}
 ```
 
-| HTTP 상태 | 확인할 내용 |
-|---:|---|
-| `401` | API 키가 설정된 서버에 인증 헤더를 보내지 않았거나 값이 다릅니다. |
-| `404` | 문서 ID 또는 작업 ID가 없거나 원본 파일에 접근할 수 없습니다. |
-| `409` | 같은 중복 방지 키로 다른 요청을 보냈거나 현재 상태에서 재시도·취소할 수 없습니다. |
-| `413` | PDF가 서버의 업로드 크기 제한을 넘었습니다. |
-| `415` | 파일이 PDF가 아니거나 `Content-Type`이 `application/pdf`가 아닙니다. |
-| `422` | 필수 필드, 문서 ID, PDF 또는 요청 형식이 올바르지 않습니다. |
-| `502` | 연결된 OpenSearch 등 외부 저장소가 요청을 거부했습니다. |
-| `503` | 문서 API, Temporal, 모델 서버 또는 검색 설정이 준비되지 않았습니다. |
+## 이전 경로
 
-전체 경로와 요청 형식은 실행 중인 서버의 `/docs` 또는 `/openapi.json`을 기준으로 합니다.
-`/api/documents/*`, `/chatkit`, MinerU worker API는 제품 내부 연결용이므로 새 연동에서는
-`/v1/*` API를 사용합니다. 기존 `/v1/response`는 호환용이며 신규 코드는
-`/v1/responses`를 사용합니다.
+<details id="legacy-paths">
+<summary><strong>이전 클라이언트에서 사용하는 경로</strong></summary>
+
+새 연동에서는 아래 경로를 사용하지 않습니다. 기존 클라이언트를 단계적으로 전환할 때만 참고합니다.
+
+| 이전 경로 | 현재 경로 | 비고 |
+|---|---|---|
+| `GET /v1/health` | `GET /health/ready` | 준비 상태 확인 경로로 교체합니다. |
+| `POST /v1/response` | `POST /v1/responses` | 이전 응답에는 폐기 예정 헤더와 후속 경로 링크가 포함됩니다. |
+| `GET /v1/source-pdf` | `GET /v1/document-file` | 현재 원본 문서 조회 경로로 교체합니다. |
+
+</details>
