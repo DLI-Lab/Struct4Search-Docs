@@ -5,7 +5,7 @@ title: API Reference
 
 # API Reference
 
-Struct4Search API는 PDF를 등록하고 인덱싱한 뒤, 같은 인덱스에서 문서를 검색하거나
+Struct4Search API는 문서를 등록하고 인덱싱한 뒤, 같은 인덱스에서 문서를 검색하거나
 근거가 포함된 답변을 받는 데 사용합니다. 설치가 끝난 개발자는 이 페이지의 명령을
 그대로 실행하면 됩니다. 설치가 필요하면 먼저 [설치와 첫 실행](../quickstart.md)을
 참고합니다.
@@ -71,7 +71,7 @@ curl --fail "$S4S_BASE_URL/health/ready"
 }
 ```
 
-## PDF 등록
+## 문서 등록
 
 **요청** `POST /v1/documents` · **Content-Type** `application/pdf`
 
