@@ -32,15 +32,17 @@ flowchart LR
 
 ## 단계별 입력과 출력
 
-| 단계 | 입력 | 출력 |
-|---|---|---|
-| [문서 파싱](parsing.md) | PDF | IDR |
-| [원문 청킹](chunking.md) | IDR | 원문 청크 |
-| [NER](ner.md) | IDR | 엔티티 언급과 유형 |
-| [Metadata 생성](metadata.md) | 원문 청크 | 18종 Metadata |
-| [KG 구축](triple-kg.md) | 원문 청크 + 엔티티 | Triple과 문서 지식그래프 |
-| [검색표현 생성](retrieval-text.md) | 지식그래프 + Metadata | 검색표현 |
-| [인덱싱](opensearch.md) | 원문 청크 + 검색표현 | OpenSearch 검색 단위 |
+| 단계 | 입력 | 출력 | 현재 모델 |
+|---|---|---|---|
+| [문서 파싱](parsing.md) | PDF | IDR | 디지털 페이지: PyMuPDF4LLM(모델 미사용)<br />스캔·복합 페이지: MinerU2.5-Pro-2605 |
+| [원문 청킹](chunking.md) | IDR | 원문 청크 | 모델 미사용 (`nlpai-lab/KURE-v1` tokenizer) |
+| [NER](ner.md) | IDR | 엔티티 언급과 유형 | `urchade/gliner_multi-v2.1` |
+| [Metadata 생성](metadata.md) | 원문 청크 | 18종 Metadata | `Qwen/Qwen3-14B` |
+| [KG 구축](triple-kg.md) | 원문 청크 + 엔티티 | Triple과 문서 지식그래프 | `Qwen/Qwen3-14B` |
+| [검색표현 생성](retrieval-text.md) | 지식그래프 + Metadata | 검색표현 | `Qwen/Qwen3-14B` |
+| [인덱싱](opensearch.md) | 원문 청크 + 검색표현 | OpenSearch 검색 단위 | `Qwen/Qwen3-Embedding-8B` |
+
+현재 모델은 Struct4Search `Master`의 production profile 기준입니다. profile을 바꾸면 단계별 모델도 함께 바뀝니다.
 
 ## 검색 단위가 두 종류인 이유
 
