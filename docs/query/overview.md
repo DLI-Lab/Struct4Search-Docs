@@ -37,10 +37,10 @@ BM25 검색, Dense 검색, RRF 통합은 모두 **OpenSearch 안에서** 끝납�
 | [RRF 통합](rrf.md) | 두 채널의 후보 | Top-30 후보 | OpenSearch | Native RRF search pipeline(모델 미사용) |
 | [검색 결과 점수 통합](score-integration.md) | Top-30 후보 | Top-10 원문 청크 | Struct4Search 애플리케이션 | 검색표현 점수 전달 + Max Score + Top-10 선정(모델 미사용) |
 | [LLM Context 구성](context.md) | Top-10 원문 청크 | 시스템 프롬프트 + 질의 + 근거 | Struct4Search 애플리케이션 | Context와 JSON Schema 구성(모델 미사용) |
-| [답변과 출처 표기](structured-answer.md) | Context | `claims` | LLM | `Qwen/Qwen3-14B`가 답변 claim과 인용할 원문 청크 ID 생성 |
+| [답변과 출처 표기](structured-answer.md) | Context | `claims` | LLM | 기본: `Qwen/Qwen3-14B`<br />교체 가능: `gpt-5.6-luna` · `gpt-5.6-terra` · `gpt-5.6-sol`<br />선택한 LLM이 답변 claim과 인용할 원문 청크 ID 생성 |
 | [답변 후처리 및 원본 출처 연결](citations.md) | `claims` | 답변과 출처 링크 | Struct4Search 애플리케이션 | Citation 검증·번호 부여·원본 PDF 페이지 연결(모델 미사용) |
 
-현재 모델은 Struct4Search `Master`의 production profile 기준입니다. profile을 바꾸면 Embedding 모델과 답변 LLM도 함께 바뀝니다.
+기본 모델은 Struct4Search `Master`의 production profile 기준입니다. LLM 모델은 profile에서 한 번 선택하며 인덱싱의 생성 단계와 답변에 동일하게 적용됩니다.
 
 후보 수가 줄어드는 순서가 이 파이프라인의 골격입니다. 채널별 깊이 50에서 시작해 통합 후보 30건, 최종 근거 10건으로 좁아집니다.
 
