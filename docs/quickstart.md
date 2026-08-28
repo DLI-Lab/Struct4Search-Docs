@@ -60,7 +60,7 @@ curl --fail http://127.0.0.1:3100/v1/health
 curl --fail \
   --header 'Content-Type: application/json' \
   --data '{"query":"안전모를 착용한다.","query_id":"q001"}' \
-  http://127.0.0.1:3100/v1/response
+  http://127.0.0.1:3100/v1/responses
 ```
 
 다음 세 가지를 확인하면 CPU-only 첫 실행이 완료됩니다.

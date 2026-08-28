@@ -39,7 +39,8 @@ title: 모델 사용 위치
 
 | 프로세스 | API | 필요한 모델 | 비고 |
 |---|---|---|---|
-| `struct4search-api` | `POST /v1/response` | `Qwen/Qwen3-Embedding-8B`, `Qwen/Qwen3-14B` | `configs/production.yaml` 기준. `--fixture-results`로 실행하면 모델을 호출하지 않음 |
+| `struct4search-api` | `POST /v1/search` | `Qwen/Qwen3-Embedding-8B` | 색인과 같은 profile의 질의 Embedding·Hybrid/RRF만 실행하고 Reader는 호출하지 않음 |
+| `struct4search-api` | `POST /v1/responses`, `POST /v1/response` | `Qwen/Qwen3-Embedding-8B`, `Qwen/Qwen3-14B` | `/v1/response`는 호환 alias. `--fixture-results`이면 모델을 호출하지 않음 |
 | Restored snapshot API | `POST /v1/response` | `Qwen/Qwen3-Embedding-8B`, `gpt-5.6-luna` | 기본 `configs/mac-dump-gpt.yaml` 기준. Embedding은 복원한 벡터와 같은 모델을 사용하고 Reader만 hosted GPT를 사용 |
 | Full-corpus answer bridge | `POST /v1/response` | `Qwen/Qwen3-Embedding-8B`, `Qwen/Qwen3-14B` | Embedding service가 없으면 BM25로 검색을 계속하지만, 답변 생성에는 Reader가 필요 |
 | ChatKit adapter | `POST /chatkit` | 연결된 `/v1/response` API의 Embedding·Reader | ChatKit이 모델을 직접 로드하지 않고 `S4S_RESPONSE_URL`로 질의를 전달 |

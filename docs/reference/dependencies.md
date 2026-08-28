@@ -157,6 +157,10 @@ model ID만 바꾸면 snapshot이 자동으로 다운로드되는 구조가 아�
 | `S4S_OPENSEARCH_HOME` · `S4S_OPENSEARCH_CONFIG` | host-managed OpenSearch 경로 |
 | `S4S_ARTIFACT_PRODUCTION_ROOT` · `S4S_ARTIFACT_EVALUATION_ROOT` · `S4S_ARTIFACT_TEST_FIXTURE_ROOT` · `S4S_ARTIFACT_CONTROL_ROOT` | artifact 경로 |
 | `S4S_KG_DSN` · `S4S_DOCUMENT_DSN` | KG와 document metadata PostgreSQL 연결 |
+| `S4S_DOCUMENT_API_URL` | `struct4search-api`가 연결할 현재 문서 service URL |
+| `S4S_DOCUMENT_UPLOAD_ROOT` | API가 업로드 원본을 소유·저장할 server directory |
+| `S4S_DOCUMENT_MAX_UPLOAD_BYTES` | PDF upload 최대 bytes. 기본 250 MiB |
+| `S4S_API_KEY` | 설정한 경우 공개 API Bearer·`X-API-Key` 인증에 사용 |
 | `S4S_REPOSITORY_ROOT` | wheel 설치 후 checkout을 찾을 때 사용할 저장소 경로 |
 | `OPENAI_API_KEY` | OpenAI provider를 선택한 profile에서만 사용 |
 
