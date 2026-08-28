@@ -9,14 +9,14 @@ title: 모델 사용 위치
 
 ## 현재 production 모델
 
-| 용도 | 모델 | 고정 버전·위치 |
-|---|---|---|
-| 스캔·복합 PDF 파싱 | MinerU2.5-Pro-2605 | 모델 위치는 `S4S_MINERU_MODEL_ROOT`, processor(전처리기)는 `opendatalab/MinerU2.5-Pro-2605-1.2B` revision `bff20d4ae2bf202df9f45284b4d43681555a97ed` |
-| Entity 추출 | `urchade/gliner_multi-v2.1` | revision `443d26d654e0324125a96bebd8e796c14ff2efe6` |
-| Metadata·Triple·동일 Entity 이름 검증·검색표현 생성 | `Qwen/Qwen3-14B` | revision `40c069824f4251a91eefaf281ebe4c544efd3e18` |
-| 원문·검색표현·질의 Embedding | `Qwen/Qwen3-Embedding-8B` | revision `1d8ad4ca9b3dd8059ad90a75d4983776a23d44af` |
-| 답변 Reader | `Qwen/Qwen3-14B` | production profile 기준. 복원 스냅샷 profile은 `gpt-5.6-luna` 사용 |
-| 청킹 토큰 계산 | `nlpai-lab/KURE-v1` tokenizer | revision `d14c8a9423946e268a0c9952fecf3a7aabd73bd9`. 모델 추론은 하지 않음 |
+| 용도 | 현재 모델 |
+|---|---|
+| 스캔·복합 PDF 파싱 | MinerU2.5-Pro-2605 |
+| Entity 추출 | `urchade/gliner_multi-v2.1` |
+| Metadata·Triple·동일 Entity 이름 검증·검색표현 생성 | `Qwen/Qwen3-14B` |
+| 원문·검색표현·질의 Embedding | `Qwen/Qwen3-Embedding-8B` |
+| 답변 생성 | `Qwen/Qwen3-14B` |
+| 청킹 토큰 계산 | `nlpai-lab/KURE-v1` tokenizer |
 
 ## 단계별 모델 호출
 
