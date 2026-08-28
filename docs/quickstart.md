@@ -143,9 +143,11 @@ cp .env.example .env
 ```bash
 struct4search-env
 struct4search-preflight
+struct4search-bootstrap --profile configs/production.yaml
 ```
 
 `struct4search-preflight`가 non-zero이면 메시지에 나온 GPU process, port, disk 또는 OpenSearch write block을 해결한 뒤 진행합니다. 점검 실패 상태에서 인덱싱을 시작하지 않습니다.
+`struct4search-bootstrap`은 profile에 고정된 Native RRF 검색 파이프라인만 멱등 생성·검증하며, 기존 index·alias·문서는 변경하지 않습니다.
 
 ### 3. 문서 한 건 인덱싱
 

@@ -20,13 +20,20 @@ export S4S_KG_DSN='postgresql://...'
 # 외부에 노출할 때만 설정합니다. 설정하면 health와 OpenAPI 이외 요청에 인증이 필요합니다.
 export S4S_API_KEY='충분히-긴-임의-값'
 
+struct4search-bootstrap --stack configs/services/local-stack.yaml
 struct4search-stack --stack configs/services/local-stack.yaml up
 ```
+
+`struct4search-bootstrap`은 profile에 고정된 OpenSearch Native RRF 검색 파이프라인을
+없을 때만 생성하고, 이미 있으면 hash가 같은지 확인합니다. 기존 index·alias·문서는
+변경하지 않습니다. 배포 설정을 점검만 할 때는 `--check`를 추가합니다.
 
 API만 직접 실행할 때는 문서 backend URL을 함께 지정해야 문서 API가 `503` 대신
 현재 PostgreSQL·OpenSearch 데이터를 반환합니다.
 
 ```bash
+struct4search-bootstrap --profile configs/production.yaml
+
 struct4search-api \
   --profile configs/production.yaml \
   --document-api-url http://127.0.0.1:8214 \
