@@ -65,7 +65,7 @@ user     질문: {질의}
 
 ## 환경변수
 
-| 환경변수 | 기본값 | 의미 |
+| profile key | 현재 production 값 | 의미 |
 |---|---|---|
 | `query.reader.generation.`<br />`context_window_tokens` | `16384` | 답변 모델이 한 번에 처리할 수 있는 전체 Context 토큰 수 |
 | `query.reader.generation.`<br />`generation_boundary_tokens` | `4` | 입력과 출력 사이에 확보하는 토큰 범위 |

@@ -33,6 +33,21 @@ title: 설정 수정
 
 잘못된 설정이 그대로 실행되지 않도록 시작 단계에서 확인합니다.
 
+수정한 최상위 profile이 외부 서비스를 시작하기 전에 정상적으로 조립되는지 확인합니다.
+
+```bash
+python - <<'PY'
+from pathlib import Path
+from struct4search.config.profiles import load_resolved_profile
+
+profile = load_resolved_profile(Path("configs/production.yaml"))
+print(profile.profile_id, profile.snapshot.sha256)
+PY
+python -m pytest -q tests/unit/config
+```
+
+새 실행 profile을 만들 때는 `production.yaml`을 복사해 값을 중복하지 않고 `extends: production.yaml`로 상속한 뒤 바꿀 값만 적습니다. 상속받지 않은 필수 설정이 빠지면 조립 단계에서 실행이 거부됩니다.
+
 ## 계산되는 값
 
 설정 파일에 직접 적지 않고 다른 설정으로부터 계산되는 값도 있습니다.

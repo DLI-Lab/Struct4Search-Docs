@@ -12,9 +12,9 @@ title: 모델 교체
 | 모델 | 쓰는 단계 | 주요 설정 위치 |
 |---|---|---|
 | MinerU | 스캔·복합 페이지 파싱 | `configs/services/cold-services.yaml` · `parser` |
-| GLiNER | NER | `configs/model-catalog.yaml` · `configs/production.yaml` · `ner` |
-| Ingest LLM | Metadata · Triple/KG · G2 검색표현 | `configs/model-catalog.yaml` · `configs/production.yaml` · `llm`, `triple`, `g2` |
-| 임베딩 모델 | 문서·검색표현·질의 임베딩 | `configs/model-catalog.yaml` · `configs/production.yaml` · `index` · `configs/services/cold-services.yaml` |
+| GLiNER | NER | `configs/model-catalog.yaml` · `configs/ingest-production.yaml` · `ner` |
+| Ingest LLM | Metadata · Triple/KG · G2 검색표현 | `configs/model-catalog.yaml` · `configs/ingest-production.yaml` · `llm`, `triple`, `g2` |
+| 임베딩 모델 | 문서·검색표현·질의 임베딩 | `configs/model-catalog.yaml` · `configs/ingest-production.yaml` · `index` · `configs/services/cold-services.yaml` |
 | Reader LLM | 최종 답변과 출처 표기 | `configs/production.yaml` · `query.reader` |
 
 파이프라인의 단계별 모델과 설정 시작점은 [모델 사용 위치](../reference/model-calls.md)에서 확인합니다.
@@ -27,19 +27,19 @@ LLM이나 임베딩 model 이름을 바꿔도 context 길이와 vector 차원은
 |---|---|---|
 | model ID·revision | 자동 아님 | `configs/model-catalog.yaml`. ID와 immutable revision을 함께 지정합니다. |
 | host의 model snapshot 경로 | 자동 아님 | `configs/machine-paths.yaml` 또는 허용된 `S4S_*` 환경변수. catalog model과 같은 snapshot을 가리켜야 합니다. |
-| `llm.context_tokens` | 자동 아님 | `configs/production.yaml`. 값을 정하면 local Qwen service의 `--max-model-len`에는 자동 전달됩니다. |
+| `llm.context_tokens` | 자동 아님 | `configs/ingest-production.yaml`. 값을 정하면 local Qwen service의 `--max-model-len`에는 자동 전달됩니다. |
 | `query.reader.generation.context_window_tokens` | 자동 아님 | `configs/production.yaml`. reader가 prompt와 답변 token budget을 계산할 때 사용합니다. 현재 local reader에서는 `llm.context_tokens`와 같아야 합니다. |
 | `query.reader.tokenizer` | 자동 아님 | `configs/production.yaml`. reader model과 같은 tokenizer를 명시합니다. |
 | embedding service 입력 길이 | 자동 아님 | `configs/services/cold-services.yaml`의 embedding service `--max-model-len`입니다. 현재 값은 `8192`입니다. |
-| `index.dimension` | 자동 아님 | `configs/production.yaml`. embedding 출력 차원과 같아야 하며 변경하면 새 OpenSearch index가 필요합니다. |
+| `index.dimension` | 자동 아님 | `configs/ingest-production.yaml`. embedding 출력 차원과 같아야 하며 변경하면 새 OpenSearch index가 필요합니다. |
 
 질의 embedding adapter에는 별도의 `query_vector context length` 환경변수가 없습니다. 질의 문자열을 `/v1/embeddings`로 보내며, 허용 입력 길이는 embedding service의 `--max-model-len`이 결정합니다. 따라서 embedding model을 교체할 때 service 입력 길이를 수동으로 검토합니다.
 
 ## 변경 절차
 
-1. `configs/model-catalog.yaml`에서 model ID와 immutable revision을 변경합니다.
+1. GLiNER, Ingest LLM, Embedding 또는 Reader를 바꾸면 `configs/model-catalog.yaml`에서 model ID와 immutable revision을 변경합니다. MinerU는 `configs/services/cold-services.yaml`과 host의 `S4S_MINERU_MODEL_ROOT`에서 모델 위치를 맞춥니다.
 2. `configs/machine-paths.yaml` 또는 `.env`의 허용된 `S4S_*` 값이 같은 snapshot을 가리키도록 합니다.
-3. `configs/production.yaml`에서 model name, endpoint, tokenizer, context 길이, 출력 길이와 vector 차원을 검토합니다.
+3. 인덱싱 모델은 `configs/ingest-production.yaml`, Reader는 `configs/production.yaml`에서 model name, endpoint, tokenizer, context 길이, 출력 길이와 vector 차원을 검토합니다.
 4. local service를 직접 실행한다면 `configs/services/cold-services.yaml`의 model 경로, `--max-model-len`, GPU와 memory 설정을 함께 변경합니다.
 5. 아래 재실행 범위에 따라 기존 실행과 분리된 output·index에서 한 문서 E2E를 실행합니다.
 6. 검색 또는 답변에 영향을 주는 교체는 QA 평가까지 다시 확인합니다.
@@ -50,7 +50,7 @@ profile과 service가 다른 model·context 길이를 가리키면 시작 단계
 
 ### MinerU
 
-MinerU 교체는 스캔·복합 페이지의 파싱 결과를 바꿉니다. 이후 Canonical IDR와 인덱싱 결과를 다시 생성합니다. 디지털 PDF의 pdf4LLM 처리에는 MinerU가 사용되지 않습니다.
+MinerU는 현재 model catalog가 아니라 service 설정과 host별 모델 경로로 선택합니다. MinerU 교체는 스캔·복합 페이지의 파싱 결과를 바꾸므로 이후 Canonical IDR와 인덱싱 결과를 다시 생성합니다. 디지털 PDF의 pdf4LLM 처리에는 MinerU가 사용되지 않습니다.
 
 ### GLiNER
 

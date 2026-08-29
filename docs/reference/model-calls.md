@@ -25,11 +25,11 @@ title: 모델 사용 위치
 | [문서 파싱](../indexing/parsing.md) | MinerU2.5-Pro-2605 | 스캔·복합 PDF 페이지를 분석 | 별도 GPU service | `parser.*` |
 | [NER](../indexing/ner.md) | `urchade/gliner_multi-v2.1` | 원문에서 Entity를 추출 | ingest process | `ner.*` |
 | [Metadata 생성](../indexing/metadata.md) | `Qwen/Qwen3-14B` | 문서 Metadata를 생성 | 별도 LLM service | `llm.*`, `g2.metadata_*` |
-| [KG 구축](../indexing/triple-kg.md) | `Qwen/Qwen3-14B` | Entity 관계를 Triple로 생성하고 alias를 검증 | 별도 LLM service | `llm.*`, `triple.*` |
+| [KG 구축](../indexing/triple-kg.md) | `Qwen/Qwen3-14B` | Entity 관계를 Triple로 생성하고 같은 개체를 가리키는 이름인지 검증 | 별도 LLM service | `llm.*`, `triple.*` |
 | [검색표현 생성](../indexing/retrieval-text.md) | `Qwen/Qwen3-14B` | Metadata와 KG에서 검색용 문장을 생성 | 별도 LLM service | `llm.*`, `g2.*` |
 | [인덱싱](../indexing/opensearch.md) | `Qwen/Qwen3-Embedding-8B` | 원문·검색표현을 벡터로 변환 | 별도 embedding service | `index.embedding_*` |
 | [질의 처리](../query/request.md) | `Qwen/Qwen3-Embedding-8B` | 사용자 질의를 벡터로 변환 | 별도 embedding service | `index.embedding_*` |
-| [답변과 출처 표기](../query/structured-answer.md) | `Qwen/Qwen3-14B` | 검색 근거로 답변과 Citation을 생성 | local LLM service | `query.reader.*` |
+| [답변과 출처 표기](../query/structured-answer.md) | `Qwen/Qwen3-14B` | 검색 근거로 답변과 Citation을 생성 | 선택한 Reader service | `query.reader.*` |
 
 디지털 PDF 파싱은 `pymupdf4llm`, 원문 청킹은 KURE tokenizer만 사용합니다. Hybrid 검색, RRF 통합, 검색 결과 후처리와 Citation 정리는 모델을 호출하지 않습니다.
 
@@ -40,10 +40,10 @@ title: 모델 사용 위치
 | 프로세스 | API | 필요한 모델 | 비고 |
 |---|---|---|---|
 | `struct4search-api` | `POST /v1/search` | `Qwen/Qwen3-Embedding-8B` | 색인과 같은 profile의 질의 Embedding·Hybrid/RRF만 실행하고 Reader는 호출하지 않음 |
-| `struct4search-api` | `POST /v1/responses`, `POST /v1/response` | `Qwen/Qwen3-Embedding-8B`, `Qwen/Qwen3-14B` | `/v1/response`는 호환 alias. `--fixture-results`이면 모델을 호출하지 않음 |
-| Restored snapshot API | `POST /v1/response` | `Qwen/Qwen3-Embedding-8B`, `gpt-5.6-luna` | 기본 `configs/mac-dump-gpt.yaml` 기준. Embedding은 복원한 벡터와 같은 모델을 사용하고 Reader만 hosted GPT를 사용 |
-| Full-corpus answer bridge | `POST /v1/response` | `Qwen/Qwen3-Embedding-8B`, `Qwen/Qwen3-14B` | Embedding service가 없으면 BM25로 검색을 계속하지만, 답변 생성에는 Reader가 필요 |
-| ChatKit adapter | `POST /chatkit` | 연결된 `/v1/response` API의 Embedding·Reader | ChatKit이 모델을 직접 로드하지 않고 `S4S_RESPONSE_URL`로 질의를 전달 |
+| `struct4search-api` | `POST /v1/responses` | `Qwen/Qwen3-Embedding-8B`, `Qwen/Qwen3-14B` | `--fixture-results`이면 모델을 호출하지 않음 |
+| Restored snapshot API | `POST /v1/responses` | `Qwen/Qwen3-Embedding-8B`, `gpt-5.6-luna` | 기본 `configs/mac-dump-gpt.yaml` 기준. Embedding은 복원한 벡터와 같은 모델을 사용하고 Reader만 hosted GPT를 사용 |
+| Full-corpus answer bridge | `POST /v1/responses` | `Qwen/Qwen3-Embedding-8B`, `Qwen/Qwen3-14B` | Embedding service가 없으면 BM25로 검색을 계속하지만, 답변 생성에는 Reader가 필요 |
+| ChatKit adapter | `POST /chatkit` | 연결된 `/v1/responses` API의 Embedding·Reader | ChatKit이 모델을 직접 로드하지 않고 `S4S_RESPONSE_URL`로 질의를 전달 |
 | MinerU parsing service | `POST /v1/two-step-extract`, `POST /v1/two-step-extract-batch` | MinerU2.5-Pro-2605 | 요청에 담긴 페이지 이미지를 GPU에서 분석 |
 
 다음 API는 요청을 처리할 때 모델 추론을 하지 않습니다.

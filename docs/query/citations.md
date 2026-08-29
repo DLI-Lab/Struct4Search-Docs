@@ -36,7 +36,7 @@ LLM이 반환한 인용을 검증하고, 인용된 원문 청크를 실제 문�
 [3] ruf_d65296e1e039f4e5c1a75527
     문서: d001756_64758782bc
     JPG p.1
-````
+```
 
 출처 하나는 다음과 같은 정보를 가집니다.
 
@@ -72,7 +72,7 @@ LLM이 반환한 인용을 검증하고, 인용된 원문 청크를 실제 문�
 
 ### 설정값
 
-| profile key                               | 기본값                                                                       | 의미               |
+| profile key                               | 현재 production 값                                                                       | 의미               |
 | ------------------------------------- | --------------------------------------------------------------------------- | ---------------- |
 | `query.citation_normalization_policy` | `stable_dedup_then_drop_rte_and_noncontext_then_drop_unsupported_claims_v1` | 인용을 검증하고 정리하는 정책 |
 

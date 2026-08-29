@@ -70,15 +70,15 @@ CPU-only 설치의 완료 조건은 `pip check`, 전체 비GPU 테스트, 예제
 
 ## GPU 개발환경
 
-### 필요한 소프트웨어와 모델 파일
+### 공통 요구사항
 
 | 소프트웨어 | 버전 | 기능 | 제공 방식 |
 |---|---|---|---|
 | Linux | vLLM이 지원하는 64-bit Linux | GPU 모델 service와 pipeline 실행 | host OS |
 | CPython | `3.12` | backend와 vLLM을 같은 interpreter 계열에서 실행 | OS package 또는 Python 배포판 |
-| NVIDIA GPU | vLLM 기준 compute capability `7.5+`; 현재 production service 파일은 GPU `0`, `1` 두 장을 전제 | MinerU, GLiNER, Qwen, embedding 실행 | physical device |
+| NVIDIA GPU | vLLM 기준 compute capability `7.5+` | MinerU, GLiNER, Qwen, embedding 실행 | physical device |
 | NVIDIA driver | 설치되는 Python CUDA runtime과 호환되는 버전; 저장소에서 driver를 pin하지 않음 | GPU device를 CUDA runtime에 제공 | OS kernel module/executable |
-| CUDA runtime | fresh 검증에서 `torch 2.11.0+cu130`이 제공한 CUDA `13.0` | PyTorch·vLLM kernel 실행 | PyPI wheel의 shared library |
+| CUDA runtime | 설치한 PyTorch·vLLM과 호환되는 버전. 저장소에서 CUDA 버전을 직접 pin하지 않음 | PyTorch·vLLM kernel 실행 | PyPI wheel의 shared library |
 | CUDA Toolkit | 일반 wheel 설치에는 별도 설치 불필요 | vLLM·PyTorch를 source build할 때만 compiler 제공 | 선택 OS package |
 | vLLM | `0.25.1` | Qwen reader/ingest LLM과 Qwen embedding의 OpenAI-compatible service | `requirements-gpu.txt`의 PyPI wheel |
 | mineru-vl-utils | `1.0.5` | MinerU 2.5 model input·output 처리 | `requirements-gpu.txt`의 PyPI package |
@@ -90,7 +90,9 @@ CPU-only 설치의 완료 조건은 `pip check`, 전체 비GPU 테스트, 예제
 | Docker Engine·Compose plugin | 저장소에서 version pin 없음; `docker compose` 명령 필요 | PostgreSQL·Temporal과 격리 service 실행 | executable binary/plugin |
 | Model snapshots | `configs/model-catalog.yaml`의 ID와 revision | offline·immutable model loading | host filesystem artifact |
 
-[vLLM 0.25.1 GPU 설치 문서](https://docs.vllm.ai/en/v0.25.1/getting_started/installation/gpu/)는 Linux, Python 3.10–3.13과 NVIDIA compute capability 7.5 이상을 요구합니다. Struct4Search는 이 범위 중 Python 3.12를 사용합니다.
+[vLLM 0.25.1 GPU 설치 문서](https://docs.vllm.ai/en/v0.25.1/getting_started/installation/gpu/)는 Linux, Python 3.10–3.13과 NVIDIA compute capability 7.5 이상을 요구합니다. Struct4Search는 이 범위 중 Python 3.12를 사용합니다. 마지막 설치 검증에서는 `torch 2.11.0+cu130`과 CUDA runtime `13.0`이 설치됐지만, 이는 설치 결과이며 저장소의 고정 요구사항은 아닙니다.
+
+### 현재 production profile 조건
 
 현재 `configs/services/cold-services.yaml`의 memory budget과 동시성은 약 96 GiB NVIDIA GPU 두 장을 사용한 production 구성에 맞춰져 있습니다. GPU 개수나 VRAM이 다르면 `CUDA_VISIBLE_DEVICES`, memory utilization, KV cache와 동시성을 그대로 사용하지 않습니다.
 
@@ -121,7 +123,7 @@ import vllm
 import mineru_vl_utils
 
 assert torch.cuda.is_available()
-assert torch.cuda.device_count() >= 2
+assert torch.cuda.device_count() >= 1
 x = torch.tensor([1.0, 2.0], device="cuda")
 assert float(x.sum().cpu()) == 3.0
 print({

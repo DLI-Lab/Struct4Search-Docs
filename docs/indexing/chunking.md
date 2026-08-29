@@ -24,7 +24,9 @@ title: 원문 청킹
   "token_count": 400,
   "page_indices": [2, 3]
 }
-````
+```
+
+내부 처리에서는 400토큰 청크를 `fc_*`로 기록하고, 검색에 저장하는 원문 단위를 `ruf_*`로 기록합니다. 두 ID는 한 문서 안에서 일대일로 연결됩니다.
 
 ID 종류와 의미는 [용어 사전](../reference/glossary.md#id)에서 설명합니다.
 
@@ -36,9 +38,9 @@ ID 종류와 의미는 [용어 사전](../reference/glossary.md#id)에서 설명
 
 오버랩은 청크 경계에서 문맥이 끊기는 것을 줄이기 위해 적용합니다.
 
-### 환경 변수
+### 현재 production 설정
 
-| 환경 변수                        | 현재 값                  | 의미              |
+| profile key                        | 현재 production 값                  | 의미              |
 | ------------------------- | --------------------- | --------------- |
 | `chunking.strategy`       | `fixed_400_overlap40` | 고정 길이 청킹 방식     |
 | `chunking.max_tokens`     | 400                   | 청크 하나의 최대 토큰 수  |
@@ -64,6 +66,6 @@ struct4search-ingest \
 
 | 확인할 내용 | 파일·심볼                                                 |
 | ------ | ----------------------------------------------------- |
-| 청킹 구현  | `backend/struct4search/ingest/stages/fixed_chunk.py`      |
-| 분할 로직  | `backend/struct4search/ingest/stages/fixed_chunk_core.py` |
-| 설정     | `configs/production.yaml` · `chunking`         |
+| 청킹 구현  | `backend/struct4search/ingest/stages/chunking/stage.py` · `FixedChunkRuntime` |
+| 분할 로직  | `backend/struct4search/ingest/stages/chunking/core.py` · `make_fixed_chunks` |
+| 설정     | `configs/ingest-production.yaml` · `chunking`         |

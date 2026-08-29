@@ -26,7 +26,7 @@ RRF Top-30에 포함된 검색표현을 연결된 원문 청크로 변환하고,
   "winner_retrieval_expression_id": "rte_2f257c9f73b098c121fe6e39",
   "winner_retrieval_expression_text": "온열질환 발생 시 ..."
 }
-````
+```
 
 **최종 순위는 원문 청크로만 구성됩니다.** 검색표현을 통해 발견된 원문 청크에는 해당 검색표현이 검색 경로 정보로 함께 기록됩니다. 직접 검색된 원문 청크에는 검색표현 정보가 붙지 않습니다.
 
@@ -75,7 +75,7 @@ RRF Top-30에 포함된 검색표현을 연결된 원문 청크로 변환하고,
 
 ## 설정값
 
-| profile key                               | 기본값 | 의미                    |
+| profile key                               | 현재 production 값 | 의미                    |
 | ------------------------------------- | ----- | --------------------- |
 | `query.native_rrf.final_source_top_k` | 10    | 최종 답변 근거로 사용할 원문 청크 수 |
 
@@ -102,5 +102,5 @@ RRF Top-30에 포함된 검색표현을 연결된 원문 청크로 변환하고,
 | ------------- | --------------------------------------------------------------------------------- |
 | 점수 전달         | `backend/struct4search/query/retrieval/projection.py` · `DefaultF400ProjectionPolicy` |
 | Max Score와 정렬 | `backend/struct4search/query/retrieval/max_score.py` · `DefaultMaxScorePolicy`        |
-| Top-10 선정     | `backend/struct4search/query/retrieval/top_k.py` · `MAX_FINAL_F400_TOP_K`             |
+| 최종 결과 선정     | `backend/struct4search/query/retrieval/top_k.py` · `DefaultTopKPolicy.select`             |
 | profile          | `configs/production.yaml` · `query.native_rrf.final_source_top_k`                 |

@@ -14,7 +14,7 @@ title: OpenSearch 인덱스 구조
 | `index.knn` | `true` | 벡터 검색 사용 |
 | `number_of_shards` | 1 | 샤드 수 |
 | `number_of_replicas` | 0 | 복제본 없음 |
-| `refresh_interval` | `-1` | 대량 색인 중 자동 refresh 비활성화 |
+| `refresh_interval` | 적재 중 `-1`, 완료 후 `1s` | 대량 적재 중 자동 refresh를 끄고 완료 시 다시 활성화 |
 
 ## 텍스트 분석기
 

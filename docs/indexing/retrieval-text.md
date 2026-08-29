@@ -58,7 +58,7 @@ Metadata는 검색표현의 문맥을 보강하는 데 사용됩니다. 검색�
 
 ## 환경변수
 
-| 환경변수 | 기본값 | 의미 |
+| profile key | 현재 production 값 | 의미 |
 |---|---|---|
 | `g2.selector` | `weighted_undirected_`<br />`pagerank` | 지식그래프에서 검색표현 생성에 사용할 핵심 주제를 선정하는 방식 |
 | `g2.grouping_policy` | `networkx_salience_`<br />`topic_proximity_`<br />`other_fallback` | 같은 주제를 설명하는 Triple을 어떤 기준으로 묶을지 결정하는 방식 |
@@ -94,7 +94,7 @@ struct4search-ingest \
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| 검색표현 생성 | `backend/struct4search/ingest/stages/retrieval_expression_core.py` |
-| 중요도와 Triple 묶기 | `backend/struct4search/ingest/stages/retrieval_expression_topology.py` · `weighted_undirected_pagerank` |
+| 검색표현 생성 | `backend/struct4search/ingest/stages/retrieval_expression/core.py` |
+| 중요도와 Triple 묶기 | `backend/struct4search/ingest/stages/retrieval_expression/topology.py` · `weighted_undirected_pagerank` |
 | 프롬프트 | `prompts/retrieval_expression/g2-system/v1.txt` · `prompts/retrieval_expression/g2-user/v1.txt` |
-| 설정 | `configs/production.yaml` · `g2` |
+| 설정 | `configs/ingest-production.yaml` · `g2` |

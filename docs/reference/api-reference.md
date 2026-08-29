@@ -11,33 +11,41 @@ Struct4Search API는 문서를 등록하고 인덱싱한 뒤, 같은 인덱스�
 
 ## 기본 정보
 
-| 항목 | 값 |
+| 실행 방식 | Base URL |
 |---|---|
-| Base URL | `http://127.0.0.1:8289` |
-| 인증 | `Authorization: Bearer $S4S_API_KEY` 또는 `X-API-Key: $S4S_API_KEY` |
-| JSON 요청 | `Content-Type: application/json` |
-| Swagger UI | `http://127.0.0.1:8289/docs` |
-| OpenAPI JSON | `http://127.0.0.1:8289/openapi.json` |
+| `struct4search-api` 직접 실행 | `http://127.0.0.1:3100` |
+| `configs/services/local-stack.yaml` | `http://127.0.0.1:8289` |
+| `struct4search-restored-snapshot-api` | `http://127.0.0.1:8289` |
+
+JSON 요청은 `Content-Type: application/json`을 사용합니다. 인증이 설정된 서버에는 `Authorization: Bearer $S4S_API_KEY` 또는 `X-API-Key: $S4S_API_KEY`를 보냅니다. 실행 중인 서버의 전체 요청·응답 스키마는 `/openapi.json`에서 확인합니다.
 
 `S4S_API_KEY`가 설정되지 않은 로컬 환경에서는 인증 헤더를 생략할 수 있습니다.
 아래 예제는 API 키가 설정된 환경을 기준으로 작성했습니다.
 
 ```bash
-export S4S_BASE_URL='http://127.0.0.1:8289'
+export S4S_BASE_URL='http://127.0.0.1:3100'
 export S4S_API_KEY='replace-with-your-api-key'
 ```
 
+### 사용 조건
+
+| API 묶음 | 사용 조건 |
+|---|---|
+| 상태·검색·답변 | `--profile` 또는 `--fixture-results`로 API 실행 |
+| 문서·frontend 호환 경로 | `--document-api-url`로 문서 조회 서비스를 연결. 연결하지 않으면 `503` |
+| 인덱싱 작업 | `--profile`, `--ingest-output-root`, `--ingest-services`를 함께 지정 |
+
 ## 전체 API 목록
 
-API는 개발자가 실제로 수행하는 작업을 기준으로 묶었습니다. API 이름을 누르면 요청,
-응답, 실행 예제와 오류 정보를 바로 확인할 수 있습니다.
+API는 수행하는 작업을 기준으로 묶었습니다. API 이름을 누른 뒤 이동한 상세 항목을 펼치면 요청, 응답, 실행 예제와 오류 정보를 확인할 수 있습니다.
 
 ### 서비스 상태
 
 | API | HTTP 요청 | 설명 |
 |---|---|---|
 | [실행 상태 확인](#api-health-live) | `GET /health/live` | API 프로세스가 실행 중인지 확인합니다. |
-| [준비 상태 확인](#api-health-ready) | `GET /health/ready` | 검색·답변 요청을 받을 준비가 됐는지 확인합니다. |
+| [준비 상태 확인](#api-health-ready) | `GET /health/ready` | 설정과 서비스 조립이 완료됐는지 확인합니다. |
+| 간단 상태 확인 | `GET /v1/health` | canonical QueryService transport가 조립됐는지 확인합니다. |
 
 ### 문서
 
@@ -55,6 +63,22 @@ API는 개발자가 실제로 수행하는 작업을 기준으로 묶었습니�
 | [원본 문서 조회](#api-document-file) | `GET /v1/document-file` | 등록된 원본 파일을 열거나 내려받습니다. |
 | [문서 페이지 조회](#api-document-page) | `GET /v1/document-page` | PDF의 특정 페이지를 PNG 이미지로 조회합니다. |
 | [파싱 이미지 조회](#api-idr-figure) | `GET /v1/idr/figure` | IDR의 그림 블록을 PNG 이미지로 조회합니다. |
+| 원본 출처 조회 | `GET /v1/source-pdf` | source transport가 연결된 실행에서 원본 PDF를 조회합니다. |
+
+### Frontend 호환 경로
+
+다음 경로는 frontend 요청을 위 문서 API에 연결합니다. `--document-api-url`이 필요합니다.
+
+| HTTP 요청 | 연결되는 기능 |
+|---|---|
+| `GET /api/documents` | 문서 목록 조회 |
+| `GET /api/documents/capabilities` | 문서 기능 확인 |
+| `GET /api/documents/{document_id}/connections` | 문서 연결 정보 조회 |
+| `GET /api/documents/{document_id}/figures/{block_id}` | 파싱 이미지 조회 |
+| `GET /api/documents/{document_id}/idr` | 파싱 결과 조회 |
+| `GET /api/documents/{document_id}/pages/{page}` | 문서 페이지 조회 |
+| `GET /api/documents/{document_id}/pdf` | 원본 문서 조회 |
+| `GET /api/documents/{document_id}/pipeline` | 파이프라인 결과 조회 |
 
 ### 인덱싱 작업
 
@@ -108,7 +132,7 @@ curl "$S4S_BASE_URL/health/live"
 <details id="api-health-ready">
 <summary><strong>준비 상태 확인</strong></summary>
 
-API가 검색·답변 요청을 받을 준비가 됐는지 확인합니다. 인증이 필요하지 않습니다.
+API 설정과 QueryService 조립이 완료됐는지 확인합니다. 인증이 필요하지 않습니다. OpenSearch, embedding과 Reader 상태는 실제 검색·답변 요청에서 확인합니다.
 
 | 항목 | 값 |
 |---|---|
@@ -865,25 +889,10 @@ curl -N -X POST "$S4S_BASE_URL/v1/responses" \
 | `409 Conflict` | 현재 상태에서 요청을 수행할 수 없음 | 멱등 키 또는 작업 상태를 확인합니다. |
 | `413 Content Too Large` | 업로드 파일이 비어 있거나 제한을 초과함 | 파일과 서버 업로드 제한을 확인합니다. |
 | `415 Unsupported Media Type` | 지원하지 않는 업로드 형식 | 문서 등록 API에는 PDF 바이너리를 전송합니다. |
-| `422 Unprocessable Entity` | 경로, 쿼리 또는 본문 검증 실패 | Swagger/OpenAPI 스키마와 요청 값을 비교합니다. |
+| `422 Unprocessable Entity` | 경로, 쿼리 또는 본문 검증 실패 | OpenAPI 스키마와 요청 값을 비교합니다. |
 | `502 Bad Gateway` | 검색·모델·저장소 호출 실패 | OpenSearch 및 모델 서비스 상태를 확인합니다. |
 | `503 Service Unavailable` | 필수 서비스가 구성되지 않았거나 연결 불가 | DB, OpenSearch, Temporal 및 모델 설정을 확인합니다. |
 
 ```json
 {"detail":"Document is not available: dapi_58c840a7d2f0"}
 ```
-
-## 이전 경로
-
-<details id="legacy-paths">
-<summary><strong>이전 클라이언트에서 사용하는 경로</strong></summary>
-
-새 연동에서는 아래 경로를 사용하지 않습니다. 기존 클라이언트를 단계적으로 전환할 때만 참고합니다.
-
-| 이전 경로 | 현재 경로 | 비고 |
-|---|---|---|
-| `GET /v1/health` | `GET /health/ready` | 준비 상태 확인 경로로 교체합니다. |
-| `POST /v1/response` | `POST /v1/responses` | 이전 응답에는 폐기 예정 헤더와 후속 경로 링크가 포함됩니다. |
-| `GET /v1/source-pdf` | `GET /v1/document-file` | 현재 원본 문서 조회 경로로 교체합니다. |
-
-</details>

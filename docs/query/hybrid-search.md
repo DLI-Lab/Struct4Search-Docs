@@ -70,9 +70,9 @@ BM25와 Dense 모두 원문 청크와 검색표현을 함께 검색합니다. �
 
 ## 설정값
 
-| profile key                             | 기본값         | 의미                          |
+| profile key                             | 현재 production 값         | 의미                          |
 | ----------------------------------- | ------------- | --------------------------- |
-| `query.index_name`                  | `s4s-current` | 검색할 OpenSearch 인덱스 또는 연결 이름(alias) |
+| `query.index_name`                  | `s4s-current` | 검색할 OpenSearch 인덱스 또는 검색용 고정 이름 |
 | `query.native_rrf.bm25_depth`       | 50            | BM25 채널의 후보 깊이              |
 | `query.native_rrf.dense_depth`      | 50            | Dense 채널의 후보 깊이             |
 | `query.native_rrf.combined_depth`   | 30            | RRF 통합 후 반환하는 후보 수          |

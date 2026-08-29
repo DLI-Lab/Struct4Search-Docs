@@ -72,7 +72,7 @@ RRF 통합은 OpenSearch에서만 수행하며, 애플리케이션은 통합된 
 
 ## 설정값
 
-| profile key | 기본값 | 의미 |
+| profile key | 현재 production 값 | 의미 |
 |---|---|---|
 | `query.native_rrf.id` | `s4s-native-rrf-v1` | 사용할 OpenSearch search pipeline |
 | `query.native_rrf.rrf_rank_constant` | 60 | RRF 계산에 사용하는 상수 |

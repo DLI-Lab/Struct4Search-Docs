@@ -29,7 +29,7 @@ title: 인덱싱
   "page_indices": [2, 3],
   "triple_ids": []
 }
-````
+```
 
 ### 검색표현
 
@@ -74,16 +74,16 @@ OpenSearch 인덱스
 
 원문 청크와 연결되지 않은 검색표현은 색인하지 않습니다.
 
-## 환경 변수
+## 현재 production 설정
 
-| 환경 변수                           | 현재 값                      | 의미                    |
+| profile key                           | 현재 production 값                      | 의미                    |
 | ---------------------------- | ------------------------- | --------------------- |
 | `index.opensearch_url`       | 서버 주소                     | 검색 단위를 저장할 OpenSearch |
 | `index.embedding_url`        | 서버 주소                     | 임베딩 서버                |
 | `index.embedding_model`      | `Qwen/Qwen3-Embedding-8B` | 색인과 질의에 사용하는 임베딩 모델   |
 | `index.dimension`            | 4096                      | 임베딩 벡터 차원             |
 | `index.name`                 | 프로파일에서 지정                 | 생성할 인덱스               |
-| `index.alias`                | `s4s-current`             | 검색이 실제 인덱스를 가리킬 때 쓰는 연결 이름 |
+| `index.alias`                | `s4s-current`             | 검증이 끝난 인덱스를 검색 API에 연결하는 고정 이름 |
 | `index.embedding_batch_size` | 32                        | 한 번에 임베딩할 검색 단위 수     |
 
 임베딩 모델이나 벡터 차원을 변경하면 기존 벡터와 호환되지 않으므로 새로운 인덱스를 만들고 다시 색인해야 합니다([실행과 재처리](rerun.md)).
@@ -114,8 +114,6 @@ struct4search-ingest \
 
 | 확인할 내용        | 파일·심볼                                                               |
 | ------------- | ------------------------------------------------------------------- |
-| 인덱싱 구현        | `backend/struct4search/index_stage.py` · `OpenSearchIndexStage`         |
-| OpenSearch 매핑 | `backend/struct4search/index_stage.py` · `OpenSearchIndexStage.mapping` |
-| 설정            | `configs/production.yaml` · `index`                          |
-
-```
+| 인덱싱 구현        | `backend/struct4search/ingest/stages/indexing/stage.py` · `OpenSearchIndexStage` |
+| OpenSearch 매핑 | `backend/struct4search/ingest/stages/indexing/stage.py` · `index_mapping_template` |
+| 설정            | `configs/ingest-production.yaml` · `index`                          |

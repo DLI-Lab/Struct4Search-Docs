@@ -42,7 +42,7 @@ CLI 이름을 누르면 해당 상세 항목으로 이동합니다. 이동한 �
 |---|---|
 | [`struct4search-api`](#cli-api) | 검색·답변 API를 실행합니다. |
 | [`struct4search-restored-snapshot-api`](#cli-restored-snapshot-api) | 복원한 OpenSearch snapshot을 사용하는 검색·답변 API를 실행합니다. |
-| [`struct4search-evaluate`](#cli-evaluate) | 검색·답변 결과를 평가하고 회귀 gate를 판정합니다. |
+| [`struct4search-evaluate`](#cli-evaluate) | 검색·답변 결과를 평가하고 회귀 통과 여부를 판정합니다. |
 
 ### 문서 인덱싱
 
@@ -61,14 +61,14 @@ CLI 이름을 누르면 해당 상세 항목으로 이동합니다. 이동한 �
 | [`struct4search-document-catalog-sync`](#cli-document-catalog-sync) | 완료된 IDR와 Metadata를 문서 데이터베이스에 동기화합니다. |
 | [`struct4search-kg-sync`](#cli-kg-sync) | 문서별 KG 산출물을 PostgreSQL에 동기화합니다. |
 
-### E2E 검증 및 릴리스 gate
+### E2E 검증 및 릴리스 판정
 
 | CLI | 설명 |
 |---|---|
 | [`struct4search-smoke-e2e`](#cli-smoke-e2e) | 문서 1건의 격리 프로덕션 E2E를 검증합니다. |
 | [`struct4search-five-document-e2e`](#cli-five-document-e2e) | 문서 5건 E2E를 검증합니다. |
-| [`struct4search-final-100-100-e2e`](#cli-final-100-100-e2e) | 문서 100건·질의 100건 릴리스 gate를 실행합니다. |
-| [`struct4search-final-full-2567-200-e2e`](#cli-final-full-2567-200-e2e) | 문서 2,567건·질의 200건 최종 릴리스 gate를 실행합니다. |
+| [`struct4search-final-100-100-e2e`](#cli-final-100-100-e2e) | 문서 100건·질의 100건 릴리스 판정을 실행합니다. |
+| [`struct4search-final-full-2567-200-e2e`](#cli-final-full-2567-200-e2e) | 문서 2,567건·질의 200건 최종 릴리스 판정을 실행합니다. |
 
 ## CLI 상세
 
@@ -128,6 +128,12 @@ struct4search-stack --stack STACK {api|document|chatkit|ui|up}
 
 `up`을 선택하면 네 서비스를 함께 실행하며, 종료할 때 실행한 하위 프로세스도 함께 정리합니다.
 
+```bash
+struct4search-stack --stack configs/services/local-stack.yaml up
+```
+
+기본 설정에서는 response API `http://127.0.0.1:8289`, 문서 조회 API `http://127.0.0.1:8214`, ChatKit adapter `http://127.0.0.1:8294`, React UI `http://127.0.0.1:5173`을 사용합니다.
+
 </details>
 
 ### API 및 평가
@@ -145,6 +151,7 @@ struct4search-api
   [--document-api-url URL]
   [--api-key-env ENV_NAME]
   (--profile PROFILE | --fixture-results RESULTS.jsonl)
+  [--run-root RUN_ROOT]
   [--ingest-output-root OUTPUT]
   [--ingest-services SERVICES]
 ```
@@ -153,6 +160,7 @@ struct4search-api
 |---|---|
 | `--profile` | OpenSearch, 임베딩 서비스와 Reader를 연결해 실제 검색·답변 경로를 실행합니다. |
 | `--fixture-results` | 저장된 검색 결과를 사용해 외부 서비스 없이 API 계약을 확인합니다. 모델은 호출하지 않습니다. |
+| `--run-root` | 완료된 인덱싱 출력의 `FINAL_REPORT.json`에서 실제 인덱스 이름을 읽습니다. `--profile`과 함께 사용합니다. |
 | `--host` | 서버 바인딩 주소. 기본값은 `127.0.0.1`입니다. |
 | `--port` | 서버 바인딩 포트. 기본값은 `3100`이며 `1..65535` 범위에서 지정합니다. |
 | `--log-level` | `critical`, `error`, `warning`, `info`, `debug`, `trace` 중 하나를 지정합니다. |
@@ -177,7 +185,7 @@ struct4search-api \
 ```bash
 curl --fail \
   --header 'Content-Type: application/json' \
-  --data '{"query":"안전모는 언제 착용해야 하나요?","query_id":"q001"}' \
+  --data '{"query":"안전모를 착용한다.","query_id":"q001"}' \
   http://127.0.0.1:3100/v1/responses
 ```
 
@@ -212,7 +220,7 @@ struct4search-restored-snapshot-api [--profile PROFILE] [--host HOST] [--port PO
 <details id="cli-evaluate">
 <summary><strong>struct4search-evaluate</strong></summary>
 
-검색·답변 결과를 평가하고 gate 설정에 따라 회귀 여부를 판정합니다.
+검색·답변 결과를 평가하고 통과 기준 설정에 따라 회귀 여부를 판정합니다.
 
 ```text
 struct4search-evaluate
@@ -227,6 +235,13 @@ struct4search-evaluate
 `--profile`을 지정하면 실제 QueryService를 통해 검색과 답변을 실행한 뒤 평가합니다. `--fixture-results`를 지정하면 저장된 결과만 평가하며 외부 검색·답변 서비스를 호출하지 않습니다.
 
 `--run-root`는 기존 실행 결과를 평가할 때 사용하고, `--output-root`는 새로운 평가 결과를 저장할 때 사용합니다.
+
+| 옵션 | 설명 |
+|---|---|
+| `--evaluation-config` | 평가할 질의, 정답 문서와 평가 범위가 정의된 JSON 파일입니다. |
+| `--gate-config` | 통과 기준이 정의된 YAML 파일입니다. |
+| `--baseline-report` | 현재 결과와 비교할 기준 평가 보고서입니다. 설정에서 요구하는 경우 필수입니다. |
+| `--qa-scores` | 사람이 판정한 답변 점수 JSONL입니다. 설정에서 요구하는 경우 필수입니다. |
 
 </details>
 
@@ -370,15 +385,23 @@ struct4search-kg-sync
   [--interval-seconds 20]
 ```
 
-`--dsn-env`로 지정한 환경변수에서 PostgreSQL DSN을 읽습니다. `--follow`를 지정하면 실행이 끝날 때까지 새 완료 기록을 계속 확인합니다.
+| 옵션 | 설명 |
+|---|---|
+| `--dsn-env` | PostgreSQL DSN을 읽을 환경변수 이름입니다. |
+| `--schema` | KG를 저장할 PostgreSQL schema입니다. 기본값은 `s4s_kg`입니다. |
+| `--run-id` | 동기화할 실행 ID입니다. 실행 결과에서 확인할 수 없을 때 지정합니다. |
+| `--follow` | 새 완료 기록을 계속 확인하고 반영합니다. |
+| `--interval-seconds` | `--follow`에서 새 기록을 확인하는 간격입니다. 기본값은 20초입니다. |
+
+`--dsn-env`로 지정한 환경변수에서 PostgreSQL DSN을 읽습니다.
 
 `run_config.json`에서 run ID를 확인할 수 없는 경우 `--run-id`를 직접 지정해야 합니다.
 
 </details>
 
-### E2E 검증 및 릴리스 gate
+### E2E 검증 및 릴리스 판정
 
-다음 명령은 승인된 시험 자료나 전체 코퍼스, GPU, 모델과 격리된 PostgreSQL·OpenSearch 등 각 gate에 필요한 환경이 준비된 상태에서 실행합니다.
+다음 명령은 승인된 시험 자료나 전체 코퍼스, GPU, 모델과 격리된 PostgreSQL·OpenSearch 등 각 판정에 필요한 환경이 준비된 상태에서 실행합니다.
 
 <details id="cli-smoke-e2e">
 <summary><strong>struct4search-smoke-e2e</strong></summary>
@@ -405,7 +428,7 @@ struct4search-five-document-e2e [--repository-root ROOT]
 <details id="cli-final-100-100-e2e">
 <summary><strong>struct4search-final-100-100-e2e</strong></summary>
 
-문서 100건·질의 100건 릴리스 gate를 실행합니다.
+문서 100건·질의 100건 릴리스 판정을 실행합니다.
 
 ```text
 struct4search-final-100-100-e2e [--repository-root ROOT]
@@ -416,7 +439,7 @@ struct4search-final-100-100-e2e [--repository-root ROOT]
 <details id="cli-final-full-2567-200-e2e">
 <summary><strong>struct4search-final-full-2567-200-e2e</strong></summary>
 
-문서 2,567건·질의 200건 최종 릴리스 gate를 실행합니다.
+문서 2,567건·질의 200건 최종 릴리스 판정을 실행합니다.
 
 ```text
 struct4search-final-full-2567-200-e2e [--repository-root ROOT]

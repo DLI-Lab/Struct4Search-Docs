@@ -73,7 +73,7 @@ curl --fail \
 
 ### 4. 선택 사항: 평가와 frontend
 
-저장된 검색 결과로 release gate를 확인합니다.
+저장된 검색 결과로 release 통과 여부를 확인합니다.
 
 ```bash
 struct4search-evaluate \
@@ -143,19 +143,19 @@ cp .env.example .env
 ```bash
 struct4search-env
 struct4search-preflight
-struct4search-bootstrap --profile configs/production.yaml
+struct4search-bootstrap --profile configs/e2e-smoke.yaml
 ```
 
 `struct4search-preflight`가 non-zero이면 메시지에 나온 GPU process, port, disk 또는 OpenSearch write block을 해결한 뒤 진행합니다. 점검 실패 상태에서 인덱싱을 시작하지 않습니다.
-`struct4search-bootstrap`은 profile에 고정된 Native RRF 검색 파이프라인만 멱등 생성·검증하며, 기존 index·alias·문서는 변경하지 않습니다.
+`struct4search-bootstrap`은 profile에 고정된 Native RRF 검색 파이프라인만 생성·검증하며, 기존 인덱스·검색용 고정 이름·문서는 변경하지 않습니다.
 
 ### 3. 문서 한 건 인덱싱
 
-기존 실행과 겹치지 않는 새 output 경로와 시험용 문서 ID를 사용합니다.
+기존 실행과 겹치지 않는 새 output 경로와 시험용 문서 ID를 사용합니다. `e2e-smoke.yaml`은 실행마다 새 OpenSearch 인덱스를 만들고 production 인덱스 이름은 변경하지 않습니다.
 
 ```bash
 struct4search-ingest \
-  --config configs/production.yaml \
+  --config configs/e2e-smoke.yaml \
   --services configs/services/cold-services.yaml \
   --output /absolute/path/to/new-output \
   --document-id <문서_ID>
@@ -167,7 +167,8 @@ struct4search-ingest \
 
 ```bash
 struct4search-api \
-  --profile configs/production.yaml \
+  --profile configs/e2e-smoke.yaml \
+  --run-root /absolute/path/to/new-output \
   --host 127.0.0.1 \
   --port 3100
 ```
@@ -177,12 +178,12 @@ struct4search-api \
 다른 터미널에서 방금 색인한 문서로 답할 수 있는 질문을 보냅니다.
 
 ```bash
-curl --fail http://127.0.0.1:3100/v1/health
+curl --fail http://127.0.0.1:3100/health/ready
 
 curl --fail \
   --header 'Content-Type: application/json' \
   --data '{"query":"<색인한 문서에서 확인할 질문>","query_id":"gpu-quickstart-001"}' \
-  http://127.0.0.1:3100/v1/response
+  http://127.0.0.1:3100/v1/responses
 ```
 
 `answer`가 비어 있지 않고 `citations`가 방금 색인한 문서의 근거를 가리키면 실제 embedding → OpenSearch 검색 → reader 답변 경로가 정상입니다. 서버는 실행한 터미널에서 `Ctrl-C`로 종료합니다.

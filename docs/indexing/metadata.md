@@ -25,7 +25,7 @@ title: Metadata 생성
   "domain_equipment": ["안전난간"],
   "domain_location": ["건설현장"]
 }
-````
+```
 
 각 필드는 배열 형태이며, 문서에서 해당 정보를 찾지 못하면 빈 배열로 남습니다.
 
@@ -88,7 +88,7 @@ struct4search-ingest \
 
 | 확인할 내용      | 파일·심볼                                                        |
 | ----------- | ------------------------------------------------------------ |
-| Metadata 생성 | `backend/struct4search/metadata_llm.py` · `MetadataLLMExtractor` |
+| Metadata 생성 | `backend/struct4search/ingest/stages/metadata/extractor.py` · `MetadataLLMExtractor` |
 | 18종 정의      | `backend/struct4search/domain/metadata_fields.yaml`              |
 | 프롬프트        | `prompts/metadata/f400-18-fields/v1.txt`                     |
-| 설정          | `configs/production.yaml`                             |
+| 설정          | `configs/ingest-production.yaml` · `g2.metadata_*`                             |

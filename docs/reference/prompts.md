@@ -13,7 +13,7 @@ title: 프롬프트와 출력 검증
 | ------------------------------------------ | --------------------------------------------------------- | ------------------------------------------ |
 | `metadata/f400-18-fields`                  | `prompts/metadata/f400-18-fields/v1.txt`                  | [Metadata 생성](../indexing/metadata.md)     |
 | `triple/f400-v3-entity-local`              | `prompts/triple/f400-v3-entity-local/v1.txt`              | [KG 구축](../indexing/triple-kg.md)          |
-| `kg/entity-alias-validation`               | `prompts/kg/entity-alias-validation/v1.txt`               | KG 구축                                      |
+| `kg/entity-alias-validation`               | `prompts/kg/entity-alias-validation/v1.txt`               | [KG 구축](../indexing/triple-kg.md)          |
 | `retrieval_expression/g2-system`           | `prompts/retrieval_expression/g2-system/v1.txt`           | [검색표현 생성](../indexing/retrieval-text.md)   |
 | `retrieval_expression/g2-user`             | `prompts/retrieval_expression/g2-user/v1.txt`             | 검색표현 생성                                    |
 | `answer/industrial-safety-grounded-claims` | `prompts/answer/industrial-safety-grounded-claims/v1.txt` | [답변과 출처 표기](../query/structured-answer.md) |
@@ -53,15 +53,16 @@ LLM을 사용하는 단계는 모델이 자유 형식의 텍스트를 반환하�
 ## 프롬프트를 수정할 때
 
 1. 해당 프롬프트 파일을 수정합니다.
-2. `prompts/registry.yaml`의 해시를 갱신합니다.
-3. 문서 인덱싱에 사용하는 프롬프트라면 영향을 받는 단계부터 다시 처리합니다.
-4. 검색이나 답변 결과가 달라질 수 있으면 관련 평가를 다시 실행합니다.
+2. `sha256sum <수정한_프롬프트_파일>`로 파일 해시를 계산해 `prompts/registry.yaml`의 `file_sha256`과 prompt `sha256`을 갱신합니다.
+3. `python -m pytest -q tests/unit/config/test_profiles_and_prompts.py`로 registry와 파일이 일치하는지 확인합니다.
+4. 인덱싱 프롬프트라면 새 `--output`에서 영향받는 문서를 다시 인덱싱합니다.
+5. 검색이나 답변 결과가 달라질 수 있으면 관련 평가를 다시 실행합니다.
 
 Metadata 필드의 이름·순서·의미는 프롬프트 문구가 아니라 `backend/struct4search/domain/metadata_fields.yaml`에서 수정합니다. Metadata 프롬프트는 이 정의를 사용해 구성됩니다.
 
 ## 수정 후 다시 실행할 범위
 
-| 수정한 프롬프트 | 다시 실행할 단계 | OpenSearch 데이터 갱신 |
+| 수정한 프롬프트 | 다시 생성해야 하는 데이터 | OpenSearch 데이터 갱신 |
 |---|---|---|
 | Metadata | Metadata 생성 → 검색표현 생성 → 인덱싱 | 필요 |
 | Triple·Entity 별칭 검증 | KG 구축 → 검색표현 생성 → 인덱싱 | 필요 |

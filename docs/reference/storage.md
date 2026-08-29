@@ -23,16 +23,21 @@ title: 저장소
 
 ```text
 <출력 디렉터리>/
+├─ canonical/                      Canonical IDR
 ├─ f400/documents/<문서 ID>/       원문 청킹
+├─ ner/documents/<문서 ID>/        Entity 추출
 ├─ triples/documents/<문서 ID>/    Triple 추출
 ├─ kg/documents/<문서 ID>/         문서 지식그래프
 ├─ v3/documents/<문서 ID>/         KG 구축을 위한 청크 묶음
 ├─ metadata/documents/<문서 ID>/   Metadata
 ├─ g2/documents/<문서 ID>/         검색표현
-└─ orchestration.sqlite3           단계별 실행 기록
+├─ documents/<문서 ID>/            문서별 완료 또는 실패 기록
+├─ FINAL_REPORT.json               전체 실행 결과
+├─ run_config.json                 실행 범위와 실제 인덱스 이름
+└─ orchestration.sqlite3           완료된 작업과 재개 상태
 ```
 
-중단 후 같은 `--output` 경로로 다시 실행하면, 프로그램이 `orchestration.sqlite3`에서 완료된 단계를 확인합니다. 이미 끝난 단계는 건너뛰고 끝나지 않은 단계부터 다시 실행하므로 이 파일은 직접 수정하거나 삭제하지 않습니다.
+중단 후 처음과 같은 설정·문서 선택으로 같은 `--output` 경로를 사용하면, 프로그램이 `orchestration.sqlite3`에서 완료된 문서를 확인합니다. 완료된 문서는 건너뛰고 끝나지 않은 문서를 다시 처리하므로 이 파일은 직접 수정하거나 삭제하지 않습니다.
 
 재개와 단계별 재처리 방법은 [파이프라인 실행 및 재처리 방법](../indexing/rerun.md)에서 설명합니다.
 
@@ -71,7 +76,7 @@ OpenSearch에는 검색에 사용하는 두 종류의 검색 단위가 저장됩
 
 두 검색 단위 모두 텍스트와 임베딩 벡터를 가지며 하나의 인덱스에 함께 저장됩니다. 자세한 필드와 매핑은 [OpenSearch 인덱스 구조](opensearch-schema.md)에서 확인할 수 있습니다.
 
-검색 설정에는 실제 인덱스 이름 대신 연결 이름(alias)을 둘 수 있습니다. 새 인덱스를 만든 뒤 검증이 끝나면 이 연결 이름이 새 인덱스를 가리키도록 바꿀 수 있습니다.
+production 검색에는 실제 인덱스를 가리키는 고정 이름 `s4s-current`를 사용합니다. 새 인덱스의 검증이 끝나면 이 이름이 새 인덱스를 가리키도록 바꿉니다.
 
 ## 문서를 다시 처리할 때
 
@@ -86,7 +91,7 @@ OpenSearch에는 검색에 사용하는 두 종류의 검색 단위가 저장됩
 다른 문서의 결과는 그대로 유지됩니다.
 
 선택 문서 API·CLI 실행은 현재 `s4s-current`가 가리키는 단일 index에서 해당
-`document_id` partition만 교체하며 alias를 이동하지 않습니다. 새 vector 기록이 실패하면
+`document_id`에 해당하는 데이터만 교체하며 `s4s-current`가 가리키는 인덱스는 바꾸지 않습니다. 새 vector 기록이 실패하면
 기존 partition을 먼저 삭제하지 않으므로 이전 검색 결과를 유지한 채 같은 job을 재시도할
 수 있습니다.
 

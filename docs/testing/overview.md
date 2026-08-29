@@ -72,7 +72,7 @@ struct4search-api \
   --port 3100
 ```
 
-API를 실행한 뒤 다른 터미널에서 `/v1/health`와 `/v1/response`를 확인합니다. 요청 형식은 [API Reference](../reference/api-reference.md)에 있습니다.
+API를 실행한 뒤 다른 터미널에서 `/health/ready`와 `/v1/responses`를 확인합니다. 요청 형식은 [API Reference](../reference/api-reference.md)에 있습니다.
 
 ## 변경한 부분에 따른 실행 범위
 

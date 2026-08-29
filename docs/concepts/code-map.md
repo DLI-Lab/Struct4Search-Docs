@@ -42,6 +42,7 @@ Struct4Search/
 | `frontend/chatkit_demo/` | 문서 관리·파이프라인·검색 결과를 보여주는 React 화면과 로컬 API 어댑터입니다 | `frontend/chatkit_demo/README.md`, [API Reference](../reference/api-reference.md) |
 | `tests/` | 단위·회귀·통합 테스트와 예제 입력을 보관합니다 | [테스트와 평가 시작하기](../testing/overview.md) |
 | `backend/struct4search/bootstrap/` | 설정에 맞는 Parser·LLM·저장소·검색 구현을 조립합니다 | [개요](../overview.md), [설정 수정](../maintenance/configuration.md) |
+| `backend/struct4search/config/` | profile 상속, 설정 검증과 프롬프트 registry를 관리합니다 | [설정 수정](../maintenance/configuration.md), [프롬프트와 출력 검증](../reference/prompts.md) |
 | `backend/struct4search/ingest/` | 인덱싱 단계의 실행 순서, 재개와 완료 기록을 관리합니다 | [문서 인덱싱 파이프라인](../indexing/overview.md), [파이프라인 실행 및 재처리](../indexing/rerun.md) |
 | `backend/struct4search/ingest/stages/parsing/` | PDF 파싱과 페이지별 Parser 선택을 담당합니다 | [파싱](../indexing/parsing.md) |
 | `backend/struct4search/ingest/stages/chunking/` | 파싱 결과를 고정 크기 원문 청크로 나눕니다 | [청킹](../indexing/chunking.md) |
@@ -56,10 +57,12 @@ Struct4Search/
 | `backend/struct4search/query/answer/` | 답변 Context, token 예산, 구조화 답변과 Citation을 처리합니다 | [Context 구성](../query/context.md), [구조화 답변](../query/structured-answer.md), [출처 표기](../query/citations.md) |
 | `backend/struct4search/adapters/parsing/` | Parser 결과를 공통 IDR 구조로 변환합니다 | [파싱](../indexing/parsing.md) |
 | `backend/struct4search/adapters/llm/` | local Qwen과 hosted GPT 호출을 공통 계약으로 제공합니다 | [모델 사용 위치](../reference/model-calls.md) |
-| `backend/struct4search/adapters/persistence/` | PostgreSQL 문서·Metadata·KG 저장소를 연결합니다 | [저장소와 재처리](../reference/storage.md) |
+| `backend/struct4search/document_catalog.py` | 문서와 Metadata를 PostgreSQL에 동기화합니다 | [저장소](../reference/storage.md) |
+| `backend/struct4search/kg_store.py` | 문서 지식그래프를 PostgreSQL에 저장합니다 | [저장소](../reference/storage.md) |
+| `backend/struct4search/adapters/persistence/` | 실행이 끝난 문서의 KG 산출물을 저장소 동기화에 연결합니다 | [저장소](../reference/storage.md) |
 | `backend/struct4search/adapters/search/` | 질의 embedding과 OpenSearch Hybrid 검색을 실행합니다 | [Hybrid 검색](../query/hybrid-search.md), [RRF](../query/rrf.md) |
 | `backend/struct4search/entrypoints/` | CLI, API와 백그라운드 worker의 실행 진입점을 제공합니다 | [CLI Reference](../reference/cli.md), [API Reference](../reference/api-reference.md) |
 | `backend/struct4search/orchestration/` | Temporal workflow, 단계 의존성과 실행 상태를 관리합니다 | [문서 인덱싱 파이프라인](../indexing/overview.md), [CLI Reference](../reference/cli.md) |
 | `backend/struct4search/evaluation/` | 검색·답변 지표와 회귀 기준을 계산합니다 | [평가 실행과 통과 판정](../testing/retrieval-qa.md), [평가 지표](../testing/metrics.md) |
 
-`.env`에는 접속 문자열과 API key만 둡니다. `struct4search-*` 명령은 실행할 때 `.env`를 자동으로 읽고, 이미 export한 값은 유지합니다. 검색·모델·프롬프트의 동작 값은 profile과 버전 관리된 설정 파일에서 관리합니다.
+`.env`에는 API key와 DSN, host마다 달라지는 model·실행 파일·산출물 경로를 둡니다. `struct4search-*` 명령은 실행할 때 `.env`를 자동으로 읽고, 이미 export한 값은 유지합니다. 검색·모델·프롬프트의 동작 값은 profile과 버전 관리된 설정 파일에서 관리합니다.

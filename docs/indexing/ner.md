@@ -18,12 +18,13 @@ Entity 하나는 다음과 같은 형태입니다.
 
 ```json
 {
-  "surface": "지게차",
+  "doc_id": "d002343_6b6d39ebe6",
+  "text": "지게차",
   "label": "equipment",
   "confidence": 0.83,
   "page_index": 2
 }
-````
+```
 
 ## 동작 방식
 
@@ -44,12 +45,11 @@ Entity 하나는 다음과 같은 형태입니다.
 | `metric`       | 수치·지표        |
 | `concept`      | 그 밖의 주요 개념   |
 
-## 환경 변수
+## 현재 production 설정
 
-| 환경 변수              | 현재 값                        | 의미             |
+| profile key              | 현재 production 값                        | 의미             |
 | --------------- | --------------------------- | -------------- |
 | `ner.model`     | `urchade/gliner_multi-v2.1` | Entity 추출 모델   |
-| `ner.revision`  | `443d26d6…`                 | 사용하는 모델 버전     |
 | `ner.labels`    | 8종                          | 추출할 Entity 유형  |
 | `ner.threshold` | 0.1                         | 결과를 남기는 최소 신뢰도 |
 
@@ -73,6 +73,6 @@ struct4search-ingest \
 
 | 확인할 내용 | 파일·심볼                                             |
 | ------ | ------------------------------------------------- |
-| NER 실행 | `backend/struct4search/ner_stage.py`                  |
-| 설정     | `configs/production.yaml` · `ner`          |
-| 다음 단계  | `backend/struct4search/ingest/stages/entity_local.py` |
+| NER 실행 | `backend/struct4search/ingest/stages/ner/stage.py` · `GLiNERStage` |
+| 설정     | `configs/ingest-production.yaml` · `ner`          |
+| 다음 단계  | `backend/struct4search/ingest/stages/entity_local/stage.py` |

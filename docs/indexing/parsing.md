@@ -42,7 +42,7 @@ IDR에는 각 요소의 본문과 문서 구조, 원본 페이지 위치가 함�
 
 ### 설정값
 
-| profile key                               | 기본값                | 의미                       |
+| profile key                               | 현재 production 값                | 의미                       |
 | ------------------------------------- | -------------------- | ------------------------ |
 | `parser.digital`                      | `pymupdf4llm`        | 디지털 페이지에 사용하는 파서         |
 | `parser.scan`                         | `mineru`             | 스캔 페이지에 사용하는 파서          |
@@ -82,8 +82,8 @@ struct4search-ingest \
 
 | 확인할 내용    | 파일·심볼                                                         |
 | --------- | ------------------------------------------------------------- |
-| 문서 파싱     | `backend/struct4search/parser_stage.py`                           |
-| 페이지 판정    | `backend/struct4search/page_routing.py`                           |
+| 문서 파싱     | `backend/struct4search/ingest/stages/parsing/stage.py` · `build_canonical_idr` |
+| 페이지 판정    | `backend/struct4search/ingest/stages/parsing/routing.py` · `ConservativeHybridPageRouting` |
 | IDR 통합    | `backend/struct4search/adapters/parsing/canonical_builder.py`     |
 | MinerU 연동 | `backend/struct4search/mineru_vllm_async_service.py`              |
-| profile      | `configs/production.yaml` · `parser` · `canonical_idr` |
+| profile      | `configs/ingest-production.yaml` · `parser` · `canonical_idr` |

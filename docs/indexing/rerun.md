@@ -78,9 +78,9 @@ struct4search-ingest \
 
 ## 중단된 실행 이어서 시작하기
 
-실행 프로세스가 종료되어도 이미 생성된 단계별 산출물은 출력 디렉터리에 남습니다.
+실행 프로세스가 종료되어도 완료된 작업은 `<출력_디렉터리>/orchestration.sqlite3`에 기록되고 단계별 산출물도 남습니다.
 
-처음 실행할 때 사용한 설정, 출력 디렉터리와 `--document-id`를 그대로 넣어 다시 실행합니다. 완료된 단계는 재사용하고, 끝나지 않은 단계부터 이어서 처리합니다.
+처음 실행할 때 사용한 설정, 출력 디렉터리와 `--document-id` 전체를 그대로 넣어 다시 실행합니다. 실행 기록에 완료된 것으로 남은 문서는 건너뛰고, 끝나지 않은 문서부터 이어서 처리합니다.
 
 ```bash
 struct4search-ingest \
@@ -97,19 +97,18 @@ struct4search-ingest \
 
 ## 실패한 문서 다시 실행하기
 
-일부 문서만 실패한 경우에는 전체 문서를 다시 실행하지 않고, 실패한 문서 ID만 지정합니다.
+일부 문서만 실패했더라도 처음 실행한 문서 선택을 바꾸지 않습니다. 처음 실행과 같은 명령을 사용하면 완료된 문서는 실행 기록에서 확인해 건너뛰고 실패한 문서만 다시 처리합니다.
 
 ```bash
 struct4search-ingest \
   --config configs/production.yaml \
   --services configs/services/cold-services.yaml \
   --output <기존_출력_디렉터리> \
-  --document-id <실패한_문서_ID>
+  --document-id <처음_실행한_문서_ID_1> \
+  --document-id <처음_실행한_문서_ID_2>
 ```
 
-기존 실행이 종료된 상태에서 실행해야 합니다. 이미 정상적으로 생성된 단계별 산출물은 재사용하고, 완료되지 않은 단계부터 다시 시도합니다.
-
-여러 문서가 실패했다면 `--document-id`를 반복해서 지정할 수 있습니다.
+처음에 `--document-id`를 생략해 전체 문서를 실행했다면 다시 실행할 때도 생략합니다. 실패한 ID만 골라 같은 출력 디렉터리에 지정하면 최초 실행 기록과 달라져 실행이 거부됩니다. 기존 실행이 종료된 상태에서 다시 시작해야 합니다.
 
 ## 모델이나 설정을 변경한 경우
 
@@ -126,7 +125,7 @@ struct4search-ingest \
 * 임베딩 모델 또는 벡터 차원
 * OpenSearch 인덱스 매핑
 
-이 경우 같은 명령을 바로 다시 실행하지 말고, [변경 항목별 재생성 범위](../maintenance/change-map.md)에서 다음 사항을 먼저 확인합니다.
+이 경우 기존 출력 디렉터리를 재사용하지 않고 새 출력 디렉터리에서 실행합니다. [변경 항목별 재생성 범위](../maintenance/change-map.md)에서 다음 사항도 확인합니다.
 
 * 어느 단계부터 다시 생성해야 하는지
 * 기존 출력 디렉터리를 재사용할 수 있는지
@@ -158,7 +157,8 @@ struct4search-ingest \
 | ---------------------- | ----------------------------------------------------------------------------------- |
 | 실행 진입점                 | `backend/struct4search/entrypoints/cli/ingest.py` · `main`                          |
 | 중단된 실행 이어가기 및 중복 실행 방지 | `backend/struct4search/entrypoints/cli/ingest.py` · `refuse_if_another_run_is_live` |
-| 문서 완료 기록               | `backend/struct4search/ingest/service.py` · `persist_document_complete`             |
-| 미완료 단계 판정              | `backend/struct4search/ingest/service.py` · `partial_stage_detail`                  |
+| 실행 상태 기록과 재개 검증        | `backend/struct4search/adapters/orchestration/back_pipeline.py` · `SqliteRunLedgerAdapter` |
+| 문서 실행과 완료 판정           | `backend/struct4search/ingest/back.py` · `CompleteIngestExecutor`                   |
+| SQLite 실행 기록             | `backend/struct4search/orchestration/state_store.py` · `SqliteStateStore`           |
 | 실행 프로파일                | `configs/production.yaml`                                                           |
 | 서비스 정의                 | `configs/services/cold-services.yaml`                                               |

@@ -34,7 +34,7 @@ title: 질의 처리
 
 ### 설정값
 
-| profile key | 기본값 | 의미 |
+| profile key | 현재 production 값 | 의미 |
 |---|---|---|
 | `index.embedding_url` | 서버 주소 | 질의를 벡터로 변환할 임베딩 서버 |
 | `index.embedding_model` | `Qwen/Qwen3-Embedding-8B` | 색인과 질의에 사용하는 임베딩 모델 |
