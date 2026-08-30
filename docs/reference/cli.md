@@ -34,6 +34,7 @@ CLI 이름을 누르면 해당 상세 항목으로 이동합니다. 이동한 �
 | [`struct4search-env`](#cli-env) | Python 실행 환경과 import 경로를 확인합니다. |
 | [`struct4search-preflight`](#cli-preflight) | GPU, 포트, 디스크와 OpenSearch 사전조건을 검사합니다. |
 | [`struct4search-bootstrap`](#cli-bootstrap) | OpenSearch Native RRF 검색 파이프라인을 구성하거나 확인합니다. |
+| [`struct4search-prompts`](#cli-prompts) | 수정한 프롬프트의 해시와 프로파일 참조를 갱신합니다. |
 | [`struct4search-stack`](#cli-stack) | API, 문서 조회, ChatKit과 React UI를 개별 또는 일괄 실행합니다. |
 
 ### API 및 평가
@@ -114,6 +115,25 @@ struct4search-bootstrap (--profile PROFILE | --stack STACK) [--check]
 | `--profile` | 확인할 프로파일을 지정합니다. |
 | `--stack` | 프로파일을 선택하는 개발용 stack 설정을 지정합니다. |
 | `--check` | 구성을 변경하지 않고 현재 상태만 확인합니다. |
+
+</details>
+
+<details id="cli-prompts">
+<summary><strong>struct4search-prompts</strong></summary>
+
+프롬프트 파일을 수정한 뒤 파일 해시와 실제 모델 입력 문자열의 해시를 다시 계산하고, `prompts/registry.yaml`과 해당 프롬프트를 사용하는 프로파일을 함께 갱신합니다.
+
+```text
+struct4search-prompts sync [--registry REGISTRY] [--config-root CONFIG_ROOT]
+```
+
+저장소 루트에서는 경로 옵션 없이 실행합니다.
+
+```bash
+struct4search-prompts sync
+```
+
+`changed_prompts`에는 내용이 바뀐 프롬프트가, `changed_configs`에는 해시 참조가 갱신된 프로파일이 출력됩니다. 같은 명령을 다시 실행했을 때 두 목록이 모두 비어 있으면 동기화가 끝난 것입니다.
 
 </details>
 

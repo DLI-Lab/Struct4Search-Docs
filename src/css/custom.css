@@ -25,8 +25,9 @@
   width: 100%;
 }
 
-/* API Reference 토글은 파란 외곽선만 유지하고 본문 배경은 일반 문서와 맞춘다. */
+/* API·CLI Reference 토글은 파란 외곽선만 유지하고 본문 배경은 일반 문서와 맞춘다. */
 .theme-doc-markdown details[id^='api-'],
+.theme-doc-markdown details[id^='cli-'],
 .theme-doc-markdown details#legacy-paths {
   background-color: transparent;
 }

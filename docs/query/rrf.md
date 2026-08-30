@@ -79,24 +79,6 @@ RRF 통합은 OpenSearch에서만 수행하며, 애플리케이션은 통합된 
 
 OpenSearch에 등록된 search pipeline은 저장소의 정의와 일치해야 하며, 전체 설정은 `configs/production.yaml`에서 관리합니다.
 
-## API 요청에서 이 단계 확인하기
-
-RRF 통합은 [Hybrid 검색](hybrid-search.md)과 함께 OpenSearch 안에서 실행됩니다. 애플리케이션은 통합된 중간 후보를 받은 뒤 원문 청크만 남기므로, 공개 API 응답에는 RRF Top-30 목록이 그대로 나타나지 않습니다.
-
-| 확인 대상 | 확인 위치·방법 | 정상 | 비정상 |
-|---|---|---|---|
-| 검색 파이프라인 사용 | `POST /v1/search`를 요청합니다. | HTTP 200 응답을 받으며 최종 원문 검색 결과가 반환됩니다. | 등록된 검색 파이프라인이 없거나 저장소의 정의와 다르면 검색 전에 오류가 발생합니다. |
-| 후보 수와 순서 | Runtime의 Native RRF 테스트를 실행합니다. | 중간 후보가 최대 30건이고 OpenSearch가 반환한 RRF 순서를 유지합니다. | 30건을 넘거나 애플리케이션이 점수를 다시 계산하면 테스트가 실패합니다. |
-| 검색 결과 없음 | `POST /v1/search` 응답의 `count`와 `search_results`를 확인합니다. | 둘 다 0이면 관련 원문을 찾지 못한 정상 결과입니다. | HTTP 오류가 함께 반환되면 검색 파이프라인이나 OpenSearch 상태를 확인해야 합니다. |
-
-RRF 설정과 준비 절차를 외부 서버 없이 확인하려면 설치할 때 만든 가상환경을 활성화한 뒤 Struct4Search 저장소의 최상위 디렉터리에서 다음 명령을 실행합니다.
-
-```bash
-python -m pytest tests/unit/bootstrap/test_native_rrf_provisioning.py tests/unit/query/test_canonical_query_service.py
-```
-
-이 테스트는 저장소에 포함된 검색 파이프라인 정의와 애플리케이션의 요청·응답 연결을 검사합니다. 실제 OpenSearch에서 검색이 되는지는 `POST /v1/search`의 HTTP 상태와 결과로 확인합니다.
-
 ## 코드 참조
 
 | 확인할 내용 | 파일·심볼 |

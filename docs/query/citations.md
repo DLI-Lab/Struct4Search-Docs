@@ -72,25 +72,6 @@ LLM이 반환한 인용을 검증하고, 인용된 원문 청크를 실제 문�
 | ------------------------------------- | --------------------------------------------------------------------------- | ---------------- |
 | `query.citation_normalization_policy` | `stable_dedup_then_drop_rte_and_noncontext_then_drop_unsupported_claims_v1` | 인용을 검증하고 정리하는 정책 |
 
-## API 요청에서 이 단계 확인하기
-
-이 단계는 `POST /v1/responses` 요청의 마지막에 실행됩니다. 공개 응답에는 내부에서 제거한 인용 개수를 따로 싣지 않으므로, 최종 `answer`, `citations`와 `search_results`가 서로 맞는지 확인합니다.
-
-| 확인 대상 | 확인 위치·방법 | 정상 | 비정상 |
-|---|---|---|---|
-| 인용 ID | `citations[*].unit_id`를 확인합니다. | 모든 ID가 `ruf_`로 시작하고 중복이 없습니다. | `rte_` ID나 같은 ID가 두 번 있으면 인용 정리가 잘못된 상태입니다. |
-| 답변과 인용 목록 | `answer`의 대괄호 안 ID와 `citations`를 비교합니다. | 답변에 붙은 ID와 인용 목록이 같습니다. | 어느 한쪽에만 있는 ID가 있으면 최종 응답 계약을 위반한 상태입니다. |
-| 원본 문서 연결 | 인용 ID와 같은 `search_results` 항목의 `grounding`을 확인합니다. | `source_uri`, `source_display_name`, `block_id`, `page_span`이 있습니다. | 인용한 원문의 문서 주소나 페이지를 찾을 수 없으면 응답 생성이 오류로 끝나야 합니다. |
-| 근거 없는 답변 처리 | `insufficient_evidence`, `answer`, `citations`를 확인합니다. | 유효한 답변 문장이 모두 제거되면 근거 부족으로 표시되고 답변과 인용이 비어 있습니다. | 유효한 인용이 없는 문장이 답변에 남으면 비정상입니다. |
-
-중복 인용 제거, 검색표현 ID 제거와 원본 연결 규칙은 설치할 때 만든 가상환경을 활성화한 뒤 Struct4Search 저장소의 최상위 디렉터리에서 다음 명령으로 확인할 수 있습니다.
-
-```bash
-python -m pytest tests/unit/query/test_citation_normalizer.py tests/unit/web/test_legacy_response_transport.py
-```
-
-이 테스트는 실제 모델이나 외부 서버를 호출하지 않고 잘못된 인용을 정리한 뒤 공개 API 응답으로 바꾸는 과정을 검사합니다. 실패하면 출력에 표시된 인용 규칙 또는 원본 연결 항목을 확인합니다.
-
 ## 코드 참조
 
 | 확인할 내용   | 파일·심볼                                                                                       |

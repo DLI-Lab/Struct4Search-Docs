@@ -81,24 +81,6 @@ BM25와 Dense 모두 원문 청크와 검색표현을 함께 검색합니다. �
 
 `pagination_depth`는 요청을 만들 때 `bm25_depth`에서 계산됩니다. OpenSearch의 전체 매핑과 분석기 설정은 [OpenSearch 인덱스 구조](../reference/opensearch-schema.md)에서 확인할 수 있습니다.
 
-## API 요청에서 이 단계 확인하기
-
-Hybrid 검색은 `POST /v1/search`와 `POST /v1/responses` 요청 안에서 실행됩니다. OpenSearch가 만든 중간 후보 30건은 공개 응답에 그대로 노출하지 않고, 검색표현을 원문 청크로 연결한 최종 결과만 `search_results`로 반환합니다.
-
-| 확인 대상 | 확인 위치·방법 | 정상 | 비정상 |
-|---|---|---|---|
-| 검색 실행 | [API Reference](../reference/api-reference.md)의 `POST /v1/search` 예시를 실행합니다. | HTTP 200과 `object: "search.result"`를 반환합니다. | 인덱스, 검색 파이프라인 또는 OpenSearch 연결에 문제가 있으면 오류 응답을 반환합니다. |
-| 최종 원문 결과 | 응답의 `search_results`를 확인합니다. | 각 항목에 `unit_id`, `score`, 원문 `content`가 있습니다. 관련 원문이 없으면 빈 목록이어도 정상입니다. | 항목의 ID가 없거나 점수가 숫자가 아니면 검색 결과 계약을 위반한 상태입니다. |
-| 중간 후보 수와 종류 | Runtime의 검색 단위 테스트로 확인합니다. | RRF 통합 전후의 내부 결과가 설정한 최대 수를 넘지 않고, 원문과 검색표현을 모두 처리합니다. | 최대 수를 넘거나 검색표현의 원문 연결 정보가 없으면 테스트가 실패합니다. |
-
-공개 응답만으로는 중간 후보의 `unit_kind`를 직접 볼 수 없습니다. 이 내부 규칙은 설치할 때 만든 가상환경을 활성화한 뒤 Struct4Search 저장소의 최상위 디렉터리에서 다음 명령으로 확인합니다.
-
-```bash
-python -m pytest tests/unit/query/test_canonical_query_service.py
-```
-
-이 테스트는 실제 OpenSearch에 접속하지 않고 Hybrid 요청 구조, 검색 파이프라인 지정과 결과 변환을 검사합니다. 검색 결과가 0건이라는 사실만으로 시스템 오류는 아닙니다. HTTP 200과 빈 `search_results`가 함께 오면 관련 원문을 찾지 못한 정상 결과입니다.
-
 ## 코드 참조
 
 | 확인할 내용              | 파일·심볼                                                                                               |
