@@ -121,6 +121,8 @@ NER의 `urchade/gliner_multi-v2.1`은 별도 모델 서버에 올리지 않고 �
 
 ### 1. 설치와 CUDA 확인
 
+첫 번째 블록은 터미널에서 순서대로 실행하는 설치 명령입니다. 저장소를 내려받고 Python 가상환경을 만든 뒤 공통 패키지와 GPU 패키지를 설치합니다.
+
 ```bash
 git clone https://github.com/DLI-Lab/Struct4Search.git
 cd Struct4Search
@@ -131,6 +133,8 @@ python -m pip install -r requirements.txt
 python -m pip install -r requirements-gpu.txt
 python -m pip check
 ```
+
+두 번째 블록도 터미널에서 실행합니다. `nvidia-smi`로 GPU와 드라이버를 확인하고, `python - <<'PY'`부터 마지막 `PY`까지의 짧은 Python 코드로 PyTorch가 GPU를 사용할 수 있고 vLLM을 불러올 수 있는지 검사합니다.
 
 ```bash
 nvidia-smi
@@ -159,12 +163,15 @@ struct4search-preflight
 struct4search-bootstrap --profile configs/e2e-smoke.yaml
 ```
 
-`struct4search-preflight`가 non-zero이면 메시지에 나온 GPU process, port, disk 또는 OpenSearch write block을 해결한 뒤 진행합니다. 점검 실패 상태에서 인덱싱을 시작하지 않습니다.
-`struct4search-bootstrap`은 profile에 고정된 Native RRF 검색 파이프라인만 생성·검증하며, 기존 인덱스·검색용 고정 이름·문서는 변경하지 않습니다.
+- `struct4search-env`는 이번 실행에서 사용할 Python 경로와 `PYTHONPATH`를 보여줍니다.
+- `struct4search-preflight`는 다른 작업이 GPU나 필수 포트를 사용 중인지, 디스크 여유 공간이 충분한지, OpenSearch가 새 인덱스 생성을 허용하는지 확인합니다. 마지막 줄이 `PASS`일 때만 다음 단계로 진행합니다. 실패하면 출력된 항목을 해결한 뒤 다시 실행합니다.
+- `struct4search-bootstrap`은 OpenSearch에 단어 기반 검색과 의미 기반 검색 결과를 합치는 규칙이 준비되어 있는지 확인하고, 없으면 생성합니다. 저장된 문서나 기존 인덱스는 변경하지 않습니다.
 
 ### 3. 문서 한 건 인덱싱
 
-기존 실행과 겹치지 않는 새 output 경로와 시험용 문서 ID를 사용합니다. `e2e-smoke.yaml`은 실행마다 새 OpenSearch 인덱스를 만들고 production 인덱스 이름은 변경하지 않습니다.
+`--output`에는 이번 실행 결과를 저장할 아직 존재하지 않는 디렉터리 경로를 지정합니다. 디렉터리는 명령이 실행되면서 만들어집니다. `--document-id`에는 설정 파일의 `manifest`가 가리키는 문서 목록에서 처리할 문서 ID 하나를 지정합니다. 새 ID를 만드는 옵션은 아닙니다.
+
+`e2e-smoke.yaml`은 이 실행만 사용하는 새 OpenSearch 인덱스를 만듭니다. 시험 데이터가 현재 서비스의 검색 데이터와 섞이거나 기존 인덱스를 바꾸지 않습니다.
 
 ```bash
 struct4search-ingest \
@@ -186,7 +193,7 @@ struct4search-api \
   --port 3100
 ```
 
-`3100` 포트를 이미 사용 중이면 빈 포트 번호로 바꾸고, 아래 `curl` URL에도 같은 번호를 사용합니다.
+`3100`은 API 서버가 기본으로 사용하는 로컬 포트 번호이며 특별한 의미는 없습니다. 이미 다른 프로그램이 사용 중이면 사용하지 않는 포트로 바꾸고, 아래 `curl` URL에도 같은 번호를 사용합니다.
 
 다른 터미널에서 방금 색인한 문서로 답할 수 있는 질문을 보냅니다.
 
