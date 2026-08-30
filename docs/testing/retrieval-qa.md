@@ -5,188 +5,184 @@ title: 평가 실행과 결과 확인
 
 # 평가 실행과 결과 확인
 
-평가셋이 준비된 뒤 실제 질문을 실행하고, 필요한 문서를 찾았는지와 답변이 맞는지를 확인하는 방법입니다. 검색·답변 코드, 모델이나 설정을 바꾼 뒤 다음을 확인할 때 사용합니다.
+이 페이지에서는 문서 1건부터 전체 2,567문서까지 실제 인덱싱·검색·답변 평가를 실행하는 명령과 결과 확인 방법을 설명합니다. 작은 범위부터 차례대로 실행하면 문제가 생겼을 때 설치와 서비스 연결 문제인지, 여러 문서 처리 문제인지, 검색 품질 문제인지 구분하기 쉽습니다.
 
-- 같은 질문에서 검색 결과가 이전보다 나빠지지 않았는가?
-- 답변에 필요한 내용이 모두 들어 있는가?
-- 답변의 Citation이 실제로 사용한 원문을 가리키는가?
-- 문제가 있다면 어느 질문의 검색 또는 답변에서 시작되었는가?
+평가 자료의 질문과 정답 구성은 [평가셋](eval200.md), GPU·모델 서버·OpenSearch와 PostgreSQL 준비 방법은 [설치 요구사항](../reference/dependencies.md)에서 확인합니다.
 
-평가셋의 구성과 답변 채점 방법은 [평가셋](eval200.md)에서 먼저 확인합니다.
+## 실행 전에 확인할 것
 
-## 먼저 한 문항으로 실행해 보기
+네 명령은 모두 실제 인덱싱, 검색, 답변과 Citation 생성을 실행합니다. GPU 모델 서버와 외부 서비스가 준비된 환경에서 저장소 루트로 이동한 뒤 실행합니다.
 
-저장소에는 평가 명령과 결과 파일을 확인할 수 있는 한 문항 예제가 들어 있습니다. 모델 서버나 OpenSearch를 사용하지 않으므로 설치 직후에도 실행할 수 있습니다. 저장소 루트에서 다음 명령을 실행합니다.
+다른 서버에서는 평가 자료와 결과를 저장할 위치를 환경변수로 지정합니다.
 
 ```bash
-struct4search-evaluate \
-  --fixture-results tests/fixtures/evaluation_mini/query_results.jsonl \
-  --evaluation-config tests/fixtures/evaluation_mini/release.json \
-  --gate-config tests/fixtures/evaluation_mini/gate.yaml \
-  --baseline-report tests/fixtures/evaluation_mini/baseline_report.json \
-  --qa-scores tests/fixtures/evaluation_mini/qa_scores.jsonl \
-  --output-root /tmp/struct4search-evaluation
+export S4S_ARTIFACT_TEST_FIXTURE_ROOT=/absolute/path/to/test-fixtures
+export S4S_ARTIFACT_PRODUCTION_ROOT=/absolute/path/to/production-artifacts
+export S4S_ARTIFACT_EVALUATION_ROOT=/absolute/path/to/full-evaluation-set
+export S4S_ARTIFACT_CONTROL_ROOT=/absolute/path/to/e2e-results
+mkdir -p "$S4S_ARTIFACT_CONTROL_ROOT"
 ```
 
-명령이 끝나면 터미널의 마지막 결과와 `/tmp/struct4search-evaluation/EVALUATION_RESULTS.json`에서 `"status": "PASS"`를 확인합니다. 예제 질문은 `안전모 착용 기준은?`이며, 저장된 검색 결과와 답변이 예제 정답에 맞으면 정상입니다.
+- 문서 1건, 5건과 100건 평가는 `S4S_ARTIFACT_TEST_FIXTURE_ROOT`의 고정 자료를 사용합니다.
+- 2,567문서 평가는 `S4S_ARTIFACT_PRODUCTION_ROOT`의 원본 문서 목록과 `S4S_ARTIFACT_EVALUATION_ROOT`의 200개 질문을 사용합니다.
+- 앞의 세 자료 디렉터리는 실행 전에 실제 파일이 들어 있어야 합니다. `S4S_ARTIFACT_CONTROL_ROOT`는 결과를 저장할 빈 디렉터리로 만들 수 있습니다.
+- 모든 실행 기록과 결과는 `S4S_ARTIFACT_CONTROL_ROOT` 아래에 새 디렉터리로 저장됩니다.
 
-이 실행은 평가 기능이 설치되어 결과 파일을 제대로 만드는지만 확인합니다. 실제 모델의 검색·답변 품질을 측정한 결과는 아닙니다.
+각 명령이 끝나면 터미널 마지막 줄에 `status`, `run_id`, `receipt_path`와 `output_root`가 JSON으로 출력됩니다. 아래 예제의 `RECEIPT`에는 출력된 `receipt_path`, `RUN_ROOT`에는 `output_root`를 그대로 넣습니다.
 
-## 질문 하나의 결과 읽기
+## 1. 문서 1건 실행
 
-위 예제를 실행하면 `q001`의 결과가 다음 순서로 저장됩니다.
+설치와 서비스 연결을 처음 확인할 때 실행합니다. 고정 문서 1건을 새 검색 공간에 인덱싱하고, 실제 질문 1건에 답변과 Citation을 만든 뒤 HTTP 경로까지 확인합니다.
 
-### 1. 필요한 문서를 찾았는지 확인
-
-`retrieval_scores_per_query.jsonl`에서 `query_id`가 `q001`인 줄을 찾습니다.
-
-```json
-{
-  "query_id": "q001",
-  "reciprocal_rank": 1.0,
-  "hit_at_1": 1.0,
-  "required_recall_at_1": 1.0,
-  "minimal_set_success_at_1": 1.0,
-  "ndcg_at_1": 1.0
-}
+```bash
+struct4search-smoke-e2e
 ```
 
-이 예제에서는 필요한 문서가 첫 번째 결과에 나왔기 때문에 모든 값이 `1.0`입니다. 값의 의미는 다음과 같습니다.
+실행 후 다음과 같이 결과 경로를 지정합니다.
+
+```bash
+RECEIPT=/path/printed/as/receipt_path
+RUN_ROOT=/path/printed/as/output_root
+```
+
+먼저 전체 실행 결과와 질문 결과를 확인합니다.
+
+```bash
+jq '{status, run_id, query: .query_and_web.query_request, claims: .query_and_web.claims, cited_unit_ids: .query_and_web.cited_unit_ids}' "$RECEIPT"
+jq '{status, documents_total, documents_complete, documents_failed}' "$RUN_ROOT/FINAL_REPORT.json"
+```
+
+정상이라면 실행 기록의 `status`가 `PASS`이고, 문서 1건이 완료되며 실패 문서는 없습니다. `claims`에는 생성된 답변 문장이, `cited_unit_ids`에는 그 문장을 뒷받침한 원문 ID가 들어 있어야 합니다.
+
+| 결과 | 들어 있는 내용 | 확인할 것 |
+|---|---|---|
+| `receipt_path`의 JSON | 실행 설정, 사용한 임시 자원, 인덱싱 결과, 질문·답변·Citation과 자원 정리 결과 | `status: PASS`, 답변 문장과 Citation이 비어 있지 않은지 |
+| `FINAL_REPORT.json` | 문서 처리 단계별 결과와 완료·실패 문서 수 | 문서 1건이 끝까지 완료되었는지 |
+| `QUERY_RESULT_DIAGNOSTIC.json` | 실제 검색 요청, 최종 Context, 답변과 HTTP 응답을 한 질문 기준으로 정리한 진단 자료 | 검색된 원문이 답변과 Citation으로 이어졌는지 |
+
+문서가 완료되지 않았다면 `FINAL_REPORT.json`에서 실패한 단계를 먼저 봅니다. 문서는 완료됐지만 답변이나 Citation이 없다면 `QUERY_RESULT_DIAGNOSTIC.json`에서 검색 결과와 Reader 응답을 확인합니다.
+
+## 2. 문서 5건 실행
+
+한 문서는 통과했지만 여러 문서를 연속으로 처리할 때도 같은 결과가 나오는지 확인합니다. 고정 문서 5건을 함께 인덱싱하고, 문서마다 연결된 질문 1건씩 총 5건을 실행합니다.
+
+```bash
+struct4search-five-document-e2e
+```
+
+터미널에 출력된 경로를 `RECEIPT`와 `RUN_ROOT`에 넣은 뒤 확인합니다.
+
+```bash
+jq '{status, run_id, successful_query_count: .queries_and_web.successful_query_count, failed_query_ids: .queries_and_web.failed_query_ids}' "$RECEIPT"
+jq '{status, documents_total, documents_complete, documents_failed}' "$RUN_ROOT/FINAL_REPORT.json"
+```
+
+정상이라면 문서 5건이 완료되고 `successful_query_count`가 `5`, `failed_query_ids`가 빈 배열입니다.
+
+| 결과 | 들어 있는 내용 | 확인할 것 |
+|---|---|---|
+| `receipt_path`의 JSON | 문서 5건의 처리 결과와 질문별 Context·답변·Citation·HTTP 확인 결과 | 전체 상태가 `PASS`이고 질문 5건이 모두 성공했는지 |
+| `FINAL_REPORT.json` | 문서별 파이프라인 단계와 완료·실패 수 | 실패 문서가 없고 다섯 문서가 모두 완료됐는지 |
+| `query-diagnostics/<질문 ID>.json` | 질문별 검색 요청, 최종 Context, 답변과 Citation | 실패한 질문에서 검색과 답변 중 어느 부분이 문제인지 |
+
+특정 질문만 실패하면 `failed_query_ids`의 ID와 같은 `query-diagnostics/<질문 ID>.json`을 엽니다. 여러 문서가 같은 단계에서 실패하면 질문 결과보다 `FINAL_REPORT.json`의 해당 단계 오류를 먼저 확인합니다.
+
+## 3. 100문서·100질의 실행
+
+파이프라인, 모델, 프롬프트나 검색 설정을 바꾼 뒤 전체 평가 전에 실행합니다. 고정 문서 100건을 인덱싱하고 질문 100건의 검색·답변 결과와 검색 점수를 만듭니다.
+
+```bash
+struct4search-final-100-100-e2e
+```
+
+터미널에 출력된 경로를 지정한 뒤 전체 상태와 검색 점수를 확인합니다.
+
+```bash
+jq '{status, run_id, successful_query_count: .queries_and_web.successful_query_count, failed_query_ids: .queries_and_web.failed_query_ids}' "$RECEIPT"
+jq '{status, query_count, retrieval}' "$RUN_ROOT/EVALUATION_RESULTS.json"
+```
+
+정상이라면 실행 기록의 `status`가 `PASS`, 성공한 질문 수가 `100`, 실패한 질문 목록이 빈 배열입니다. `EVALUATION_RESULTS.json`도 `status: PASS`, `query_count: 100`이어야 합니다.
+
+| 결과 | 들어 있는 내용 | 확인할 것 |
+|---|---|---|
+| `FINAL_REPORT.json` | 100문서의 파이프라인 완료 결과 | 100문서가 모두 완료되고 실패 문서가 없는지 |
+| `INDEX_SNAPSHOT.json` | 이번 실행에서 새로 만든 검색 index의 설정과 저장된 검색 단위 수 | 원문 청크와 검색표현이 예상한 index에 저장됐는지 |
+| `EVALUATION_RESULTS.json` | 질문 수, 전체 검색 지표와 Citation 정리 횟수 | `status`, `query_count`와 `retrieval` 점수 |
+| `retrieval_scores_per_query.jsonl` | 질문별 MRR, Hit, Recall과 nDCG | 전체 평균이 낮을 때 어느 질문의 순위가 나빠졌는지 |
+| `qa_answers.jsonl` | 질문별 답변, 최종 검색 문서, Context와 Citation | 답변이 필요한 근거를 사용했고 Citation이 Context 안의 원문을 가리키는지 |
+| `query_observations.jsonl` | 질문별 실행 상태와 HTTP 확인 결과 | 실패한 질문 ID와 직접적인 오류 메시지 |
+| `query-diagnostics/<질문 ID>.json` | 질문 하나의 검색 요청과 답변 생성 과정 | 문제가 검색에서 시작됐는지 답변 생성에서 시작됐는지 |
+
+검색 점수가 낮으면 `retrieval_scores_per_query.jsonl`에서 값이 낮은 질문 ID를 찾고, 같은 ID를 `qa_answers.jsonl`과 `query-diagnostics`에서 확인합니다. 검색된 문서는 맞지만 답변이 부정확하면 Reader와 답변 프롬프트를 확인하고, 필요한 문서가 검색되지 않았다면 인덱싱 결과와 검색 설정을 확인합니다.
+
+## 4. 2,567문서·200질의 실행
+
+전체 검색 대상과 최종 평가셋으로 배포 전 결과를 확인할 때 실행합니다. 문서 2,567건을 처음부터 처리하고 질문 200건에 답한 뒤, 문서별 완료 상태와 전체 검색 점수를 함께 남깁니다.
+
+```bash
+struct4search-final-full-2567-200-e2e
+```
+
+터미널에 출력된 경로를 지정한 뒤 다음 결과부터 확인합니다.
+
+```bash
+jq '{status, execution_status, successful_query_count: .queries_and_web.successful_query_count, failed_query_ids: .queries_and_web.failed_query_ids}' "$RECEIPT"
+jq '{status, query_count, retrieval}' "$RUN_ROOT/EVALUATION_RESULTS.json"
+jq '{terminal_documents, index, duplicate_identity_audit}' "$RUN_ROOT/FULL_RUN_AGGREGATES.json"
+```
+
+정상 종료한 실행은 `execution_status`가 `PASS`이고, 질문 200건이 모두 성공하며 `failed_query_ids`가 빈 배열입니다. 최종 정책 비교에 설명할 메모가 있으면 바깥 `status`는 `PASS_WITH_NOTE` 또는 `WARNING_NON_MATERIAL_DRIFT`가 될 수 있습니다. 그 밖의 상태는 실행 기록의 `error`와 정책 결과를 확인해야 합니다.
+
+| 결과 | 들어 있는 내용 | 확인할 것 |
+|---|---|---|
+| `FINAL_REPORT.json` | 2,567문서의 실제 단계별 처리 결과 | 전체 문서 수와 문서별 실패 단계 |
+| `DOCUMENT_TERMINAL_STATUSES.jsonl` | 문서마다 완료, 승인된 부분 완료 또는 예상하지 못한 실패 상태 | 2,567문서가 모두 기록됐고 예상하지 못한 실패가 없는지 |
+| `STAGE_TERMINAL_SUMMARY.json` | 파싱부터 인덱싱까지 단계별 완료·건너뜀·실패 수 | 실패가 어느 단계에 몰렸는지 |
+| `FULL_RUN_AGGREGATES.json` | 문서 처리 수, 원문 청크·검색표현 수, index 저장 수와 중복 ID 검사 | 문서 수가 맞고 `index.count_matches`가 `true`인지 |
+| `DOCUMENT_PROCESSING_TIMES.jsonl` | 문서별·단계별 처리 시간 | 느린 문서와 오래 걸린 단계를 찾을 때 |
+| `INDEX_SNAPSHOT.json` | 격리된 최종 index의 설정과 실제 저장 수 | 실행 결과와 index의 문서 수가 일치하는지 |
+| `EVALUATION_RESULTS.json` | 200개 질문의 전체 검색 지표와 Citation 정리 횟수 | `status: PASS`, `query_count: 200`과 전체 검색 점수 |
+| `retrieval_scores_per_query.jsonl` | 200개 질문 각각의 검색 점수 | 점수가 낮아진 질문과 질문 유형 |
+| `qa_answers.jsonl` | 200개 질문의 답변, 검색 결과, Context와 Citation | 답변 내용과 원문 근거 연결 |
+| `query_observations.jsonl` | 질문별 실행 상태와 오류 | 실패한 질문과 직접적인 실패 원인 |
+
+전체 평균만 보고 끝내지 않습니다. `EVALUATION_RESULTS.json`에서 검색 점수를 확인한 뒤, 낮은 질문은 `retrieval_scores_per_query.jsonl`에서 찾고 같은 질문의 답변과 Citation을 `qa_answers.jsonl`에서 확인합니다. 문서 처리 수가 예상과 다르면 질문 결과보다 `DOCUMENT_TERMINAL_STATUSES.jsonl`과 `STAGE_TERMINAL_SUMMARY.json`을 먼저 확인합니다.
+
+## 검색 점수 읽기
+
+100문서와 2,567문서 실행은 다음 검색 지표를 계산합니다.
 
 | 값 | 알려 주는 내용 |
 |---|---|
-| `reciprocal_rank` | 첫 번째 정답 문서가 앞에 나왔는지 확인합니다. 첫 결과가 정답이면 `1.0`입니다. |
+| `reciprocal_rank` 또는 MRR | 첫 번째 정답 문서가 얼마나 앞에 나왔는지 보여줍니다. 첫 결과가 정답이면 질문별 값은 `1.0`입니다. |
 | `hit_at_k` | 상위 `k`개 안에 정답 문서가 하나라도 있는 질문의 비율입니다. |
-| `required_recall_at_k` | 답변에 필요한 문서 중 상위 `k`개 안에서 찾은 비율입니다. |
+| `required_recall_at_k` | 답변에 필요한 문서 가운데 상위 `k`개 안에서 찾은 비율입니다. |
 | `minimal_set_success_at_k` | 답변에 필요한 최소 문서 묶음을 상위 `k`개 안에서 모두 찾은 질문의 비율입니다. |
-| `ndcg_at_k` | 관련도가 높은 정답 문서가 앞에 배치되었는지 확인합니다. |
+| `ndcg_at_k` | 관련도가 높은 정답 문서가 앞에 배치됐는지 보여줍니다. |
 
-실제 평가에서는 `k`가 1, 5, 10인 결과가 함께 기록됩니다. 여러 문서가 필요한 질문은 `hit_at_k`만 보지 말고 `required_recall_at_k`와 `minimal_set_success_at_k`도 함께 확인합니다.
+`single-hop` 질문은 MRR과 Hit를 먼저 보고, 여러 근거가 필요한 `multi-hop` 질문은 `required_recall_at_k`와 `minimal_set_success_at_k`를 함께 봅니다.
 
-### 2. 답변과 Citation 확인
+## 답변 정확도와 Citation 확인
 
-`qa_answers.jsonl`에서 같은 `query_id`를 찾습니다.
+`EVALUATION_RESULTS.json`의 검색 점수는 필요한 문서를 잘 찾았는지 보여줍니다. 답변 내용이 정답인지 보려면 `qa_answers.jsonl`의 답변을 평가셋의 필수 내용과 비교한 별도 답변 점수도 확인해야 합니다. 답변 채점 기준과 LLM-as-Judge 구성은 [평가셋](eval200.md#3-독립-답변-평가)에서 설명합니다.
 
-```json
-{
-  "query_id": "q001",
-  "query_text": "안전모 착용 기준은?",
-  "answer": "안전모를 착용한다.",
-  "retrieved_document_ids": ["doc_fixture_001"],
-  "context_unit_ids": ["ruf_fixture_001"],
-  "cited_unit_ids": ["ruf_fixture_001"]
-}
-```
+Citation은 다음 순서로 확인합니다.
 
-다음 세 가지를 확인합니다.
+1. `qa_answers.jsonl`에서 확인할 `query_id`를 찾습니다.
+2. `answer`가 질문에 직접 답하는지 읽습니다.
+3. `search_results`에서 답변에 사용한 원문과 문서를 확인합니다.
+4. 각 `claim`의 `cited_unit_ids`가 `search_results` 안의 원문 ID를 가리키는지 확인합니다.
 
-1. `answer`가 비어 있지 않고 질문에 답하는 내용인지 확인합니다.
-2. `retrieved_document_ids`와 `context_unit_ids`에서 어떤 문서와 원문이 답변에 사용됐는지 확인합니다.
-3. `cited_unit_ids`가 `context_unit_ids` 안에 있는 원문을 가리키는지 확인합니다.
-
-검색 점수는 높은데 답변이 틀렸다면 Reader나 답변 프롬프트를 먼저 확인합니다. 검색 점수부터 낮다면 검색 설정, 검색표현 또는 인덱싱 결과부터 확인합니다.
-
-### 3. 답변 점수 확인
-
-답변 내용은 정답과 비교해 질문마다 `0`, `1`, `2` 중 하나로 채점합니다.
-
-| 점수 | 뜻 |
-|---:|---|
-| `2` | 필요한 내용을 모두 정확하게 답했고 중대한 오류가 없음 |
-| `1` | 일부는 맞지만 중요한 내용이 빠졌거나 중대한 오류가 있음 |
-| `0` | 오답이거나 답변하지 못함 |
-
-점수는 다음과 같은 JSONL 파일로 준비합니다.
-
-```json
-{"query_id": "q001", "score": 2}
-```
-
-`struct4search-evaluate`는 답변을 직접 채점하거나 유료 평가 모델을 호출하지 않습니다. 별도로 채점을 마친 점수 파일을 `--qa-scores`에 전달하고, 모든 질문에 점수가 하나씩 있는지 확인한 뒤 평균을 계산합니다.
-
-## 실제 시스템 평가
-
-실제 검색·답변 품질을 확인하려면 평가셋의 문서가 인덱싱되어 있고, 사용할 profile에 지정된 OpenSearch, Embedding과 Reader 서비스가 실행 중이어야 합니다.
-
-```bash
-struct4search-evaluate \
-  --profile configs/production.yaml \
-  --evaluation-config configs/evaluation-release.json \
-  --gate-config configs/evaluation-gate.yaml \
-  --baseline-report /absolute/path/to/before/EVALUATION_REPORT.json \
-  --qa-scores /absolute/path/to/judgments/qa_scores.jsonl \
-  --output-root /absolute/path/to/after
-```
-
-| 입력 | 준비할 내용 |
-|---|---|
-| `--profile` | 평가할 검색·답변 설정입니다. 이 설정으로 실제 `QueryService`를 실행합니다. |
-| `--evaluation-config` | 사용할 평가셋의 파일 이름과 질문 수를 정의합니다. |
-| `--gate-config` | 반드시 만들 결과 파일과 비교할 검색·답변 값을 정의합니다. |
-| `--baseline-report` | 같은 평가셋과 실행 조건으로 변경 전에 만든 `EVALUATION_REPORT.json`입니다. |
-| `--qa-scores` | 모든 평가 질문의 답변 점수를 기록한 JSONL 파일입니다. |
-| `--output-root` | 이번 평가 결과를 저장할 새 디렉터리입니다. |
-
-기존 E2E 실행 아래에 결과를 남기려면 `--output-root` 대신 `--run-root /absolute/path/to/run`을 사용합니다. 결과는 `/absolute/path/to/run/evaluation/final200`에 저장됩니다. 두 옵션은 함께 사용할 수 없습니다.
-
-변경 전과 변경 후 결과를 비교할 때는 평가셋, 검색 대상 문서, profile과 모델 조건을 같게 유지합니다. 이 조건이 달라졌다면 이전 결과와 직접 비교하지 않고 새 조건의 기준 결과를 먼저 만듭니다.
-
-## 전체 결과는 이 순서로 확인
-
-### 1. `EVALUATION_RESULTS.json`
-
-평가 전체 결과입니다. 먼저 최상위 `status`를 확인합니다.
-
-| 상태 | 뜻 | 다음 확인 |
-|---|---|---|
-| `PASS` | 필요한 결과가 모두 있고 설정한 비교 조건을 만족함 | 질문별 결과에서 실제 품질을 확인합니다. |
-| `FAIL` | 실행은 끝났지만 검색 점수, 답변 평균, 이전 결과와의 차이 또는 Citation 조건을 만족하지 못함 | `RELEASE_GATE.json`의 `failures`를 확인합니다. |
-| `BLOCKED` | 기준 결과나 답변 점수처럼 비교에 필요한 입력이 없거나 형식이 잘못됨 | `RELEASE_GATE.json`의 `blockers`를 확인합니다. |
-
-이 상태는 자동 실행과 배포 전 검사에서 결과를 빠르게 구분하기 위한 값입니다. `PASS`만 보고 답변 품질이 좋다고 판단하지 말고, 답변 점수가 포함되었는지와 질문별 결과를 함께 확인합니다.
-
-### 2. `RELEASE_GATE.json`
-
-설정한 비교 조건을 하나씩 검사한 결과입니다. `FAIL`이면 `failures`, `BLOCKED`이면 `blockers`를 먼저 읽습니다. 예를 들어 답변 점수 파일이 빠졌다면 검색 실행이 정상이어도 `BLOCKED`가 됩니다.
-
-### 3. `EVALUATION_REPORT.json`
-
-모든 질문의 검색 지표와 Citation 정리 횟수를 모아 둔 보고서입니다. 현재 검색 결과가 전체적으로 어떤 수준인지 확인하고 변경 전 보고서와 비교할 때 사용합니다. 답변 점수 평균은 `RELEASE_GATE.json`의 `qa_mean_score` 검사에서 확인합니다.
-
-### 4. 질문별 파일
-
-전체 평균이 나빠졌다면 `retrieval_scores_per_query.jsonl`에서 값이 낮은 `query_id`를 찾은 뒤, 같은 ID를 `retrieval_predictions.query_service.jsonl`과 `qa_answers.jsonl`에서 확인합니다. 이 순서로 보면 문제가 문서 검색에서 시작됐는지, 답변 생성에서 시작됐는지 구분할 수 있습니다.
-
-## Citation 정리 횟수
-
-Reader가 같은 출처를 반복하거나 실제로 사용하지 않은 원문을 가리키면 Struct4Search가 잘못된 Citation을 제거합니다. 다음 값은 최종 답변에 남은 Citation 수가 아니라, 평가 중 제거한 항목의 수입니다.
-
-| 필드 | 제거한 항목 |
-|---|---|
-| `duplicate_citations_removed` | 같은 답변 문장에 반복해서 붙은 동일한 원문 ID |
-| `retrieval_expression_citations_removed` | 원문이 아니라 검색을 위해 만든 문장을 가리킨 ID |
-| `out_of_context_citations_removed` | 해당 질문의 최종 Context에 들어 있지 않은 원문 ID |
-| `unsupported_claims_removed` | 유효한 원문 Citation이 하나도 남지 않은 답변 문장 |
-
-모두 `0`이면 제거할 항목이 없었다는 뜻입니다. 값이 크면 최종 답변은 정상으로 보여도 Reader의 원래 출력에 잘못된 Citation이나 근거 없는 문장이 많았다는 뜻이므로, 해당 질문의 `citation_normalization`을 확인합니다.
-
-## 생성되는 파일
-
-| 파일 | 확인하는 내용 |
-|---|---|
-| `EVALUATION_RESULTS.json` | 평가 전체 상태와 나머지 결과를 합친 최종 파일 |
-| `RELEASE_GATE.json` | 설정한 비교 조건별 결과와 실패·입력 누락 사유 |
-| `EVALUATION_REPORT.json` | 전체 질문의 검색 지표와 Citation 정리 횟수 |
-| `retrieval_scores_per_query.jsonl` | 질문별 검색 점수 |
-| `retrieval_predictions.query_service.jsonl` | 질문별 최종 문서 순위, 답변과 Citation |
-| `qa_answers.jsonl` | 답변, Citation, 최종 Context와 검색 결과 |
+검색 점수는 높은데 답변이 틀리면 Reader나 답변 프롬프트를 먼저 확인합니다. 검색 점수부터 낮으면 검색 설정, 검색표현이나 인덱싱 결과부터 확인합니다.
 
 ## 코드 참조
 
 | 확인할 내용 | 파일·심볼 |
 |---|---|
-| 평가 명령과 결과 파일 생성 | `backend/struct4search/evaluation/service.py` · `main`, `EvaluationService.evaluate_release` |
-| 실제 QueryService 연결 | `backend/struct4search/entrypoints/cli/evaluate.py` · `_query_service` |
-| 검색 지표 계산 | `backend/struct4search/evaluation/retrieval.py` · `score_prediction_rows` |
-| 자동 비교 상태 계산 | `backend/struct4search/evaluation/gate.py` · `evaluate_release_gate` |
-| 답변 점수 검사와 평균 계산 | `backend/struct4search/evaluation/gate.py` · `evaluate_release_gate` |
+| 문서 1건 실행 | `backend/struct4search/e2e/service.py` · `OneDocumentE2ERunner` |
+| 문서 5건 실행 | `backend/struct4search/e2e/five_document.py` · `FiveDocumentE2ERunner` |
+| 100문서·100질의 실행 | `backend/struct4search/e2e/final_100_100.py` · `Final100E2ERunner` |
+| 2,567문서·200질의 실행 | `backend/struct4search/e2e/final_full_2567_200.py` · `FinalFull2567E2ERunner` |
+| 검색 점수 계산 | `backend/struct4search/evaluation/retrieval.py` · `score_prediction_rows` |
+| 답변 점수 형식과 집계 | `backend/struct4search/evaluation/qa.py`, `terra_judgments.py` |
