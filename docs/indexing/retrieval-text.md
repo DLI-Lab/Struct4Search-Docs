@@ -21,10 +21,18 @@ title: 검색표현 생성
 ```json
 {
   "document_id": "d002343_6b6d39ebe6",                    // 이 검색표현이 속한 문서의 ID
-  "text": "곡성 공장의 열분해유 제조 공정에서 ...",         // 검색에 사용할 생성 문장
+  "text": "곡성 공장의 열분해유 제조 공정에서 열분해로 내부 온도가 급격히 상승하였다.", // 검색에 사용할 생성 문장
   "triple_ids": ["kgtr_4404df7b9e441dae2f5f92ef"],        // 문장의 사실 근거가 된 Triple ID 목록
   "source_chunk_ids": ["fc_8b80b90f296ec2c2b407a1d3"],    // Triple의 근거가 있는 원문 청크 ID 목록
-  "metadata": ["... 일부 생략 ..."],                        // 문맥 보강에 실제로 사용한 Metadata
+  "metadata": [                                             // 문맥 보강에 실제로 사용한 Metadata
+    {
+      "field": "domain_location",                         // 사용한 Metadata 필드
+      "value": "곡성 공장",                                // 문장에 반영한 값
+      "applicable_triple_ids": [                            // 이 값이 보강한 Triple ID
+        "kgtr_4404df7b9e441dae2f5f92ef"
+      ]
+    }
+  ],
   "document_expression_rank": 1                            // 문서 안에서 검색표현이 생성된 순서
 }
 ```
@@ -70,27 +78,18 @@ Metadata는 검색표현의 문맥을 보강하는 데 사용됩니다. 검색�
 
 검색표현 생성 방식이나 Triple 묶음 기준을 변경하면 생성 결과가 달라지므로, 검색표현 생성 이후 단계를 다시 처리해야 합니다([파이프라인 실행 및 재처리 방법](rerun.md)).
 
-## 실행 및 결과 확인
+## 이 단계의 결과 확인
 
-검색표현 생성은 문서 인덱싱 파이프라인의 일부로 실행됩니다.
+검색표현 생성만 따로 실행하는 공개 명령은 없습니다. [문서 인덱싱 실행과 상태 확인](rerun.md)의 `struct4search-ingest` 명령을 실행하면 KG와 Metadata를 입력으로 자동 수행됩니다. 아래 경로의 `<출력_디렉터리>`와 `<문서_ID>`는 해당 명령에 지정한 값을 뜻합니다.
 
-```bash
-struct4search-ingest \
-  --config configs/production.yaml \
-  --services configs/services/cold-services.yaml \
-  --output <출력_디렉터리> \
-  --document-id <문서_ID>
-```
+| 확인 대상 | 확인 위치·방법 | 정상 | 비정상 |
+|---|---|---|---|
+| 생성 완료 | `<출력_디렉터리>/g2/documents/<문서_ID>/receipt.json` | `status`가 `complete`이고 `expressions_path`가 아래 결과 파일을 가리킵니다. | 완료 기록이 없으면 Triple 묶음 구성, 모델 호출 또는 근거 연결 중에 멈춘 상태입니다. |
+| 검색표현 | 같은 디렉터리의 `retrieval_texts_final.jsonl` | 각 문장에 하나 이상의 `triple_ids`와 실제 원문을 가리키는 `source_chunk_ids`가 있습니다. 대상 Triple이 없는 문서는 파일이 비어 있어도 정상입니다. | Triple ID나 원문 청크 ID가 실제 결과와 연결되지 않으면 색인할 수 없습니다. |
+| Triple 포함 범위 | `receipt.json`의 `expression_triple_coverage`와 `uncovered_grouped_triples` | 묶어서 생성하기로 한 Triple이 검색표현에 반영되고 누락 수가 기록됩니다. | 묶음에 넣은 Triple이 이유 없이 빠졌다면 모델 응답과 `calls.jsonl`을 확인해야 합니다. |
+| 모델 호출 기록 | 같은 디렉터리의 `calls.jsonl` | 요청마다 성공한 응답이 기록됩니다. 요청할 Triple이 없으면 파일이 비어 있어도 정상입니다. | 반복 응답이나 형식 오류로 격리된 요청이 있으면 `receipt.json`의 `quarantined_requests`에서 확인됩니다. |
 
-문서별 산출물에서 검색표현이 생성되었는지와 원문 청크가 정상적으로 연결되었는지 확인합니다.
-
-| 확인할 것 | 정상 |
-|---|---|
-| 검색표현 | 문서에 대한 검색표현이 생성되어 있습니다 |
-| `triple_ids` | 검색표현의 근거가 된 Triple이 연결되어 있습니다 |
-| `source_chunk_ids` | 검색표현과 연결된 원문 청크가 존재합니다 |
-
-검색표현이 생성되지 않았다면 먼저 [KG 구축](triple-kg.md)의 결과를 확인합니다.
+검색표현이 0건인 것만으로 실패라고 판단하지 않습니다. 먼저 [KG 구축](triple-kg.md)의 Triple이 0건인지 확인합니다. Triple이 있는데 완료 기록이 없다면 `<출력_디렉터리>/documents/<문서_ID>/failure.json`과 같은 디렉터리의 `calls.jsonl`을 함께 확인합니다.
 
 ## 코드 참조
 

@@ -72,19 +72,17 @@ Metadata 생성에 사용하는 모델과 출력 길이, 입력 구성 방식은
 
 Metadata 생성 방식이나 프롬프트가 달라지면 검색표현도 달라질 수 있으므로 Metadata 생성 이후 단계를 다시 처리합니다([실행과 재처리](rerun.md)).
 
-## 사용 또는 결과 확인
+## 이 단계의 결과 확인
 
-Metadata 생성은 문서 인덱싱 과정에서 실행됩니다.
+Metadata 생성만 따로 실행하는 공개 명령은 없습니다. [문서 인덱싱 실행과 상태 확인](rerun.md)의 `struct4search-ingest` 명령을 실행하면 원문 청크를 바탕으로 자동으로 수행됩니다. 아래 경로의 `<출력_디렉터리>`와 `<문서_ID>`는 해당 명령에 지정한 값을 뜻합니다.
 
-```bash
-struct4search-ingest \
-  --config configs/production.yaml \
-  --services configs/services/cold-services.yaml \
-  --output <출력_디렉터리> \
-  --document-id <문서_ID>
-```
+| 확인 대상 | 확인 위치·방법 | 정상 | 비정상 |
+|---|---|---|---|
+| 생성 완료 | `<출력_디렉터리>/metadata/documents/<문서_ID>/receipt.json` | `status`가 `complete`이고 `metadata_path`가 아래 결과 파일을 가리킵니다. | 완료 기록이 없으면 모델 호출 또는 출력 형식 검사 중에 멈춘 상태입니다. |
+| Metadata 결과 | 같은 디렉터리의 `document_metadata.json` | 18개 `domain_*` 필드가 정해진 자료형으로 저장됩니다. 원문에서 찾지 못한 값은 빈 배열이어도 정상입니다. | 필드가 없거나 문자열·배열 등 정해진 자료형이 다르면 이후 단계에서 사용할 수 없습니다. |
+| 모델 호출 기록 | 같은 디렉터리의 `calls.jsonl` | Metadata 모델을 사용한 설정에서는 호출 결과가 기록됩니다. | 완료 기록이 없으면서 호출 기록도 끝나지 않았다면 모델 서버와 응답 형식을 확인해야 합니다. |
 
-산출물에서 문서별 Metadata가 생성되었는지와 18종 필드가 정상적으로 구성되었는지 확인합니다.
+값이 비어 있다는 이유만으로 실패는 아닙니다. 원문에 근거가 없는 값은 빈 배열로 남기는 것이 정상 동작입니다. 단계가 끝나지 않았다면 `<출력_디렉터리>/documents/<문서_ID>/failure.json`에서 실패 원인을 확인합니다.
 
 ## 코드 참조
 

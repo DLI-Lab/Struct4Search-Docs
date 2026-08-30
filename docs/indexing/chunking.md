@@ -22,7 +22,7 @@ title: 원문 청킹
 {
   "unit_id": "ruf_11175e926dbb1e25f165a932",              // 검색에 저장되는 원문 청크의 고유 ID
   "document_id": "d002343_6b6d39ebe6",                    // 이 청크가 나온 문서의 ID
-  "text": "개구부 덮개 상부에서 작업 중 떨어짐 ...",         // 청크에 포함된 원문
+  "text": "개구부 덮개 상부에서 작업 중 떨어짐",              // 청크에 포함된 원문
   "token_count": 400,                                      // tokenizer로 계산한 청크의 토큰 수
   "page_indices": [2, 3]                                   // 청크가 걸쳐 있는 페이지 순서. 0부터 시작
 }
@@ -50,19 +50,17 @@ ID 종류와 의미는 [용어 사전](../reference/glossary.md#id)에서 설명
 
 청크 크기나 오버랩을 변경하면 검색 단위가 달라지므로 원문 청킹 이후 단계를 다시 처리하고 재색인해야 합니다([실행과 재처리](rerun.md)).
 
-## 사용 또는 결과 확인
+## 이 단계의 결과 확인
 
-원문 청킹은 문서 인덱싱 과정에서 실행됩니다.
+원문 청킹만 따로 실행하는 공개 명령은 없습니다. [문서 인덱싱 실행과 상태 확인](rerun.md)의 `struct4search-ingest` 명령을 실행하면 파싱 다음에 자동으로 수행됩니다. 아래 경로의 `<출력_디렉터리>`와 `<문서_ID>`는 해당 명령에 지정한 값을 뜻합니다.
 
-```bash
-struct4search-ingest \
-  --config configs/production.yaml \
-  --services configs/services/cold-services.yaml \
-  --output <출력_디렉터리> \
-  --document-id <문서_ID>
-```
+| 확인 대상 | 확인 위치·방법 | 정상 | 비정상 |
+|---|---|---|---|
+| 청킹 완료 | `<출력_디렉터리>/f400/documents/<문서_ID>/receipt.json` | `status`가 `complete`, `coverage.passed`가 `true`이고 `token_limit_violations`가 빈 목록입니다. | 본문 누락이나 최대 토큰 수 초과가 발견되면 이 완료 기록을 만들지 못합니다. |
+| 처리용 청크 | 같은 디렉터리의 `fixed_chunks.jsonl` | 각 줄에 청크 하나가 있으며 `token_count`가 `chunking.max_tokens` 이하입니다. | 파일이 없거나 최대 토큰 수를 넘는 청크가 있으면 청킹 결과를 사용할 수 없습니다. |
+| 검색용 원문 단위 | 같은 디렉터리의 `retrieval_units.jsonl` | 각 청크와 연결된 `ruf_` 원문 검색 단위가 있습니다. | 처리용 청크와 검색용 원문 단위의 연결이 끊기면 이후 인덱싱을 진행할 수 없습니다. |
 
-산출물에서 청크가 생성되었는지와 각 청크의 `token_count`가 설정한 최대값을 넘지 않는지 확인합니다.
+청킹 결과가 비정상이면 먼저 앞 단계의 IDR이 완성되었는지 [문서 파싱](parsing.md)의 확인 방법으로 점검합니다. 문서 전체의 실패 원인은 `<출력_디렉터리>/documents/<문서_ID>/failure.json`에도 기록됩니다.
 
 ## 코드 참조
 

@@ -25,7 +25,14 @@ Triple 하나는 다음과 같은 형태입니다.
   "head_id": "e_fc7faadc51995f862469",           // 관계의 주체가 되는 Entity ID
   "relation": "이상상태",                         // 주체와 대상 사이의 관계
   "tail_id": "e_9a1c33be07d5f1204c88",          // 관계의 대상이 되는 Entity ID
-  "evidence_spans": ["... 일부 생략 ..."]          // 이 관계를 뒷받침하는 원문 위치 목록
+  "evidence_spans": [                              // 이 관계를 뒷받침하는 원문 위치 목록
+    {
+      "chunk_id": "fc_8b80b90f296ec2c2b407a1d3", // 근거가 있는 원문 청크 ID
+      "start": 0,                                  // 근거 문장이 시작하는 글자 위치
+      "end": 21,                                   // 근거 문장이 끝나는 글자 위치
+      "text": "열분해로 내부 온도가 급격히 상승하였다"   // 원문에서 확인한 근거 문장
+    }
+  ]
 }
 ```
 
@@ -56,27 +63,18 @@ KG는 **문서 단위로 구축**하며, 다른 문서의 Entity와 관계를 �
 
 청크를 묶는 방식이나 범위를 변경하면 추출되는 Triple과 검색표현이 달라질 수 있으므로 KG 구축 이후 단계를 다시 처리합니다([파이프라인 실행 및 재처리 방법](rerun.md)).
 
-## 사용 또는 결과 확인
+## 이 단계의 결과 확인
 
-KG 구축은 문서 인덱싱 과정에서 실행됩니다.
+Triple 추출과 KG 구축만 따로 실행하는 공개 명령은 없습니다. [문서 인덱싱 실행과 상태 확인](rerun.md)의 `struct4search-ingest` 명령을 실행하면 NER 뒤에 자동으로 수행됩니다. 아래 경로의 `<출력_디렉터리>`와 `<문서_ID>`는 해당 명령에 지정한 값을 뜻합니다.
 
-```bash
-struct4search-ingest \
-  --config configs/production.yaml \
-  --services configs/services/cold-services.yaml \
-  --output <출력_디렉터리> \
-  --document-id <문서_ID>
-```
+| 확인 대상 | 확인 위치·방법 | 정상 | 비정상 |
+|---|---|---|---|
+| Triple 추출 완료 | `<출력_디렉터리>/triples/documents/<문서_ID>/receipt.json` | `status`가 `complete`이고 `triples_path`가 Triple 결과 파일을 가리킵니다. | 완료 기록이 없으면 Triple 모델 호출 또는 원문 근거 검사 중에 멈춘 상태입니다. |
+| Triple 결과 | 같은 디렉터리의 `triples_final_evidence_merged.jsonl` | 각 Triple의 `document_id`가 대상 문서와 같고 `evidence_spans`가 실제 원문 청크 위치와 일치합니다. 관계를 추출할 수 없는 문서는 파일이 비어 있어도 정상입니다. | 근거 청크가 없거나 근거 위치의 원문이 맞지 않으면 KG 구축으로 넘어갈 수 없습니다. |
+| KG 구축 완료 | `<출력_디렉터리>/kg/documents/<문서_ID>/cold_receipt.json` | `status`가 `complete`이고 입력 Triple 수와 통합된 Triple 수가 기록됩니다. | 같은 개체 이름 확인이나 그래프 구성에 실패하면 완료 기록이 만들어지지 않습니다. |
+| 문서 지식그래프 | 같은 디렉터리의 `knowledge_graphs_by_document.jsonl` | 대상 `document_id`의 그래프 한 건이 있습니다. 다른 문서의 개체나 관계는 섞이지 않습니다. | 그래프가 없거나 다른 문서 ID가 섞이면 문서 단위 그래프 계약을 위반한 상태입니다. |
 
-실행 후 문서별 Triple과 지식그래프가 생성되었는지 확인합니다.
-
-| 확인할 것  | 정상                          |
-| ------ | --------------------------- |
-| Triple | 문서에서 추출된 관계가 생성되어 있습니다      |
-| 원문 근거  | 각 Triple이 원문 근거와 연결되어 있습니다  |
-| 그래프 범위 | 하나의 `document_id` 안에서 구성됩니다 |
-
-생성된 지식그래프는 다음 단계인 [검색표현 생성](retrieval-text.md)에서 사용됩니다.
+Triple이 0건인 것과 단계 실패는 다릅니다. Triple 결과가 비어 있어도 완료 기록이 있으면 문서에서 근거가 있는 관계를 만들지 못한 정상 결과일 수 있습니다. 완료 기록이 없다면 `<출력_디렉터리>/documents/<문서_ID>/failure.json`에서 Triple 추출과 같은 개체 이름 확인 중 어느 부분에서 실패했는지 확인합니다.
 
 ## 코드 참조
 
