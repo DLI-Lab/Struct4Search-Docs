@@ -5,14 +5,27 @@ title: 문서 파싱
 
 # 문서 파싱
 
-디지털 PDF는 pdf4LLM으로, 스캔·복합 문서는 MinerU 2.5 Pro 1.2B로 파싱한 뒤 IDR(표준 문서 표현)로 통합합니다. 파서가 달라도 이후 단계를 같은 구조로 처리하기 위한 단계입니다.
+현재 production 인덱싱은 PDF를 기본 입력으로 사용합니다. 디지털 PDF는 pdf4LLM으로, 스캔·복합 PDF는 MinerU 2.5 Pro 1.2B로 파싱한 뒤 IDR(표준 문서 표현)로 통합합니다. 이미지와 텍스트 파일을 처리하는 선택형 파서도 있으며, 파서가 달라도 결과는 같은 IDR 구조로 변환됩니다.
 
 ## 입력과 출력
 
 |    |                    |
 | -- | ------------------ |
-| 입력 | PDF 문서             |
+| 입력 | 아래 표에서 `사용 가능`으로 표시한 문서 파일 |
 | 출력 | 페이지·블록·요소로 구성된 IDR |
+
+### 입력할 수 있는 파일
+
+| 파일 종류 | 확장자 | 현재 상태 | 사용하는 파서와 조건 |
+|---|---|---|---|
+| PDF | `.pdf` | production 인덱싱에서 사용 가능 | 디지털 페이지는 `pymupdf4llm`, 스캔·복합 페이지는 MinerU를 사용합니다. |
+| PNG 이미지 | `.png` | 선택형 파서로 사용 가능 | `mistral_ocr`, `gpt_vlm` 또는 `glm_ocr`을 선택하고 해당 파서의 패키지와 모델 서비스 또는 API를 준비해야 합니다. |
+| JPEG 이미지 | `.jpg`, `.jpeg` | 선택형 파서로 사용 가능 | PNG와 같은 이미지 파서를 사용합니다. 이미지 한 장을 문서 한 페이지로 처리합니다. |
+| Markdown·텍스트 | `.md`, `.markdown`, `.txt` | 선택형 파서로 사용 가능 | `markdown` 파서가 파일 내용을 읽어 IDR 블록으로 변환합니다. |
+| 한글 문서 | `.hwp`, `.hwpx` | 아직 사용 불가 | 확장자와 `hwp` 파서 이름만 등록되어 있으며 실제 파싱 코드는 구현되지 않았습니다. |
+| PowerPoint | `.pptx` | 아직 사용 불가 | 확장자와 `pptx` 파서 이름만 등록되어 있으며 실제 파싱 코드는 구현되지 않았습니다. |
+
+`POST /v1/documents`로 파일을 등록하는 현재 문서 API는 PDF만 받습니다. 이미지나 텍스트 파일은 파서 구현은 갖춰져 있지만 production profile과 공개 업로드 API의 기본 입력에는 연결되어 있지 않으므로, 해당 파서를 명시적으로 구성한 실행에서 사용합니다.
 
 IDR의 요소 하나는 다음과 같은 형태입니다.
 
@@ -37,7 +50,7 @@ IDR의 요소 하나는 다음과 같은 형태입니다.
 
 IDR에는 각 요소의 본문과 문서 구조, 원본 페이지 위치가 함께 기록됩니다. 이 결과를 [원문 청킹](chunking.md)과 [NER](ner.md)가 공통 입력으로 사용합니다.
 
-## 동작 방식
+## production PDF의 동작 방식
 
 1. 페이지마다 텍스트층을 사용할 수 있는지 판정합니다.
 2. 판정 결과에 따라 pdf4LLM 또는 MinerU로 페이지를 파싱합니다.
@@ -69,4 +82,7 @@ IDR에는 각 요소의 본문과 문서 구조, 원본 페이지 위치가 함�
 | 페이지 판정    | `backend/struct4search/ingest/stages/parsing/routing.py` · `ConservativeHybridPageRouting` |
 | IDR 통합    | `backend/struct4search/adapters/parsing/canonical_builder.py`     |
 | MinerU 연동 | `backend/struct4search/mineru_vllm_async_service.py`              |
+| 이미지 파서 | `backend/struct4search/adapters/parsing/canonical_runtime/parsing/vlm_parsers.py`, `more_parsers.py` |
+| Markdown·텍스트 파서 | `backend/struct4search/adapters/parsing/canonical_runtime/parsing/markdown_lift.py` |
+| HWP·PPTX 구현 상태 | `backend/struct4search/adapters/parsing/canonical_runtime/parsing/more_parsers.py` |
 | profile      | `configs/ingest-production.yaml` · `parser` · `canonical_idr` |
