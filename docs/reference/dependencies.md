@@ -184,7 +184,7 @@ curl --fail http://127.0.0.1:19470/_cluster/health
 | `Qwen/Qwen3-14B` | 메타데이터, 지식그래프, 검색표현과 답변을 생성합니다. | 관리되는 vLLM 서비스 |
 | `Qwen/Qwen3-Embedding-8B` | 문서와 질의를 검색용 벡터로 변환합니다. | 관리되는 vLLM 서비스 |
 
-모델은 실행할 때 자동으로 내려받지 않습니다. `configs/model-catalog.yaml`에 적힌 모델 버전과 같은 파일을 서버에 준비하고, 다음 단계의 `.env`에서 모델 캐시와 MinerU 모델 위치를 지정합니다. 모델을 바꾸는 방법은 [모델 교체](../maintenance/models.md)에서 설명합니다.
+모델은 실행할 때 자동으로 내려받지 않습니다. `configs/model-catalog.yaml`에 적힌 모델 버전과 같은 파일을 서버에 준비하고, 다음 단계의 `.env`에서 모델 캐시와 MinerU 모델 위치를 지정합니다. 모델별 설정 위치는 [모델 사용 위치](model-calls.md), 실행 profile을 수정하는 방법은 [설정 수정](../maintenance/configuration.md)에서 확인합니다.
 
 ### 5. 서버별 경로와 접속 정보 입력하기
 

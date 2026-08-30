@@ -68,4 +68,4 @@ MinerU service의 `/health`와 `/metrics`는 추론을 실행하지는 않지만
 
 `configs/production.yaml`은 `base.yaml`을 거쳐 `ingest-production.yaml`을 상속합니다. 실행할 때는 `production.yaml`을 사용하고, 값을 바꿀 때는 위 표의 정본 파일을 수정합니다.
 
-모델을 교체할 때 함께 바꿔야 할 값과 재실행 범위는 [모델 교체](../maintenance/models.md), service 실행 요건은 [외부 의존](dependencies.md)에서 확인합니다.
+모델 설정을 바꾸는 순서는 [설정 수정](../maintenance/configuration.md), 변경한 모델에 따라 다시 실행할 범위는 [변경 영향과 재실행 범위](../maintenance/change-map.md), service 실행 요건은 [설치 요구사항](dependencies.md)에서 확인합니다.

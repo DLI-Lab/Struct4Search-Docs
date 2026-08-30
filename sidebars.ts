@@ -64,7 +64,6 @@ const sidebars: SidebarsConfig = {
       items: [
         'maintenance/change-map',
         'maintenance/configuration',
-        'maintenance/models',
         'maintenance/modules',
       ],
     },
