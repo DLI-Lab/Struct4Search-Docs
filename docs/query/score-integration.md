@@ -16,15 +16,17 @@ RRF Top-30에 포함된 검색표현을 연결된 원문 청크로 변환하고,
 
 최종 결과 하나는 다음과 같은 형태입니다.
 
+`//` 뒤의 내용은 필드 설명이며 실제 JSON 데이터에는 포함되지 않습니다.
+
 ```json
 {
-  "unit_id": "ruf_69b7096d428d67de25c37a08",
-  "document_id": "d001468_7f73511172",
-  "text": "... 원문 청크 본문 ...",
-  "score": 0.0241374787,
-  "page_number": 1,
-  "winner_retrieval_expression_id": "rte_2f257c9f73b098c121fe6e39",
-  "winner_retrieval_expression_text": "온열질환 발생 시 ..."
+  "unit_id": "ruf_69b7096d428d67de25c37a08",                       // 최종 후보로 선택된 원문 청크 ID
+  "document_id": "d001468_7f73511172",                             // 원문 청크가 나온 문서의 ID
+  "text": "... 원문 청크 본문 ...",                                // 답변 근거로 사용할 원문
+  "score": 0.0241374787,                                            // 직접 검색과 검색표현 경로에서 받은 점수 중 최댓값
+  "page_number": 1,                                                 // 사용자에게 표시할 원본 페이지 번호. 1부터 시작
+  "winner_retrieval_expression_id": "rte_2f257c9f73b098c121fe6e39", // 최고 점수가 검색표현에서 왔을 때 그 검색표현의 ID
+  "winner_retrieval_expression_text": "온열질환 발생 시 ..."          // 최고 점수가 검색표현에서 왔을 때 그 검색표현의 문장
 }
 ```
 

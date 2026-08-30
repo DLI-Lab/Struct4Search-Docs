@@ -16,18 +16,20 @@ title: 인덱싱
 
 색인 문서는 `unit_kind`에 따라 원문 청크와 검색표현으로 구분됩니다.
 
+`//` 뒤의 내용은 필드 설명이며 실제 JSON 산출물에는 포함되지 않습니다.
+
 ### 원문 청크
 
 ```json
 {
-  "unit_id": "ruf_11175e926dbb1e25f165a932",
-  "document_id": "d002343_6b6d39ebe6",
-  "unit_kind": "source",
-  "presentation": "fixed_400_overlap40",
-  "text": "개구부 덮개 상부에서 작업 중 떨어짐 ...",
-  "source_f400_unit_ids": ["ruf_11175e926dbb1e25f165a932"],
-  "page_indices": [2, 3],
-  "triple_ids": []
+  "unit_id": "ruf_11175e926dbb1e25f165a932",               // 검색 단위의 고유 ID
+  "document_id": "d002343_6b6d39ebe6",                     // 검색 단위가 나온 문서의 ID
+  "unit_kind": "source",                                   // 원문 청크임을 나타내는 종류
+  "presentation": "fixed_400_overlap40",                   // 원문 청크를 만든 방식
+  "text": "개구부 덮개 상부에서 작업 중 떨어짐 ...",          // 검색 대상이 되는 원문
+  "source_f400_unit_ids": ["ruf_11175e926dbb1e25f165a932"], // 연결된 원문 검색 단위 ID
+  "page_indices": [2, 3],                                   // 원문이 포함된 페이지 순서. 0부터 시작
+  "triple_ids": []                                          // 원문 청크에는 연결하지 않는 Triple ID 목록
 }
 ```
 
@@ -35,14 +37,14 @@ title: 인덱싱
 
 ```json
 {
-  "unit_id": "rte_2a300459506675e3d86b0dc8",
-  "document_id": "d002343_6b6d39ebe6",
-  "unit_kind": "retrieval_expression",
-  "presentation": "g2_salience_pagerank800_multitriple",
-  "text": "곡성 공장의 열분해유 제조 공정에서 ...",
-  "source_f400_unit_ids": ["ruf_11175e926dbb1e25f165a932"],
-  "page_indices": [2],
-  "triple_ids": ["kgtr_4404df7b9e441dae2f5f92ef"]
+  "unit_id": "rte_2a300459506675e3d86b0dc8",               // 검색표현의 고유 ID
+  "document_id": "d002343_6b6d39ebe6",                     // 검색표현이 속한 문서의 ID
+  "unit_kind": "retrieval_expression",                     // 검색표현임을 나타내는 종류
+  "presentation": "g2_salience_pagerank800_multitriple",   // 검색표현을 만든 방식
+  "text": "곡성 공장의 열분해유 제조 공정에서 ...",          // 검색 대상이 되는 생성 문장
+  "source_f400_unit_ids": ["ruf_11175e926dbb1e25f165a932"], // 검색표현과 연결된 원문 검색 단위 ID
+  "page_indices": [2],                                      // 연결된 원문이 포함된 페이지 순서. 0부터 시작
+  "triple_ids": ["kgtr_4404df7b9e441dae2f5f92ef"]          // 검색표현의 사실 근거가 된 Triple ID 목록
 }
 ```
 

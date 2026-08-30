@@ -16,25 +16,27 @@ title: Hybrid 검색
 
 OpenSearch에는 하나의 Hybrid 검색 요청을 보냅니다.
 
+`//` 뒤의 내용은 필드 설명이며 실제 OpenSearch 요청에는 포함되지 않습니다.
+
 ```json
 {
-  "size": 30,
-  "query": {
-    "hybrid": {
-      "pagination_depth": 50,
-      "queries": [
+  "size": 30,                                      // RRF 통합 후 받을 최대 후보 수
+  "query": {                                       // OpenSearch 검색 조건
+    "hybrid": {                                    // BM25와 Dense 검색을 함께 실행하는 질의
+      "pagination_depth": 50,                      // 각 검색 채널에서 확보할 후보 수
+      "queries": [                                 // 함께 실행할 검색 채널 목록
         {
-          "match": {
-            "text": {
-              "query": "온열 질환 의심자가 생기면 어떻게 하나요?"
+          "match": {                               // 단어가 일치하는 문서를 찾는 BM25 검색
+            "text": {                              // 검색할 텍스트 필드
+              "query": "온열 질환 의심자가 생기면 어떻게 하나요?" // 사용자의 원문 질의
             }
           }
         },
         {
-          "knn": {
-            "vector": {
-              "vector": ["... 4096차원 ..."],
-              "k": 50
+          "knn": {                                 // 의미가 가까운 문서를 찾는 Dense 검색
+            "vector": {                            // 검색할 임베딩 벡터 필드
+              "vector": ["... 4096차원 ..."],      // 사용자의 질의를 변환한 4,096차원 벡터
+              "k": 50                              // 벡터 검색에서 확보할 후보 수
             }
           }
         }

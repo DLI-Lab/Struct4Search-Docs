@@ -16,13 +16,15 @@ GLiNER 모델로 문서에서 KG 구축에 사용할 Entity를 추출합니다.
 
 Entity 하나는 다음과 같은 형태입니다.
 
+`//` 뒤의 내용은 필드 설명이며 실제 JSON 산출물에는 포함되지 않습니다.
+
 ```json
 {
-  "doc_id": "d002343_6b6d39ebe6",
-  "text": "지게차",
-  "label": "equipment",
-  "confidence": 0.83,
-  "page_index": 2
+  "doc_id": "d002343_6b6d39ebe6", // Entity가 나온 문서의 ID
+  "text": "지게차",                // 원문에서 모델이 찾은 Entity 표현
+  "label": "equipment",           // Entity 유형
+  "confidence": 0.83,              // 모델이 이 결과를 선택한 신뢰도. 0에서 1 사이
+  "page_index": 2                  // Entity가 나온 페이지 순서. 0부터 시작
 }
 ```
 

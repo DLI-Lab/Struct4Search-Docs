@@ -16,17 +16,19 @@ title: 문서 파싱
 
 IDR의 요소 하나는 다음과 같은 형태입니다.
 
+`//` 뒤의 내용은 필드 설명이며 실제 JSON 산출물에는 포함되지 않습니다.
+
 ```json
 {
-  "canonical_element_id": "d002343_6b6d39ebe6#p2#b7#e0",
-  "page_id": "d002343_6b6d39ebe6#p2",
-  "page_index": 2,
-  "block_type": "text",
-  "element_type": "paragraph",
-  "text": "개구부 덮개 상부에서 작업 중 떨어짐",
-  "heading_path": ["3. 재해개요"],
-  "section_id": "...",
-  "regions": ["... 일부 생략 ..."]
+  "canonical_element_id": "d002343_6b6d39ebe6#p2#b7#e0", // 문서 전체에서 이 요소를 구분하는 고유 ID
+  "page_id": "d002343_6b6d39ebe6#p2",                     // 이 요소가 있는 페이지의 고유 ID
+  "page_index": 2,                                        // 문서 안의 페이지 순서. 0부터 시작
+  "block_type": "text",                                  // 파서가 분류한 상위 블록 종류
+  "element_type": "paragraph",                           // 블록 안에서 이 요소가 맡는 역할
+  "text": "개구부 덮개 상부에서 작업 중 떨어짐",             // 검색과 후속 처리에 사용하는 원문
+  "heading_path": ["3. 재해개요"],                         // 이 요소까지 이어지는 상위 제목 경로
+  "section_id": "...",                                   // 이 요소가 속한 문서 구역의 ID
+  "regions": ["... 일부 생략 ..."]                         // 원본 페이지에서 이 요소가 차지하는 영역 정보
 }
 ```
 

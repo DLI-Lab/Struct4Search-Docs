@@ -16,15 +16,17 @@ OpenSearch에서 BM25와 Dense 두 검색 채널의 순위를 RRF(Reciprocal Ran
 
 RRF는 OpenSearch의 search pipeline에서 수행됩니다.
 
+`//` 뒤의 내용은 필드 설명이며 실제 JSON 설정과 검색 결과에는 포함되지 않습니다.
+
 ```json
 {
-  "description": "Struct4Search canonical hybrid reciprocal-rank fusion v1",
-  "phase_results_processors": [
+  "description": "Struct4Search canonical hybrid reciprocal-rank fusion v1", // 검색 파이프라인 설명
+  "phase_results_processors": [                                               // 검색 결과를 합치는 후처리 단계 목록
     {
-      "score-ranker-processor": {
-        "combination": {
-          "technique": "rrf",
-          "rank_constant": 60
+      "score-ranker-processor": {                                             // 여러 검색 결과의 순위를 다시 계산하는 처리기
+        "combination": {                                                       // 순위 결합 방식 설정
+          "technique": "rrf",                                                 // Reciprocal Rank Fusion 사용
+          "rank_constant": 60                                                  // RRF 점수 계산에서 순위에 더하는 상수
         }
       }
     }
@@ -36,10 +38,10 @@ RRF는 OpenSearch의 search pipeline에서 수행됩니다.
 
 ```json
 {
-  "unit_id": "ruf_f0482c0499437992c339593c",
-  "unit_kind": "source",
-  "score": 0.0269439421,
-  "rank": 1
+  "unit_id": "ruf_f0482c0499437992c339593c", // 통합 순위에 포함된 검색 단위 ID
+  "unit_kind": "source",                      // 원문 청크인지 검색표현인지 나타내는 종류
+  "score": 0.0269439421,                       // 두 검색 순위를 RRF로 합친 점수
+  "rank": 1                                    // 통합 결과에서의 순위. 1부터 시작
 }
 ```
 

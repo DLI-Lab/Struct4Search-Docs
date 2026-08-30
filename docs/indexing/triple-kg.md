@@ -16,14 +16,16 @@ title: KG 구축
 
 Triple 하나는 다음과 같은 형태입니다.
 
+`//` 뒤의 내용은 필드 설명이며 실제 JSON 산출물에는 포함되지 않습니다.
+
 ```json
 {
-  "triple_id": "kgtr_4404df7b9e441dae2f5f92ef",
-  "document_id": "d002343_6b6d39ebe6",
-  "head_id": "e_fc7faadc51995f862469",
-  "relation": "이상상태",
-  "tail_id": "e_9a1c33be07d5f1204c88",
-  "evidence_spans": ["... 일부 생략 ..."]
+  "triple_id": "kgtr_4404df7b9e441dae2f5f92ef", // 이 Triple의 고유 ID
+  "document_id": "d002343_6b6d39ebe6",           // 이 Triple이 만들어진 문서의 ID
+  "head_id": "e_fc7faadc51995f862469",           // 관계의 주체가 되는 Entity ID
+  "relation": "이상상태",                         // 주체와 대상 사이의 관계
+  "tail_id": "e_9a1c33be07d5f1204c88",          // 관계의 대상이 되는 Entity ID
+  "evidence_spans": ["... 일부 생략 ..."]          // 이 관계를 뒷받침하는 원문 위치 목록
 }
 ```
 

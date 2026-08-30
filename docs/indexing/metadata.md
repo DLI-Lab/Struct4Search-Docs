@@ -16,14 +16,16 @@ title: Metadata 생성
 
 출력은 문서 단위로 생성됩니다.
 
+`//` 뒤의 내용은 필드 설명이며 실제 JSON 산출물에는 포함되지 않습니다.
+
 ```json
 {
-  "document_id": "d002343_6b6d39ebe6",
-  "domain_doc_type": ["안전보건 지침"],
-  "domain_accident_type": ["떨어짐"],
-  "domain_process": ["개구부 덮개 설치"],
-  "domain_equipment": ["안전난간"],
-  "domain_location": ["건설현장"]
+  "document_id": "d002343_6b6d39ebe6",        // Metadata를 생성한 문서의 ID
+  "domain_doc_type": ["안전보건 지침"],         // 문서 유형
+  "domain_accident_type": ["떨어짐"],           // 문서에 나타난 재해 형태
+  "domain_process": ["개구부 덮개 설치"],        // 문서에 나타난 작업 또는 공정
+  "domain_equipment": ["안전난간"],             // 문서에 나타난 설비·기계·기구·보호구
+  "domain_location": ["건설현장"]               // 문서에 나타난 장소 또는 작업 공간
 }
 ```
 

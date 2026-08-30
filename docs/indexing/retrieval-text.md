@@ -16,14 +16,16 @@ title: 검색표현 생성
 
 검색표현 하나는 다음과 같은 형태입니다.
 
+`//` 뒤의 내용은 필드 설명이며 실제 JSON 산출물에는 포함되지 않습니다.
+
 ```json
 {
-  "document_id": "d002343_6b6d39ebe6",
-  "text": "곡성 공장의 열분해유 제조 공정에서 ...",
-  "triple_ids": ["kgtr_4404df7b9e441dae2f5f92ef"],
-  "source_chunk_ids": ["fc_8b80b90f296ec2c2b407a1d3"],
-  "metadata": ["... 일부 생략 ..."],
-  "document_expression_rank": 1
+  "document_id": "d002343_6b6d39ebe6",                    // 이 검색표현이 속한 문서의 ID
+  "text": "곡성 공장의 열분해유 제조 공정에서 ...",         // 검색에 사용할 생성 문장
+  "triple_ids": ["kgtr_4404df7b9e441dae2f5f92ef"],        // 문장의 사실 근거가 된 Triple ID 목록
+  "source_chunk_ids": ["fc_8b80b90f296ec2c2b407a1d3"],    // Triple의 근거가 있는 원문 청크 ID 목록
+  "metadata": ["... 일부 생략 ..."],                        // 문맥 보강에 실제로 사용한 Metadata
+  "document_expression_rank": 1                            // 문서 안에서 검색표현이 생성된 순서
 }
 ```
 
