@@ -16,8 +16,6 @@ OpenSearch에서 BM25와 Dense 두 검색 채널의 순위를 RRF(Reciprocal Ran
 
 RRF는 OpenSearch의 search pipeline에서 수행됩니다.
 
-`//` 뒤의 내용은 필드 설명이며 실제 JSON 설정과 검색 결과에는 포함되지 않습니다.
-
 ```json
 {
   "description": "Struct4Search canonical hybrid reciprocal-rank fusion v1", // 검색 파이프라인 설명

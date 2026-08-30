@@ -16,8 +16,6 @@ title: 검색표현 생성
 
 검색표현 하나는 다음과 같은 형태입니다.
 
-`//` 뒤의 내용은 필드 설명이며 실제 JSON 산출물에는 포함되지 않습니다.
-
 ```json
 {
   "document_id": "d002343_6b6d39ebe6",                    // 이 검색표현이 속한 문서의 ID
@@ -77,19 +75,6 @@ Metadata는 검색표현의 문맥을 보강하는 데 사용됩니다. 검색�
 | `g2.metadata_priority` | 정의 파일<br />기준 | 검색표현의 문맥을 보강할 때 우선적으로 사용할 Metadata의 순서 |
 
 검색표현 생성 방식이나 Triple 묶음 기준을 변경하면 생성 결과가 달라지므로, 검색표현 생성 이후 단계를 다시 처리해야 합니다([파이프라인 실행 및 재처리 방법](rerun.md)).
-
-## 이 단계의 결과 확인
-
-검색표현 생성만 따로 실행하는 공개 명령은 없습니다. [문서 인덱싱 실행과 상태 확인](rerun.md)의 `struct4search-ingest` 명령을 실행하면 KG와 Metadata를 입력으로 자동 수행됩니다. 아래 경로의 `<출력_디렉터리>`와 `<문서_ID>`는 해당 명령에 지정한 값을 뜻합니다.
-
-| 확인 대상 | 확인 위치·방법 | 정상 | 비정상 |
-|---|---|---|---|
-| 생성 완료 | `<출력_디렉터리>/g2/documents/<문서_ID>/receipt.json` | `status`가 `complete`이고 `expressions_path`가 아래 결과 파일을 가리킵니다. | 완료 기록이 없으면 Triple 묶음 구성, 모델 호출 또는 근거 연결 중에 멈춘 상태입니다. |
-| 검색표현 | 같은 디렉터리의 `retrieval_texts_final.jsonl` | 각 문장에 하나 이상의 `triple_ids`와 실제 원문을 가리키는 `source_chunk_ids`가 있습니다. 대상 Triple이 없는 문서는 파일이 비어 있어도 정상입니다. | Triple ID나 원문 청크 ID가 실제 결과와 연결되지 않으면 색인할 수 없습니다. |
-| Triple 포함 범위 | `receipt.json`의 `expression_triple_coverage`와 `uncovered_grouped_triples` | 묶어서 생성하기로 한 Triple이 검색표현에 반영되고 누락 수가 기록됩니다. | 묶음에 넣은 Triple이 이유 없이 빠졌다면 모델 응답과 `calls.jsonl`을 확인해야 합니다. |
-| 모델 호출 기록 | 같은 디렉터리의 `calls.jsonl` | 요청마다 성공한 응답이 기록됩니다. 요청할 Triple이 없으면 파일이 비어 있어도 정상입니다. | 반복 응답이나 형식 오류로 격리된 요청이 있으면 `receipt.json`의 `quarantined_requests`에서 확인됩니다. |
-
-검색표현이 0건인 것만으로 실패라고 판단하지 않습니다. 먼저 [KG 구축](triple-kg.md)의 Triple이 0건인지 확인합니다. Triple이 있는데 완료 기록이 없다면 `<출력_디렉터리>/documents/<문서_ID>/failure.json`과 같은 디렉터리의 `calls.jsonl`을 함께 확인합니다.
 
 ## 코드 참조
 

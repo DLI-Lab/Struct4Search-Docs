@@ -16,8 +16,6 @@ title: 인덱싱
 
 색인 문서는 `unit_kind`에 따라 원문 청크와 검색표현으로 구분됩니다.
 
-`//` 뒤의 내용은 필드 설명이며 실제 JSON 산출물에는 포함되지 않습니다.
-
 ### 원문 청크
 
 ```json
@@ -91,19 +89,6 @@ OpenSearch 인덱스
 임베딩 모델이나 벡터 차원을 변경하면 기존 벡터와 호환되지 않으므로 새로운 인덱스를 만들고 다시 색인해야 합니다([실행과 재처리](rerun.md)).
 
 OpenSearch의 전체 매핑과 검색 설정은 [OpenSearch 인덱스 구조](../reference/opensearch-schema.md)에서 확인할 수 있습니다.
-
-## 이 단계의 결과 확인
-
-인덱싱만 따로 실행하는 공개 명령은 없습니다. [문서 인덱싱 실행과 상태 확인](rerun.md)의 `struct4search-ingest` 명령이 앞 단계의 결과를 OpenSearch에 저장하고 전체 인덱싱을 마칩니다. 아래 경로의 `<출력_디렉터리>`는 그 명령의 `--output`에 지정한 디렉터리입니다.
-
-| 확인 대상 | 확인 위치·방법 | 정상 | 비정상 |
-|---|---|---|---|
-| 최종 인덱싱 결과 | `<출력_디렉터리>/index/index_summary.json` | `status`가 `PASS`이고 `count`와 `expected_count`가 같습니다. | 파일이 없거나 두 수가 다르면 일부 검색 단위가 저장되지 않은 상태입니다. |
-| 실제 인덱스 이름 | `<출력_디렉터리>/FINAL_REPORT.json`의 `index.target` | 이번 실행에서 생성하거나 갱신한 OpenSearch 인덱스 이름이 기록되어 있습니다. | 설정의 이름을 추측해 확인하지 말고, 값이 없으면 최종 인덱싱이 끝나지 않은 것으로 봅니다. |
-| 벡터 차원 | `index_summary.json`의 `embedding_dimension` | 설정의 `index.dimension`과 같고 OpenSearch 매핑 검사도 통과했습니다. | 차원이 다르면 질의 벡터와 호환되지 않으므로 해당 인덱스를 검색에 사용할 수 없습니다. |
-| 문서 완료 | `<출력_디렉터리>/documents/<문서_ID>/complete.json` | 파일이 있고 저장한 검색 단위 수가 기록되어 있습니다. | 이 파일 대신 `failure.json`이 있으면 그 문서의 인덱싱이 실패한 상태입니다. |
-
-원문 청크만 있는 문서라면 `retrieval_expression` 검색 단위가 0건이어도 정상일 수 있습니다. 전체 개수는 원문 청크 수와 실제로 생성된 검색표현 수를 합친 값과 비교합니다. 실패한 경우에는 `<출력_디렉터리>/documents/<문서_ID>/failure.json`과 `index/index_summary.json`을 함께 확인합니다.
 
 ## 코드 참조
 
