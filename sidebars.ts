@@ -10,12 +10,7 @@ const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'overview',
     'quickstart',
-    {
-      type: 'category',
-      label: '핵심 개념',
-      collapsed: false,
-      items: ['concepts/data-flow', 'concepts/code-map'],
-    },
+    'concepts/code-map',
     {
       type: 'category',
       label: '문서 인덱싱 파이프라인',
