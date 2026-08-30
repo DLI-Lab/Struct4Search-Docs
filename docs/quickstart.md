@@ -104,6 +104,19 @@ frontend를 수정하지 않는 작업에는 Node.js 설치와 build가 필요�
 - `configs/model-catalog.yaml`에 적힌 model snapshot
 - 처리할 문서와 host별 DSN·model path
 
+### 사용하는 DB와 모델
+
+| 구분 | 종류 | 용도 |
+|---|---|---|
+| DB | PostgreSQL 16 | 지식그래프와 Temporal 실행 상태를 저장합니다. 문서 등록 기능을 함께 실행할 때는 문서 목록도 PostgreSQL에 저장합니다. |
+| DB | OpenSearch 2.19.1 + Nori | 원문·검색표현·vector를 저장하고 keyword·vector 혼합 검색을 수행합니다. |
+| 로컬 실행 기록 | SQLite | 각 output의 `orchestration.sqlite3`에 완료된 작업을 기록합니다. 별도 DB server는 필요하지 않습니다. |
+| 모델 서버 | MinerU2.5-Pro-2605 | scan 또는 image 중심 페이지를 파싱합니다. |
+| 모델 서버 | `Qwen/Qwen3-14B` | Metadata·Triple·KG 이름 검증·검색표현·답변을 생성합니다. |
+| 모델 서버 | `Qwen/Qwen3-Embedding-8B` | 문서와 질의를 4,096차원 vector로 변환합니다. |
+
+NER의 `urchade/gliner_multi-v2.1`은 별도 모델 서버에 올리지 않고 인덱싱 프로세스에서 직접 불러옵니다.
+
 현재 `configs/services/cold-services.yaml`은 약 96 GiB VRAM GPU 두 장을 사용하는 production 구성을 전제로 합니다. 다른 GPU 구성에서는 service의 GPU 배치와 memory 값을 먼저 조정합니다. 자세한 조건은 [GPU 개발환경](reference/dependencies.md#gpu-개발환경)에 있습니다.
 
 ### 1. 설치와 CUDA 확인
