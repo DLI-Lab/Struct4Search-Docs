@@ -34,7 +34,7 @@ flowchart LR
 
 | 단계 | 입력 | 출력 | 현재 모델·교체 옵션 |
 |---|---|---|---|
-| [문서 파싱](parsing.md) | PDF | IDR | 디지털 페이지: PyMuPDF4LLM(모델 미사용)<br />스캔·복합 페이지: MinerU2.5-Pro-2605 |
+| [문서 파싱](parsing.md) | PDF | IDR | 디지털 페이지: PyMuPDF4LLM(라이브러리)<br />스캔·복합 페이지: MinerU2.5-Pro-2605 |
 | [원문 청킹](chunking.md) | IDR | 원문 청크 | 모델 미사용 (`nlpai-lab/KURE-v1` tokenizer) |
 | [NER](ner.md) | IDR | 엔티티 언급과 유형 | `urchade/gliner_multi-v2.1` |
 | [Metadata 생성](metadata.md) | 원문 청크 | 18종 Metadata | 기본: `Qwen/Qwen3-14B`<br />교체 가능: `gpt-5.6-luna` · `gpt-5.6-terra` · `gpt-5.6-sol` |
