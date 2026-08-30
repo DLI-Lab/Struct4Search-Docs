@@ -5,7 +5,7 @@ title: 문서 파싱
 
 # 문서 파싱
 
-현재 production 인덱싱은 PDF를 기본 입력으로 사용합니다. 디지털 PDF는 pdf4LLM으로, 스캔·복합 PDF는 MinerU 2.5 Pro 1.2B로 파싱한 뒤 IDR(표준 문서 표현)로 통합합니다. 이미지와 텍스트 파일을 처리하는 선택형 파서도 있으며, 파서가 달라도 결과는 같은 IDR 구조로 변환됩니다.
+운영 인덱싱은 PDF와 PNG·JPEG 이미지를 입력으로 받습니다. 디지털 PDF는 pdf4LLM으로 처리하고, 스캔 PDF와 이미지는 MinerU 2.5 Pro 1.2B로 처리합니다. 형식과 파서가 달라도 결과는 같은 IDR(표준 문서 표현) 구조로 변환됩니다.
 
 ## 입력과 출력
 
@@ -18,14 +18,15 @@ title: 문서 파싱
 
 | 파일 종류 | 확장자 | 현재 상태 | 사용하는 파서와 조건 |
 |---|---|---|---|
-| PDF | `.pdf` | production 인덱싱에서 사용 가능 | 디지털 페이지는 `pymupdf4llm`, 스캔·복합 페이지는 MinerU를 사용합니다. |
-| PNG 이미지 | `.png` | 선택형 파서로 사용 가능 | `mistral_ocr`, `gpt_vlm` 또는 `glm_ocr`을 선택하고 해당 파서의 패키지와 모델 서비스 또는 API를 준비해야 합니다. |
-| JPEG 이미지 | `.jpg`, `.jpeg` | 선택형 파서로 사용 가능 | PNG와 같은 이미지 파서를 사용합니다. 이미지 한 장을 문서 한 페이지로 처리합니다. |
-| Markdown·텍스트 | `.md`, `.markdown`, `.txt` | 선택형 파서로 사용 가능 | `markdown` 파서가 파일 내용을 읽어 IDR 블록으로 변환합니다. |
+| PDF | `.pdf` | 사용 가능 | 디지털 페이지는 `pymupdf4llm`, 스캔 페이지는 MinerU를 사용합니다. 디지털 페이지와 스캔 페이지가 섞인 PDF는 페이지마다 파서를 선택합니다. |
+| PNG 이미지 | `.png` | 사용 가능 | 이미지 한 장을 한 페이지짜리 스캔 문서로 보고 MinerU로 처리합니다. |
+| JPEG 이미지 | `.jpg`, `.jpeg` | 사용 가능 | 이미지 한 장을 한 페이지짜리 스캔 문서로 보고 MinerU로 처리합니다. |
 | 한글 문서 | `.hwp`, `.hwpx` | 아직 사용 불가 | 확장자와 `hwp` 파서 이름만 등록되어 있으며 실제 파싱 코드는 구현되지 않았습니다. |
 | PowerPoint | `.pptx` | 아직 사용 불가 | 확장자와 `pptx` 파서 이름만 등록되어 있으며 실제 파싱 코드는 구현되지 않았습니다. |
 
-`POST /v1/documents`로 파일을 등록하는 현재 문서 API는 PDF만 받습니다. 이미지나 텍스트 파일은 파서 구현은 갖춰져 있지만 production profile과 공개 업로드 API의 기본 입력에는 연결되어 있지 않으므로, 해당 파서를 명시적으로 구성한 실행에서 사용합니다.
+PNG와 JPEG는 별도의 선택형 파서를 지정할 필요가 없습니다. 인덱싱 입력 목록에서 `corpus_modality`를 `scan`으로, `page_count`를 `1`로 기록하면 기존 MinerU 경로가 처리합니다. `corpus_modality`는 이 문서를 디지털 문서, 스캔 문서 또는 두 형식이 섞인 문서 중 어느 방식으로 처리할지 나타내는 값입니다.
+
+다만 `POST /v1/documents`로 파일을 등록하는 현재 문서 API는 PDF만 받습니다. PNG와 JPEG는 인덱싱 파이프라인에서는 처리할 수 있지만, 공개 업로드 API를 통해 바로 등록할 수는 없습니다.
 
 IDR의 요소 하나는 다음과 같은 형태입니다.
 
@@ -50,17 +51,19 @@ IDR의 요소 하나는 다음과 같은 형태입니다.
 
 IDR에는 각 요소의 본문과 문서 구조, 원본 페이지 위치가 함께 기록됩니다. 이 결과를 [원문 청킹](chunking.md)과 [NER](ner.md)가 공통 입력으로 사용합니다.
 
-## production PDF의 동작 방식
+## 형식별 동작 방식
 
-1. 페이지마다 텍스트층을 사용할 수 있는지 판정합니다.
-2. 판정 결과에 따라 pdf4LLM 또는 MinerU로 페이지를 파싱합니다.
-3. 파서별 결과를 하나의 IDR 구조로 통합합니다.
+1. 디지털 PDF는 pdf4LLM으로 처리합니다.
+2. 스캔 PDF는 각 페이지를 이미지로 만든 뒤 MinerU로 처리합니다.
+3. 디지털 페이지와 스캔 페이지가 섞인 PDF는 페이지마다 사용할 파서를 정합니다.
+4. PNG와 JPEG는 한 페이지짜리 스캔 문서로 보고 MinerU로 처리합니다.
+5. 파서별 결과를 하나의 IDR 구조로 통합합니다.
 
 파서 선택은 페이지 단위로 이루어집니다. 따라서 한 문서 안에서도 텍스트층이 있는 페이지는 pdf4LLM으로, 스캔된 페이지는 MinerU로 처리할 수 있습니다.
 
 ### 설정값
 
-| profile key                               | 현재 production 값                | 의미                       |
+| profile key                               | 현재 운영 설정 값                | 의미                       |
 | ------------------------------------- | -------------------- | ------------------------ |
 | `parser.digital`                      | `pymupdf4llm`        | 디지털 페이지에 사용하는 파서         |
 | `parser.scan`                         | `mineru`             | 스캔 페이지에 사용하는 파서          |
@@ -82,7 +85,6 @@ IDR에는 각 요소의 본문과 문서 구조, 원본 페이지 위치가 함�
 | 페이지 판정    | `backend/struct4search/ingest/stages/parsing/routing.py` · `ConservativeHybridPageRouting` |
 | IDR 통합    | `backend/struct4search/adapters/parsing/canonical_builder.py`     |
 | MinerU 연동 | `backend/struct4search/mineru_vllm_async_service.py`              |
-| 이미지 파서 | `backend/struct4search/adapters/parsing/canonical_runtime/parsing/vlm_parsers.py`, `more_parsers.py` |
-| Markdown·텍스트 파서 | `backend/struct4search/adapters/parsing/canonical_runtime/parsing/markdown_lift.py` |
+| 운영 입력 형식 검사 | `backend/struct4search/e2e/full_corpus_fixture.py` · `_MEDIA_TYPES`, `detected_media_type` |
 | HWP·PPTX 구현 상태 | `backend/struct4search/adapters/parsing/canonical_runtime/parsing/more_parsers.py` |
 | profile      | `configs/ingest-production.yaml` · `parser` · `canonical_idr` |

@@ -5,74 +5,141 @@ title: 파이프라인 구현 변경 및 확장
 
 # 파이프라인 구현 변경 및 확장
 
-검색 방식이나 문서 처리 단계를 코드로 바꿀 때 확인할 위치와 순서를 설명합니다. 설정값만 바꾸려는 경우에는 이 페이지가 아니라 [설정 수정](configuration.md)을 따릅니다.
+이 페이지는 파싱, Metadata 생성, 검색 또는 답변 생성처럼 파이프라인에서 실제로 실행되는 Python 코드를 바꿀 때 사용합니다.
 
-## 먼저 변경 종류를 구분합니다
+모델 이름, 서비스 주소, 검색 결과 개수처럼 이미 준비된 값만 바꾸려면 코드를 수정하지 않고 [설정 수정](configuration.md)을 따릅니다.
 
-| 하려는 일 | 변경 범위 | 이 페이지에서 볼 절 |
+이 페이지를 읽고 나면 바꾸려는 기능이 설정 수정으로 끝나는지, Python 코드를 바꿔야 하는지와 수정할 파일·테스트를 찾을 수 있습니다.
+
+## 먼저 무엇을 바꾸려는지 구분합니다
+
+| 하려는 작업 | 수정할 것 | 예 |
 |---|---|---|
-| 검색 깊이, 모델 이름, 청크 크기처럼 이미 있는 값을 바꿈 | 설정 파일만 수정 | [설정 수정](configuration.md) |
-| 입력과 결과 형식은 그대로 두고 검색기, Reader, Metadata 생성 코드 등을 바꿈 | 기존 연결 규칙을 지키는 새 동작 코드를 작성 | [검색·답변 구현 교체](#검색답변-구현-교체) 또는 [인덱싱 단계 구현 교체](#인덱싱-단계-구현-교체) |
-| 기존에 없던 처리 결과를 만들고 다음 단계로 넘김 | 결과 형식, 실행 순서와 조립 코드를 함께 수정 | [새 인덱싱 단계 추가](#새-인덱싱-단계-추가) |
+| 기존 설정값 변경 | profile 또는 `.env` | Reader 모델을 Qwen에서 다른 모델로 변경 |
+| 기존 처리 코드 교체 | 해당 기능의 코드와 그 코드를 연결하는 파일 | OpenSearch 검색기를 다른 검색기로 교체 |
+| 새 처리 단계 추가 | 입력·결과 형식, 실행 순서, 실제 코드와 연결 파일 | Metadata 다음에 문서 요약 단계를 추가 |
 
-입력이나 결과의 필드가 달라지면 단순 교체가 아닙니다. 그 결과를 받는 다음 단계까지 함께 바꾸어야 합니다.
+입력과 결과의 형태가 그대로라면 기존 처리 코드를 교체하는 작업입니다. 새 결과를 만들거나 다음 단계가 받는 값이 달라진다면 파이프라인에 새 단계를 추가하는 작업입니다.
 
-## 코드가 연결되는 순서
+## 코드를 바꿀 때 확인하는 네 곳
 
-Struct4Search는 다음 순서로 실행할 코드를 정합니다.
+파이프라인의 각 기능은 다음 네 부분으로 나뉩니다.
+
+| 확인할 것 | 의미 | 파일 |
+|---|---|---|
+| 입력과 결과 | 이 기능이 무엇을 받고 무엇을 돌려주는지 정의합니다 | `backend/struct4search/ingest/contracts.py`, `backend/struct4search/query/contracts.py` |
+| 지켜야 할 함수 | 교체할 코드가 반드시 제공해야 하는 함수입니다 | `backend/struct4search/ingest/ports.py`, `backend/struct4search/query/contracts.py` |
+| 실제 처리 코드 | 파싱, 검색과 답변 생성 같은 실제 작업을 합니다 | `backend/struct4search/ingest/stages/`, `backend/struct4search/query/` |
+| 연결하는 코드 | 어느 구현을 사용할지 정하고 실행 순서에 넣습니다 | `backend/struct4search/adapters/orchestration/`, `backend/struct4search/bootstrap/composition.py` |
+
+예를 들어 Metadata 생성 코드를 바꾼다면 `MetadataPort.extract()`가 요구하는 입력과 결과는 유지하고, 새 구현을 `ProfileFrontStageFactory`의 `metadata=` 자리에 연결합니다.
+
+코드에 나오는 이름은 다음 뜻입니다.
+
+| 이름 | 뜻 |
+|---|---|
+| `Contract` | 단계 사이에 주고받는 데이터의 필드와 형식 |
+| `Port` | 교체할 코드가 지켜야 하는 Python 함수 모양. 서버의 포트 번호가 아닙니다. |
+| `Factory` | 실행할 실제 클래스를 만들어 파이프라인의 해당 자리에 넣는 코드 |
+| `Composition` | Embedding, 검색기와 Reader를 묶어 하나의 `QueryService`를 만드는 코드 |
+| `profile` | 실행할 구현 이름과 설정값을 고르는 YAML 파일 |
+
+## 현재 설정만으로 교체할 수 있는 부분
+
+모든 단계가 profile의 이름만 바꿔서 교체되는 것은 아닙니다. 현재 코드에서 바로 선택할 수 있는 범위는 다음과 같습니다.
+
+| 부분 | profile에서 선택하는 값 | 실제로 선택하는 곳 |
+|---|---|---|
+| 디지털 문서 파서 | `parser.digital` | `CanonicalIdrAdapter` |
+| 스캔 문서 파서 | `parser.scan` | `CanonicalIdrAdapter` |
+| 검색·답변 실행 묶음 | `query.retrieval_strategy` | `compose_profile_query()` |
+| 검색·답변 묶음이 허용하는 Reader | `query.reader.implementation` | 선택된 검색·답변 조립 함수 |
+
+NER, Metadata, Triple, KG와 검색표현 구현은 현재 `ProfileFrontStageFactory` 또는 `ProfileBackStageFactory`에 직접 연결되어 있습니다. 이 기능을 교체하려면 profile만 바꾸는 것이 아니라 해당 Factory의 연결 코드도 수정해야 합니다.
+
+## 실제로 들어 있는 교체 예제
+
+`configs/experiments/module-swap-stub.yaml`은 외부 모델과 OpenSearch 없이 파서, 검색기와 Reader를 시험용 코드로 바꾸는 예제입니다.
+
+```yaml
+extends: ../production.yaml
+profile_id: struct4search-module-swap-stub
+execution:
+  mode: experiment
+  publish_alias: false
+
+parser:
+  digital: deterministic_stub
+  digital_params:
+    text: Struct4Search deterministic parser stub
+  scan: deterministic_stub
+  scan_params:
+    text: Struct4Search deterministic parser stub
+
+query:
+  retrieval_strategy: deterministic_stub
+  retrieval_strategy_params: {}
+  reader:
+    implementation: deterministic_stub
+    implementation_params:
+      claim_text: Struct4Search deterministic reader stub
+```
+
+이 profile을 읽으면 다음 일이 일어납니다.
+
+1. 운영 설정은 그대로 두고 시험용 profile만 선택합니다.
+2. `parser.digital`과 `parser.scan`의 이름으로 등록된 시험용 파서를 찾습니다.
+3. `query.retrieval_strategy`가 `deterministic_stub`이므로 시험용 검색기와 Reader를 묶은 `compose_deterministic_query()`를 사용합니다.
+4. API와 evaluator도 이 profile에서 만든 같은 `QueryService`를 사용합니다.
+5. `publish_alias: false`이므로 운영 검색용 이름을 변경하지 않습니다.
+
+다음 테스트는 이 교체가 실제로 선택되는지, 실패 후 다시 실행해도 이전 상태가 남지 않는지와 API 응답 형식이 유지되는지를 확인합니다.
+
+```bash
+python -m pytest -q \
+  tests/unit/config/test_profiles_and_prompts.py \
+  tests/unit/query/test_runtime_entrypoints.py
+```
+
+## 검색·답변 코드를 교체하는 방법
+
+현재 검색·답변 코드는 다음 순서로 실행됩니다.
 
 ```text
-실행 profile
-→ composition.py가 profile에 적힌 구현을 선택
-→ FrontStageGraph, BackStageGraph 또는 QueryService에 실제 동작 코드를 연결
-→ 각 단계가 정해진 입력을 받고 정해진 결과를 반환
+질문
+→ 질문 Embedding 생성
+→ OpenSearch 검색
+→ 답변에 사용할 원문 선택
+→ Reader가 답변과 Citation 생성
+→ Citation 정리
 ```
 
-각 파일의 역할은 다음과 같습니다.
+새 검색 방식을 추가할 때는 다음 순서로 작업합니다.
 
-| 역할 | 위치 | 확인할 내용 |
+### 1. 입력과 결과 형식을 확인합니다
+
+`backend/struct4search/query/contracts.py`에서 교체할 부분의 함수를 확인합니다.
+
+| 교체할 부분 | 지켜야 할 함수 | 입력과 결과 |
 |---|---|---|
-| 단계가 받을 입력과 반환할 결과 | `backend/struct4search/ingest/contracts.py`, `backend/struct4search/query/contracts.py` | 데이터 필드와 유효성 검사 |
-| 단계가 반드시 제공해야 하는 함수 | `backend/struct4search/ingest/ports.py`, `backend/struct4search/query/contracts.py` | 함수 이름, 인자와 반환 형식 |
-| 단계의 실제 동작 | `backend/struct4search/ingest/stages/`, `backend/struct4search/query/` | 파싱, Metadata, 검색, Reader 등의 처리 |
-| 인덱싱 실행 순서 | `backend/struct4search/ingest/front.py`, `backend/struct4search/ingest/back.py` | 어느 단계 다음에 실행되는지 |
-| 실제 동작 코드 연결 | `backend/struct4search/adapters/orchestration/front_pipeline.py`, `back_pipeline.py`, `backend/struct4search/bootstrap/composition.py` | profile로 선택한 코드를 어느 자리에 넣는지 |
+| 질문 Embedding | `EmbeddingPort.embed()` | 질문 문자열을 받아 숫자 벡터를 반환 |
+| 검색 | `RetrievalStrategy.retrieve()` | 질문과 질문 벡터를 받아 검색 결과를 반환 |
+| 답변 생성 | `Reader.generate()` | 질문과 선택된 원문을 받아 답변 문장과 원문 ID를 반환 |
 
-## 검색·답변 구현 교체
+새 코드가 이 입력과 결과를 그대로 사용하면 `QueryService`와 API 응답 형식은 바꾸지 않아도 됩니다.
 
-검색·답변 파이프라인은 다음 세 부분을 바꾸어 끼울 수 있습니다.
+### 2. 실제 코드를 작성합니다
 
-| 부분 | 지켜야 할 함수 | 입력과 결과 |
-|---|---|---|
-| 질의 Embedding | `EmbeddingPort.embed()` | 질문 문자열 → 숫자 벡터 |
-| 검색 | `RetrievalStrategy.retrieve()` | 질문과 질의 벡터 → 검색 후보 목록 |
-| 답변 생성 | `Reader.generate()` | 질문과 최종 원문 근거 → 답변 문장과 근거 ID |
+- 검색 코드는 `backend/struct4search/query/retrieval/`에 둡니다.
+- 답변 생성 코드는 `backend/struct4search/query/answer/`에 둡니다.
+- 검색 결과에는 점수, 순위, 원문 ID와 검색표현에서 원문으로 이어지는 정보를 빠뜨리지 않습니다.
+- Reader 결과에는 답변 문장과 그 문장이 사용한 원문 ID를 넣습니다.
 
-아래는 검색 방식을 새로 추가하는 순서입니다.
+### 3. 새 조립 함수를 등록합니다
 
-### 1. 입력과 결과 형식을 먼저 확인합니다
+`backend/struct4search/bootstrap/composition.py`에서 새 검색·답변 코드를 묶는 함수를 만들고 `DEFAULT_QUERY_STRATEGIES`에 이름을 등록합니다.
 
-`backend/struct4search/query/contracts.py`의 `RetrievalRequest`, `RetrievalBatch`와 `RetrievalStrategy`를 확인합니다. 새 검색 코드는 이 형식을 그대로 사용해야 합니다.
-
-```python
-class MyRetrieval:
-    async def retrieve(self, request: RetrievalRequest, /) -> RetrievalBatch:
-        # request.query와 request.query_vector로 검색합니다.
-        # 결과는 RetrievalHit으로 만든 뒤 RetrievalBatch에 담습니다.
-        return RetrievalBatch(hits=())
-```
-
-실제 구현은 `backend/struct4search/query/retrieval/` 아래에 둡니다. 검색 결과를 만들 때는 점수, 순위, 원문인지 검색표현인지와 원문 연결 정보를 빠뜨리지 않습니다.
-
-### 2. 조립 함수를 추가합니다
-
-`backend/struct4search/bootstrap/composition.py`에 새 검색기와 필요한 Embedding, Reader를 묶어 `QueryDependencies`를 만드는 함수를 추가합니다. 이 함수는 마지막에 `compose_query()`를 호출해 공통 `QueryService`를 반환해야 합니다.
-
-새 이름을 `DEFAULT_QUERY_STRATEGIES`에 등록합니다. 등록하지 않은 이름이 profile에 들어오면 모델이나 OpenSearch에 연결하기 전에 실행이 거부됩니다.
-
-### 3. 별도 profile에서 선택합니다
-
-처음부터 `configs/production.yaml`을 바꾸지 않습니다. 다음처럼 production 설정을 상속하는 시험용 profile을 만들고 새 검색 방식만 지정합니다.
+예를 들어 `my_retrieval`이라는 이름으로 등록했다면 시험용 profile에서 다음처럼 선택합니다.
 
 ```yaml
 extends: ../production.yaml
@@ -86,116 +153,58 @@ query:
   retrieval_strategy_params: {}
 ```
 
-`configs/experiments/module-swap-stub.yaml`은 Parser, 검색기와 Reader를 외부 서비스 없이 교체하는 실제 예시입니다.
+등록하지 않은 이름을 적으면 모델이나 OpenSearch에 연결하기 전에 실행이 중단됩니다.
 
-### 4. 같은 공용 진입점으로 확인합니다
+### 4. API까지 확인합니다
 
-API와 evaluator는 모두 `compose_profile_query()`에서 선택한 같은 `QueryService`를 사용합니다. 새 코드만 따로 호출하는 시험으로 끝내지 않고, profile 선택과 공개 API 응답까지 확인합니다.
+새 검색기 함수만 직접 호출하고 끝내지 않습니다. `compose_profile_query()`가 새 구현을 선택하는지와 `POST /v1/responses`가 기존과 같은 형식의 답변과 Citation을 반환하는지 확인합니다.
 
-```bash
-python -m pytest -q \
-  tests/unit/config/test_profile_query_composition.py \
-  tests/unit/query/test_runtime_entrypoints.py
-```
+## 인덱싱 단계의 코드를 교체하는 방법
 
-테스트에는 다음 경우를 넣습니다.
+인덱싱은 두 구간으로 나뉩니다.
 
-- 새 profile을 선택하면 새 검색 코드가 사용됩니다.
-- 알 수 없는 구현 이름이나 잘못된 옵션은 외부 연결 전에 거부됩니다.
-- 검색 코드가 실패한 뒤 다른 profile을 실행해도 이전 상태가 남지 않습니다.
-- `POST /v1/responses`의 필드와 Citation 형식은 교체 전과 같습니다.
-
-## 인덱싱 단계 구현 교체
-
-입력과 결과를 유지하면서 한 단계의 내부 처리만 바꾸는 경우에는 실행 순서를 수정할 필요가 없습니다.
-
-예를 들어 Metadata 생성 코드를 교체할 때는 다음 순서로 진행합니다.
-
-1. `backend/struct4search/ingest/ports.py`의 `MetadataPort.extract()`를 확인합니다. 입력은 Canonical IDR와 원문 청크이고 결과는 `StageResult[MetadataOutput]`입니다.
-2. `backend/struct4search/ingest/stages/metadata/`에 새 동작 코드를 작성합니다.
-3. `backend/struct4search/adapters/orchestration/front_pipeline.py`의 `ProfileFrontStageFactory`에서 `metadata=`에 새 코드를 연결합니다.
-4. Metadata 파일과 완료 기록을 기존 `MetadataOutput` 형식으로 반환합니다. 그래야 검색표현 생성과 재실행 판단이 그대로 동작합니다.
-5. `tests/unit/ingest/test_front_graph.py`에 정상 결과, 실패 전달과 실행 순서 검사를 추가합니다.
-
-V3, Triple, KG, 검색표현과 인덱싱은 같은 방식으로 `backend/struct4search/adapters/orchestration/back_pipeline.py`의 `ProfileBackStageFactory`에서 연결합니다. 어느 단계가 어떤 입력을 받는지는 `backend/struct4search/ingest/ports.py`의 해당 함수에서 확인합니다.
-
-```bash
-python -m pytest -q \
-  tests/unit/ingest/test_front_graph.py \
-  tests/unit/ingest/test_back_graph.py \
-  tests/unit/config
-```
-
-## 새 인덱싱 단계 추가
-
-새 결과를 만들어 다음 단계에서 사용해야 한다면 아래 항목을 모두 수정합니다.
-
-### 1. 어느 구간에 들어갈지 정합니다
-
-| 넣을 위치 | 실행 순서를 관리하는 곳 | 현재 단계 |
+| 구간 | 실행 순서 | 연결하는 파일 |
 |---|---|---|
-| Parser부터 Metadata까지 | `backend/struct4search/ingest/front.py` · `FrontStageGraph` | 페이지 분기 → 파싱 → Canonical IDR → 원문 청킹·NER → Metadata |
-| V3부터 인덱싱까지 | `backend/struct4search/ingest/back.py` · `BackStageGraph` | V3 → Triple 생성·검사 → KG → 검색표현 → 인덱싱 |
+| 앞 구간 | 페이지 분기 → 파싱 → IDR → 원문 청킹·NER → Metadata | `backend/struct4search/adapters/orchestration/front_pipeline.py` |
+| 뒤 구간 | V3 → Triple 생성·검사 → KG → 검색표현 → OpenSearch 저장 | `backend/struct4search/adapters/orchestration/back_pipeline.py` |
 
-새 단계가 사용하는 입력이 이미 만들어진 직후에 배치합니다. 단순히 파일 이름이나 개발 편의에 따라 위치를 정하지 않습니다.
+예를 들어 Metadata 생성 코드를 교체하는 순서는 다음과 같습니다.
 
-### 2. 결과와 함수 형식을 정의합니다
+1. `backend/struct4search/ingest/ports.py`에서 `MetadataPort.extract()`의 입력과 결과를 확인합니다.
+2. `backend/struct4search/ingest/stages/metadata/`에 새 구현을 작성합니다.
+3. 새 구현도 기존과 같은 `StageResult[MetadataOutput]`을 반환하게 합니다.
+4. `ProfileFrontStageFactory`의 `metadata=`에 새 구현을 연결합니다.
+5. `tests/unit/ingest/test_front_graph.py`에서 실행 순서, 정상 결과와 실패 전달을 확인합니다.
 
-1. `backend/struct4search/ingest/contracts.py`에 새 단계의 결과 형식을 추가합니다.
-2. `backend/struct4search/ingest/ports.py`에 새 단계가 제공할 함수를 추가합니다.
-3. `backend/struct4search/ingest/stages/<새_단계>/`에 실제 동작 코드를 작성합니다.
+결과 형태가 같으면 Metadata를 사용하는 검색표현 생성 코드는 수정하지 않습니다. 결과에 새 필드를 추가하고 다른 단계가 그 값을 사용한다면 아래의 새 단계 추가 절차를 따릅니다.
 
-결과 형식에는 다음 단계가 실제로 사용할 값과 실행 결과 파일의 위치가 포함되어야 합니다. 다음 단계가 다시 원본 파일을 읽어 같은 값을 추측하게 만들지 않습니다.
+## 새 인덱싱 단계를 추가하는 방법
 
-### 3. 실행 순서와 다음 단계 연결을 추가합니다
+예를 들어 Metadata 뒤에 `문서 요약` 단계를 추가한다면 다음 파일을 순서대로 수정합니다.
 
-1. `FrontStageGraph` 또는 `BackStageGraph`에 새 단계를 받는 필드를 추가합니다.
-2. `execute_document()`의 정해진 위치에서 새 단계를 호출합니다.
-3. `FrontDocumentOutput` 또는 `BackDocumentOutput`에 새 결과를 넣습니다.
-4. 새 결과를 사용하는 다음 단계의 입력을 명시적으로 연결합니다.
-5. `ProfileFrontStageFactory` 또는 `ProfileBackStageFactory`에서 실제 동작 코드를 해당 필드에 넣습니다.
+1. `ingest/contracts.py`에 문서 요약 결과의 필드를 정의합니다.
+2. `ingest/ports.py`에 요약 단계가 제공할 함수를 정의합니다.
+3. `ingest/stages/document_summary/`에 실제 요약 코드를 작성합니다.
+4. `FrontStageGraph`에서 Metadata 다음에 요약 함수를 호출합니다.
+5. `FrontDocumentOutput`에 요약 결과를 넣고, 이 결과를 사용하는 다음 단계에 전달합니다.
+6. `ProfileFrontStageFactory`에서 실제 요약 구현을 연결합니다.
+7. 결과 파일과 완료 기록을 남겨 중단 후 재실행할 때 완료 여부를 확인할 수 있게 합니다.
+8. 앞 구간 단위 테스트와 문서 한 건 E2E를 실행합니다.
 
-설정이 필요하면 profile 스키마와 `configs/`의 값을 함께 추가합니다. 코드 안에서 환경변수나 임의의 기본값을 직접 읽지 않습니다.
+최종 2,567문서 실행에서도 새 단계가 필요하다면 `backend/struct4search/orchestration/dag.py`의 `F400_INGESTION_DAG`와 전체 E2E 검사도 함께 수정합니다.
 
-### 4. 실패와 재실행에 필요한 기록을 추가합니다
-
-단계가 끝나면 결과 파일과 완료 기록을 남겨야 합니다. 그래야 실행이 중단되었을 때 끝난 단계와 다시 실행할 단계를 구분할 수 있습니다.
-
-- 새 결과를 `StageResult`와 단계 완료 기록에 포함합니다.
-- 문서 완료 검사에서 새 결과 파일의 존재와 해시를 확인합니다.
-- `FINAL_REPORT.json`에서 성공·실패 여부를 확인할 수 있게 합니다.
-- 같은 `--output`으로 `--resume`했을 때 완료된 결과를 잘못 다시 사용하지 않는지 검사합니다.
-
-최종 2,567문서 실행에서도 새 단계가 필요하면 `backend/struct4search/orchestration/dag.py`의 `F400_INGESTION_DAG`와 최종 E2E 검사를 함께 수정합니다. 일반 `struct4search-ingest`만 바꾸는 경우에는 이 DAG를 건드리지 않습니다.
-
-### 5. 작은 검사부터 실제 한 문서 실행까지 진행합니다
+## 변경 후 확인 순서
 
 ```bash
 python -m pytest -q \
+  tests/unit/config/test_profiles_and_prompts.py \
   tests/unit/ingest/test_front_graph.py \
   tests/unit/ingest/test_back_graph.py \
-  tests/unit/config
+  tests/unit/query/test_runtime_entrypoints.py
 
 struct4search-smoke-e2e
 ```
 
-새 단계가 최종 2,567문서 실행에도 들어가면 다음 검사도 실행합니다.
+먼저 설정과 실행 순서 테스트에서 잘못 연결된 부분을 찾고, 마지막에 운영 데이터와 분리된 문서 한 건 E2E로 인덱싱, 검색, 답변과 Citation까지 확인합니다.
 
-```bash
-python -m pytest -q \
-  tests/test_parallel_contracts.py \
-  tests/unit/e2e/test_final_full_2567_200.py
-```
-
-## 완료 기준
-
-다음 항목이 모두 확인되어야 구현 변경이 끝난 것입니다.
-
-- profile 하나만 바꾸어 기존 구현과 새 구현을 선택할 수 있습니다.
-- API, evaluator와 E2E가 같은 조립 경로를 사용합니다.
-- 잘못된 구현 이름과 옵션은 모델·데이터베이스·OpenSearch 연결 전에 거부됩니다.
-- 한 단계의 실패가 다음 단계의 정상 결과처럼 기록되지 않습니다.
-- 재실행할 때 완료 기록과 실제 결과 파일이 서로 맞는지 확인합니다.
-- 운영 데이터와 분리된 한 문서 E2E에서 인덱싱, 검색, 답변과 Citation까지 완료됩니다.
-
-변경한 단계 이후에 다시 만들어야 할 데이터는 [변경 영향과 재실행 범위](change-map.md)에서 확인합니다.
+변경한 단계 이후에 다시 만들어야 하는 데이터는 [변경 영향과 재실행 범위](change-map.md)에서 확인합니다.
