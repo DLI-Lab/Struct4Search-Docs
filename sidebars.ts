@@ -75,7 +75,6 @@ const sidebars: SidebarsConfig = {
         'testing/overview',
         'testing/eval200',
         'testing/retrieval-qa',
-        'testing/metrics',
       ],
     },
   ],

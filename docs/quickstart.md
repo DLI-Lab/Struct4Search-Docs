@@ -213,4 +213,4 @@ curl --fail \
 - 전체 명령과 인자: [CLI Reference](reference/cli.md)
 - API 요청과 응답: [API Reference](reference/api-reference.md)
 - 단계별 모델·service 위치: [모델 사용 위치](reference/model-calls.md)
-- 검색·답변 품질 평가: [평가 실행과 통과 판정](testing/retrieval-qa.md)
+- 검색·답변 품질 평가: [평가 실행과 결과 확인](testing/retrieval-qa.md)

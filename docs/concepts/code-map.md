@@ -63,6 +63,6 @@ Struct4Search/
 | `backend/struct4search/adapters/search/` | 질의 embedding과 OpenSearch Hybrid 검색을 실행합니다 | [Hybrid 검색](../query/hybrid-search.md), [RRF](../query/rrf.md) |
 | `backend/struct4search/entrypoints/` | CLI, API와 백그라운드 worker의 실행 진입점을 제공합니다 | [CLI Reference](../reference/cli.md), [API Reference](../reference/api-reference.md) |
 | `backend/struct4search/orchestration/` | Temporal workflow, 단계 의존성과 실행 상태를 관리합니다 | [문서 인덱싱 파이프라인](../indexing/overview.md), [CLI Reference](../reference/cli.md) |
-| `backend/struct4search/evaluation/` | 검색·답변 지표와 회귀 기준을 계산합니다 | [평가 실행과 통과 판정](../testing/retrieval-qa.md), [평가 지표](../testing/metrics.md) |
+| `backend/struct4search/evaluation/` | 검색·답변 지표와 변경 전 결과 비교를 계산합니다 | [평가 실행과 결과 확인](../testing/retrieval-qa.md) |
 
 `.env`에는 API key와 DSN, host마다 달라지는 model·실행 파일·산출물 경로를 둡니다. `struct4search-*` 명령은 실행할 때 `.env`를 자동으로 읽고, 이미 export한 값은 유지합니다. 검색·모델·프롬프트의 동작 값은 profile과 버전 관리된 설정 파일에서 관리합니다.
