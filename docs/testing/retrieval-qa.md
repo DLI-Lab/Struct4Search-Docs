@@ -30,6 +30,8 @@ mkdir -p "$S4S_ARTIFACT_CONTROL_ROOT"
 
 각 명령이 끝나면 터미널 마지막 줄에 `status`, `run_id`, `receipt_path`와 `output_root`가 JSON으로 출력됩니다. 아래 예제의 `RECEIPT`에는 출력된 `receipt_path`, `RUN_ROOT`에는 `output_root`를 그대로 넣습니다.
 
+100문서와 전체 문서 평가는 질의 하나가 정답 품질을 만족하지 못해도 남은 질의를 계속 실행합니다. API 요청과 응답 형식은 정상인데 답변이 없거나 틀렸거나 정답 문서를 찾지 못한 경우에는 `query_quality_misses`에 기록하고 전체 검색·답변 지표에 반영합니다. API 호출 실패, 응답 형식 오류, 다른 index 사용이나 검색 근거 밖 Citation은 `query_execution_failures`에 기록되는 실행 오류이며 전체 실행을 실패 처리합니다. 최종 배포 판정은 개별 질의의 실행 성공 여부가 아니라 모든 질의를 실행한 뒤 계산한 검색·QA 지표를 사용합니다.
+
 ## 1. 문서 1건 실행
 
 설치와 서비스 연결을 처음 확인할 때 실행합니다. 고정 문서 1건을 새 검색 공간에 인덱싱하고, 실제 질문 1건에 답변과 Citation을 만든 뒤 HTTP 경로까지 확인합니다.
@@ -98,11 +100,11 @@ struct4search-final-100-100-e2e
 터미널에 출력된 경로를 지정한 뒤 전체 상태와 검색 점수를 확인합니다.
 
 ```bash
-jq '{status, run_id, successful_query_count: .queries_and_web.successful_query_count, failed_query_ids: .queries_and_web.failed_query_ids}' "$RECEIPT"
-jq '{status, query_count, retrieval}' "$RUN_ROOT/EVALUATION_RESULTS.json"
+jq '{status, run_id, queries_total: .queries_and_web.queries_total, queries_executed: .queries_and_web.queries_executed, query_execution_failures: .queries_and_web.query_execution_failures, query_quality_misses: .queries_and_web.query_quality_misses}' "$RECEIPT"
+jq '{status, queries_total, queries_executed, query_execution_failure_count, query_quality_miss_count, retrieval}' "$RUN_ROOT/EVALUATION_RESULTS.json"
 ```
 
-정상이라면 실행 기록의 `status`가 `PASS`, 성공한 질문 수가 `100`, 실패한 질문 목록이 빈 배열입니다. `EVALUATION_RESULTS.json`도 `status: PASS`, `query_count: 100`이어야 합니다.
+질의 실행이 정상적으로 끝났다면 `queries_total`과 `queries_executed`가 모두 `100`이고 `query_execution_failures`가 빈 배열입니다. `query_quality_misses`가 있으면 같은 질문 ID의 검색·답변 결과를 확인하며, 해당 질의의 낮은 점수까지 포함한 전체 지표로 배포 여부를 판단합니다. `EVALUATION_RESULTS.json`의 `status: PASS`는 100개 질의 실행과 집계가 완료됐다는 뜻이며 모든 답변이 정답이라는 뜻은 아닙니다.
 
 | 결과 | 들어 있는 내용 | 확인할 것 |
 |---|---|---|
@@ -111,7 +113,7 @@ jq '{status, query_count, retrieval}' "$RUN_ROOT/EVALUATION_RESULTS.json"
 | `EVALUATION_RESULTS.json` | 질문 수, 전체 검색 지표와 Citation 정리 횟수 | `status`, `query_count`와 `retrieval` 점수 |
 | `retrieval_scores_per_query.jsonl` | 질문별 MRR, Hit, Recall과 nDCG | 전체 평균이 낮을 때 어느 질문의 순위가 나빠졌는지 |
 | `qa_answers.jsonl` | 질문별 답변, 최종 검색 문서, Context와 Citation | 답변이 필요한 근거를 사용했고 Citation이 Context 안의 원문을 가리키는지 |
-| `query_observations.jsonl` | 질문별 실행 상태와 HTTP 확인 결과 | 실패한 질문 ID와 직접적인 오류 메시지 |
+| `query_observations.jsonl` | 질문별 `execution_status`, `quality_status`와 HTTP 확인 결과 | 실행 오류인지 정상 실행 후 품질 miss인지 |
 | `query-diagnostics/<질문 ID>.json` | 질문 하나의 검색 요청과 답변 생성 과정 | 문제가 검색에서 시작됐는지 답변 생성에서 시작됐는지 |
 
 검색 점수가 낮으면 `retrieval_scores_per_query.jsonl`에서 값이 낮은 질문 ID를 찾고, 같은 ID를 `qa_answers.jsonl`과 `query-diagnostics`에서 확인합니다. 검색된 문서는 맞지만 답변이 부정확하면 Reader와 답변 프롬프트를 확인하고, 필요한 문서가 검색되지 않았다면 인덱싱 결과와 검색 설정을 확인합니다.
@@ -127,12 +129,12 @@ struct4search-final-full-2567-200-e2e
 터미널에 출력된 경로를 지정한 뒤 다음 결과부터 확인합니다.
 
 ```bash
-jq '{status, execution_status, successful_query_count: .queries_and_web.successful_query_count, failed_query_ids: .queries_and_web.failed_query_ids}' "$RECEIPT"
-jq '{status, query_count, retrieval}' "$RUN_ROOT/EVALUATION_RESULTS.json"
+jq '{status, execution_status, queries_total: .queries_and_web.queries_total, queries_executed: .queries_and_web.queries_executed, query_execution_failures: .queries_and_web.query_execution_failures, query_quality_misses: .queries_and_web.query_quality_misses}' "$RECEIPT"
+jq '{status, queries_total, queries_executed, query_execution_failure_count, query_quality_miss_count, retrieval}' "$RUN_ROOT/EVALUATION_RESULTS.json"
 jq '{terminal_documents, index, duplicate_identity_audit}' "$RUN_ROOT/FULL_RUN_AGGREGATES.json"
 ```
 
-정상 종료한 실행은 `execution_status`가 `PASS`이고, 질문 200건이 모두 성공하며 `failed_query_ids`가 빈 배열입니다. 최종 정책 비교에 설명할 메모가 있으면 바깥 `status`는 `PASS_WITH_NOTE` 또는 `WARNING_NON_MATERIAL_DRIFT`가 될 수 있습니다. 그 밖의 상태는 실행 기록의 `error`와 정책 결과를 확인해야 합니다.
+정상 종료한 실행은 `execution_status`가 `PASS`이고, `queries_executed`가 `200`, `query_execution_failures`가 빈 배열입니다. `query_quality_misses`는 실행 오류가 아니며 전체 검색·답변 지표에 포함됩니다. 최종 정책 비교에 설명할 메모가 있으면 바깥 `status`는 `PASS_WITH_NOTE` 또는 `WARNING_NON_MATERIAL_DRIFT`가 될 수 있습니다. 그 밖의 상태는 실행 기록의 `error`와 정책 결과를 확인해야 합니다.
 
 | 결과 | 들어 있는 내용 | 확인할 것 |
 |---|---|---|
@@ -145,7 +147,7 @@ jq '{terminal_documents, index, duplicate_identity_audit}' "$RUN_ROOT/FULL_RUN_A
 | `EVALUATION_RESULTS.json` | 200개 질문의 전체 검색 지표와 Citation 정리 횟수 | `status: PASS`, `query_count: 200`과 전체 검색 점수 |
 | `retrieval_scores_per_query.jsonl` | 200개 질문 각각의 검색 점수 | 점수가 낮아진 질문과 질문 유형 |
 | `qa_answers.jsonl` | 200개 질문의 답변, 검색 결과, Context와 Citation | 답변 내용과 원문 근거 연결 |
-| `query_observations.jsonl` | 질문별 실행 상태와 오류 | 실패한 질문과 직접적인 실패 원인 |
+| `query_observations.jsonl` | 질문별 실행 상태와 품질 상태 | 실행 오류와 정상 실행 후 품질 miss의 구분 |
 
 전체 평균만 보고 끝내지 않습니다. `EVALUATION_RESULTS.json`에서 검색 점수를 확인한 뒤, 낮은 질문은 `retrieval_scores_per_query.jsonl`에서 찾고 같은 질문의 답변과 Citation을 `qa_answers.jsonl`에서 확인합니다. 문서 처리 수가 예상과 다르면 질문 결과보다 `DOCUMENT_TERMINAL_STATUSES.jsonl`과 `STAGE_TERMINAL_SUMMARY.json`을 먼저 확인합니다.
 
