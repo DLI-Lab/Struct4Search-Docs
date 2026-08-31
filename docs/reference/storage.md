@@ -106,7 +106,7 @@ production 인덱싱은 전체 문서의 완료 조건과 품질 검사를 통�
 | 확인할 내용 | 파일·심볼 |
 |---|---|
 | 실행 기록과 재개 | `backend/struct4search/orchestration/state_store.py` · `backend/struct4search/adapters/orchestration/back_pipeline.py` |
-| PostgreSQL 문서·Metadata 저장 | `backend/struct4search/document_catalog.py` |
-| PostgreSQL KG 저장 | `backend/struct4search/kg_store.py` |
+| PostgreSQL 문서·Metadata 저장 | `backend/struct4search/documents/catalog.py` |
+| PostgreSQL KG 저장 | `backend/struct4search/adapters/persistence/kg_store.py` |
 | OpenSearch 색인 갱신 | `backend/struct4search/ingest/stages/indexing/stage.py` |
 | 저장소 설정 | `configs/ingest-production.yaml` · `kg` · `index` |

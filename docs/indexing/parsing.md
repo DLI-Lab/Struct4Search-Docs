@@ -71,7 +71,7 @@ IDR에는 각 요소의 본문과 문서 구조, 원본 페이지 위치가 함�
 | 문서 파싱     | `backend/struct4search/ingest/stages/parsing/stage.py` · `build_canonical_idr` |
 | 페이지 판정    | `backend/struct4search/ingest/stages/parsing/routing.py` · `ConservativeHybridPageRouting` |
 | IDR 통합    | `backend/struct4search/adapters/parsing/canonical_builder.py`     |
-| MinerU 연동 | `backend/struct4search/mineru_vllm_async_service.py`              |
+| MinerU 연동 | `backend/struct4search/adapters/mineru/async_service.py`          |
 | 운영 입력 형식 검사 | `backend/struct4search/e2e/full_corpus_fixture.py` · `_MEDIA_TYPES`, `detected_media_type` |
 | HWP·PPTX 구현 상태 | `backend/struct4search/adapters/parsing/canonical_runtime/parsing/more_parsers.py` |
 | profile      | `configs/ingest-production.yaml` · `parser` · `canonical_idr` |

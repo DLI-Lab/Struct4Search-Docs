@@ -57,8 +57,8 @@ Struct4Search/
 | `backend/struct4search/query/answer/` | 답변 Context, token 예산, 구조화 답변과 Citation을 처리합니다 | [Context 구성](../query/context.md), [구조화 답변](../query/structured-answer.md), [출처 표기](../query/citations.md) |
 | `backend/struct4search/adapters/parsing/` | Parser 결과를 공통 IDR 구조로 변환합니다 | [파싱](../indexing/parsing.md) |
 | `backend/struct4search/adapters/llm/` | local Qwen과 hosted GPT 호출을 공통 계약으로 제공합니다 | [모델 사용 위치](../reference/model-calls.md) |
-| `backend/struct4search/document_catalog.py` | 문서와 Metadata를 PostgreSQL에 동기화합니다 | [저장소](../reference/storage.md) |
-| `backend/struct4search/kg_store.py` | 문서 지식그래프를 PostgreSQL에 저장합니다 | [저장소](../reference/storage.md) |
+| `backend/struct4search/documents/` | 문서와 Metadata의 등록·조회·상태·삭제를 관리합니다 | [저장소](../reference/storage.md) |
+| `backend/struct4search/adapters/persistence/kg_store.py` | 문서 지식그래프를 PostgreSQL에 저장합니다 | [저장소](../reference/storage.md) |
 | `backend/struct4search/adapters/persistence/` | 실행이 끝난 문서의 KG 산출물을 저장소 동기화에 연결합니다 | [저장소](../reference/storage.md) |
 | `backend/struct4search/adapters/search/` | 질의 embedding과 OpenSearch Hybrid 검색을 실행합니다 | [Hybrid 검색](../query/hybrid-search.md), [RRF](../query/rrf.md) |
 | `backend/struct4search/entrypoints/` | CLI, API와 백그라운드 worker의 실행 진입점을 제공합니다 | [CLI Reference](../reference/cli.md), [API Reference](../reference/api-reference.md) |
